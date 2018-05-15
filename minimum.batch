@@ -1,0 +1,16 @@
+@ECHO OFF
+REM
+REM Rename this with a .CMD extension
+REN
+REM Includes error handling so that the EXE 
+REM failing returns an error to SQL Server Agent
+REM
+xelogstash.exe  /config "minimum.toml"
+IF ERRORLEVEL 1 SET ERR=1
+
+IF %ERR%==1 ECHO *** CMD File: The EXE set an error level ***
+IF %ERR%==1 EXIT /b 1
+
+:Done
+
+

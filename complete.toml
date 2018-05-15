@@ -1,0 +1,57 @@
+[app]
+workers = 4 # max number of concurrent workers.  Defaults to 2 x cores
+# logstash = "D30:8888"
+summary = true # prints a summary of events to stdout after running
+samples = true # prints one of each type event to samples.xe.json after running
+
+[applog]
+# logstash = "D30:8888"
+timestamp_field_name = "@timestamp"
+payload_field_name = "event" # all app fields will be nested under this field.  Optional.
+samples = true # prints the JSON application logging messaegs to samples.applog.json
+
+adds = [    "global.host:$(HOST)",
+            "global.app:$(EXE)" ]
+copies = [  "@timestamp:newtimestamp" ]
+moves = [ ] 
+
+[defaults]
+prefix = "TEST" # Please see the docs
+sessions = ["system_health", "AlwaysOn_health", "your_session"]
+rows = 0 # 0 or omitted processes all the fields 
+timestamp_field_name = "@timestamp"
+payload_field_name = "mssql" # all the XE events are under this field
+agentjobs = true # process SQL Server agent job history
+excludedEvents = [
+    "connectivity_ring_buffer_recorded",
+    "memory_broker_ring_buffer_recorded",
+    "sp_server_diagnostics_component_result",
+    "scheduler_monitor_system_health_ring_buffer_recorded",
+    "security_error_ring_buffer_recorded"
+    ]
+
+adds = [    "global.collector:$(EXE)",
+            "global.collector.version:$(VERSION)"
+            "global.logtype:sqlxe" ]
+copies = [  "mssql.timestasmp:newtimestamp",
+            "mssql.server_instance_name:global.host" ]
+moves = [ ] 
+
+
+[[source]]
+fqdn = "localhost"
+
+[[ source ]]
+fqdn = "remote.domain.loc"
+#
+# Can repeat any field in the defaults for each source
+# These fields overwrite defaults
+# Except taht adds, copies, and moves are merged
+#
+
+
+
+
+
+
+

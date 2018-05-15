@@ -1,0 +1,31 @@
+[app]
+# logstash = "D30:8888"
+summary = true # prints a summary of events to stdout after running
+samples = true # prints one of each type event to samples.xe.json after running
+
+[applog]
+# logstash = "D30:8888"
+timestamp_field_name = "@timestamp"
+samples = true # prints the JSON application logging messaegs to samples.applog.json
+
+[defaults]
+prefix = "TEST" # Please see the docs
+sessions = ["system_health"]
+rows = 1 
+timestamp_field_name = "@timestamp"
+agentjobs = true # process SQL Server agent job history
+excludedEvents = [
+    "connectivity_ring_buffer_recorded",
+    "memory_broker_ring_buffer_recorded",
+    "sp_server_diagnostics_component_result",
+    "scheduler_monitor_system_health_ring_buffer_recorded",
+    "security_error_ring_buffer_recorded"
+    ]
+
+
+[[source]]
+fqdn = "localhost"
+
+
+
+
