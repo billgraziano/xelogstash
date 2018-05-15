@@ -25,6 +25,8 @@ import (
 
 const version = "0.10"
 
+var sha1ver string
+
 var opts struct {
 	TOMLFile string `long:"config" description:"Read configuration from this TOML file."`
 }
@@ -48,6 +50,9 @@ func main() {
 
 	log.SetFlags(log.Ltime)
 	log.Println("Starting...")
+	if sha1ver != "" {
+		log.Println("repository sha1:", sha1ver[0:6])
+	}
 
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
@@ -63,7 +68,7 @@ func main() {
 	// }
 
 	if opts.TOMLFile == "" {
-		opts.TOMLFile = "xecap.toml"
+		opts.TOMLFile = "xelogstash.toml"
 	}
 
 	var settings config.Config
