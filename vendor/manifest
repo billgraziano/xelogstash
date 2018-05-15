@@ -1,0 +1,127 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/Showmax/go-fqdn",
+			"repository": "https://github.com/Showmax/go-fqdn",
+			"vcs": "git",
+			"revision": "6f60894d629f2a57e5896dd1fad6e520256ee2b7",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/alexbrainman/odbc",
+			"repository": "https://github.com/alexbrainman/odbc",
+			"vcs": "git",
+			"revision": "14913e72bfde8c83720086e5e32d4d8122b9932d",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/billgraziano/mssqlodbc",
+			"repository": "https://github.com/billgraziano/mssqlodbc",
+			"vcs": "git",
+			"revision": "8873d0e202acb95d1c34a6b22b4b661d559b6a9d",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/billgraziano/toml",
+			"repository": "https://github.com/billgraziano/toml",
+			"vcs": "git",
+			"revision": "bae4b1adb8fae0c88fd97ce124a56fa3a8b81c0e",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/dustin/go-humanize",
+			"repository": "https://github.com/dustin/go-humanize",
+			"vcs": "git",
+			"revision": "bb3d318650d48840a39aa21a027c6630e198e626",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/fatih/structs",
+			"repository": "https://github.com/fatih/structs",
+			"vcs": "git",
+			"revision": "ebf56d35bba727c68ac77f56f2fcf90b181851aa",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/jessevdk/go-flags",
+			"repository": "https://github.com/jessevdk/go-flags",
+			"vcs": "git",
+			"revision": "1c38ed7ad0cc3d9e66649ac398c30e45f395c4eb",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"vcs": "git",
+			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/pkg/profile",
+			"repository": "https://github.com/pkg/profile",
+			"vcs": "git",
+			"revision": "5b67d428864e92711fcbd2f8629456121a56d91f",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/satori/go.uuid",
+			"repository": "https://github.com/satori/go.uuid",
+			"vcs": "git",
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/tidwall/gjson",
+			"repository": "https://github.com/tidwall/gjson",
+			"vcs": "git",
+			"revision": "3cd3a1192327ac5e24f7e87824be578b0b07c604",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/tidwall/match",
+			"repository": "https://github.com/tidwall/match",
+			"vcs": "git",
+			"revision": "1731857f09b1f38450e2c12409748407822dc6be",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/tidwall/sjson",
+			"repository": "https://github.com/tidwall/sjson",
+			"vcs": "git",
+			"revision": "6a22caf2fd45d5e2119bfc3717e984f15a7eb7ee",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/ssh/terminal",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "b49d69b5da943f7ef3c9cf91c8777c1f78a0cc3c",
+			"branch": "master",
+			"path": "/ssh/terminal",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/windows",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "79b0c6888797020a994db17c8510466c72fe75d9",
+			"branch": "master",
+			"path": "/windows",
+			"notests": true
+		}
+	]
+}
