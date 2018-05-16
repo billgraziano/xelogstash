@@ -57,7 +57,7 @@ type Reader struct {
 }
 
 // Name returns the "name" attribute from the event
-// It returns an empty string of not found or not a string
+// It returns an empty string if not found or not a string
 func (e *Event) Name() string {
 	i, ok := (*e)["name"]
 	if !ok {
@@ -249,6 +249,11 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		event.Set("server_instance_name", i.Server)
 	}
 
+	// These are stored in ms, so convert to us
+	// if ed.Name == "wait_info" || ed.Name == "wait_info_external" {
+	// 	durationToMicroSeconds(&event)
+	// }
+
 	// // set wait_type_name
 	// _, exists := event["wait_type"]
 	// if exists {
@@ -256,10 +261,23 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	// 	if err != nil {
 	// 		return event, errors.Wrap(err, "event.setwaitname")
 	// 	}
-	// }
+	//
 
 	return event, nil
 }
+
+// func durationToMicroSeconds(e *Event) {
+// 	v, exists := (*e)["duration"]
+// 	if !exists {
+// 		return
+// 	}
+// 	d, ok := v.(uint64)
+// 	if !ok {
+// 		return
+// 	}
+// 	d = d * 1000
+// 	(*e)["duration"] = d
+// }
 
 // func (e *Event) setWaitName(i *SQLInfo) error {
 // 	// get the wait type as integer
@@ -300,12 +318,12 @@ func (e *Event) getSeverity() logstash.Severity {
 		return logstash.Error
 	}
 
-	if name == "wait_info_external" || 
-		name == "wait_info" || 
+	if name == "wait_info_external" ||
+		name == "wait_info" ||
 		name == "scheduler_monitor_non_yielding_ring_buffer_recorded" {
 		return logstash.Warning
 	}
-	
+
 	return logstash.Info
 }
 
@@ -387,7 +405,7 @@ func (e *Event) getDescription() string {
 		duration, exists := (*e)["duration"]
 		if exists {
 			t, _ = strconv.ParseInt(fmt.Sprintf("%d", duration), 10, 64)
-			dur = fmt.Sprintf("%s", roundDuration(time.Duration(t)*time.Nanosecond))
+			dur = fmt.Sprintf("%s", roundDuration(time.Duration(t)*time.Millisecond))
 		}
 		wt := e.GetString("wait_type")
 		if wt != "" {
