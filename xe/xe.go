@@ -300,10 +300,13 @@ func (e *Event) getSeverity() logstash.Severity {
 		return logstash.Error
 	}
 
-	if name == "wait_info_external" || name == "wait_info" {
+	if name == "wait_info_external" || 
+		name == "wait_info" || 
+		name == "scheduler_monitor_non_yielding_ring_buffer_recorded" {
 		return logstash.Warning
 	}
 
+	
 	return logstash.Info
 }
 
