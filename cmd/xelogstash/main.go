@@ -24,6 +24,7 @@ import (
 )
 
 const version = "0.11"
+
 var sha1ver string
 
 var opts struct {
@@ -93,7 +94,7 @@ func main() {
 	var logMessage string
 	logMessage = fmt.Sprintf("app-start version: %s; workers %d; default rows: %d", version, settings.App.Workers, settings.Defaults.Rows)
 	if sha1ver != "" {
-		logMessage += fmt.Sprintf("; sha1: %s", sha1ver)
+		logMessage += fmt.Sprintf("; sha1: %s", sha1ver[0:6])
 	}
 	log.Println(logMessage)
 	err = applog.Info(logMessage)
