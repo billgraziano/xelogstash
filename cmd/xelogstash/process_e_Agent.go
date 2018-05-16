@@ -114,9 +114,9 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			,H.[run_status]
 			,H.[run_duration]
 			,convert( datetime,
-				convert(varchar, run_date/10000)+'/'+
-				convert(varchar, run_date%1000/100)+'/'+
-				convert(varchar, run_date%100)+' '+
+				SUBSTRING(CAST(run_date AS VARCHAR(8)),1,4) + '-' + 
+				SUBSTRING(CAST(run_date AS VARCHAR(8)),5,2) + '-'+ 
+				SUBSTRING(CAST(run_date AS VARCHAR(8)),7,2) + ' ' +
 				convert(varchar, run_time/10000)+':'+
 				convert(varchar, run_time%10000/100)+':'+
 				convert(varchar, run_time%100)+'.000' ) AS [Timestamp]

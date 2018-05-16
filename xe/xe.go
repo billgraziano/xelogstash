@@ -305,7 +305,6 @@ func (e *Event) getSeverity() logstash.Severity {
 		name == "scheduler_monitor_non_yielding_ring_buffer_recorded" {
 		return logstash.Warning
 	}
-
 	
 	return logstash.Info
 }
