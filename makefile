@@ -21,8 +21,8 @@ buildRace:
 	go build -a -o "$(TARGETDIR)\xelogstash.EXE" -race -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash 
 
 copyFiles:
-# 	copy README.html $(TARGETDIR)
-#	copy LICENSE.html $(TARGETDIR)
+	copy .\samples\*.toml $(TARGETDIR)
+	copy .\samples\*.batch $(TARGETDIR)
 
 clean:
 # 	del /Q embed_static.go

@@ -23,8 +23,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.10"
-
+const version = "0.11"
 var sha1ver string
 
 var opts struct {
@@ -93,6 +92,9 @@ func main() {
 
 	var logMessage string
 	logMessage = fmt.Sprintf("app-start version: %s; workers %d; default rows: %d", version, settings.App.Workers, settings.Defaults.Rows)
+	if sha1ver != "" {
+		logMessage += fmt.Sprintf("; sha1: %s", sha1ver)
+	}
 	log.Println(logMessage)
 	err = applog.Info(logMessage)
 	if err != nil {
