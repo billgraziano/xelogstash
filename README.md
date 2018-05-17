@@ -1,6 +1,8 @@
 # xelogstash
 Pull SQL Server Extended Events and push them to Logstash
 
+This supports SQL Server 2012 and higher.  It is untested against SQL Server 2008 (R2).
+
 1. Getting started
 2. Sources and Defaults
 1. SQL Server Agent Jobs

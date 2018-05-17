@@ -471,37 +471,51 @@ func (e *Event) GetResourceUsageDesc() string {
 	lr, exists := (*e)["logical_reads"]
 	if exists {
 		t, _ := strconv.ParseInt(fmt.Sprintf("%d", lr), 10, 64)
-		if t > 10000 {
-			t = t / 1000
-			usage = append(usage, fmt.Sprintf("L: %sk", humanize.Comma(t)))
-		} else {
-			usage = append(usage, fmt.Sprintf("L: %s", humanize.Comma(t)))
+		t = t * 8192 // to bytes
+		if t > 0 {
+			v := uint64(t)
+			usage = append(usage, fmt.Sprintf("L: %s", humanize.Bytes(v)))
 		}
+		// if t > 10000 {
+		// 	t = t / 1000
+		// 	usage = append(usage, fmt.Sprintf("L: %sk", humanize.Comma(t)))
+		// } else {
+		// 	usage = append(usage, fmt.Sprintf("L: %s", humanize.Comma(t)))
+		// }
 
 	}
 
 	pr, exists := (*e)["physical_reads"]
 	if exists {
 		t, _ := strconv.ParseInt(fmt.Sprintf("%d", pr), 10, 64)
-		if t > 10000 {
-			t = t / 1000
-			usage = append(usage, fmt.Sprintf("P: %sk", humanize.Comma(t)))
-		} else {
-			usage = append(usage, fmt.Sprintf("P: %s", humanize.Comma(t)))
+		t = t * 8192 // to bytes
+		if t > 0 {
+			v := uint64(t)
+			usage = append(usage, fmt.Sprintf("P: %s", humanize.Bytes(v)))
 		}
+		// if t > 10000 {
+		// 	t = t / 1000
+		// 	usage = append(usage, fmt.Sprintf("P: %sk", humanize.Comma(t)))
+		// } else {
+		// 	usage = append(usage, fmt.Sprintf("P: %s", humanize.Comma(t)))
+		// }
 
 	}
 
 	w, exists := (*e)["writes"]
 	if exists {
 		t, _ := strconv.ParseInt(fmt.Sprintf("%d", w), 10, 64)
-		if t > 10000 {
-			t = t / 1000
-			usage = append(usage, fmt.Sprintf("W: %sk", humanize.Comma(t)))
-		} else {
-			usage = append(usage, fmt.Sprintf("W: %s", humanize.Comma(t)))
+		// if t > 10000 {
+		// 	t = t / 1000
+		// 	usage = append(usage, fmt.Sprintf("W: %sk", humanize.Comma(t)))
+		// } else {
+		// 	usage = append(usage, fmt.Sprintf("W: %s", humanize.Comma(t)))
+		// }
+		t = t * 8192 // to bytes
+		if t > 0 {
+			v := uint64(t)
+			usage = append(usage, fmt.Sprintf("W: %s", humanize.Bytes(v)))
 		}
-
 	}
 
 	duration, exists := (*e)["duration"]
