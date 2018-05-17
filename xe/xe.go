@@ -465,7 +465,7 @@ func (e *Event) GetResourceUsageDesc() string {
 	cpu, exists := (*e)["cpu_time"]
 	if exists {
 		t, _ := strconv.ParseInt(fmt.Sprintf("%d", cpu), 10, 64)
-		usage = append(usage, fmt.Sprintf("CPU: %s", roundDuration(time.Duration(t)*time.Nanosecond)))
+		usage = append(usage, fmt.Sprintf("CPU: %s", roundDuration(time.Duration(t)*time.Microsecond)))
 	}
 
 	lr, exists := (*e)["logical_reads"]
@@ -507,7 +507,7 @@ func (e *Event) GetResourceUsageDesc() string {
 	duration, exists := (*e)["duration"]
 	if exists {
 		t, _ := strconv.ParseInt(fmt.Sprintf("%d", duration), 10, 64)
-		usage = append(usage, fmt.Sprintf("D: %s", roundDuration(time.Duration(t)*time.Nanosecond)))
+		usage = append(usage, fmt.Sprintf("D: %s", roundDuration(time.Duration(t)*time.Microsecond)))
 	}
 
 	// convert to string, the back to int64, then math, then string
@@ -723,3 +723,5 @@ func roundDuration(d time.Duration) string {
 
 	return fmt.Sprintf("%dns", d.Nanoseconds())
 }
+
+

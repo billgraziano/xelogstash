@@ -122,3 +122,15 @@ excludedXE = [
     "security_error_ring_buffer_recorded"
     ]
 
+| event                   | cpu             | duration |
+|-------                  |-----            |----------|
+| rpc_completed           | microseconds (1)| microseconds
+| sp_statement_completed  | microseconds    | microseconds
+| sql_batch_completed     | microseconds (2)| microseconds
+| sql_statement_completed | microseconds    | microseconds 
+
+(1) sys.dm_xe_object_columns description is null
+
+(2) sys.dm_xe_object_columns says milliseconds but that seems wrong
+
+__And this is ALL messed up in SQL Server 2008.__
