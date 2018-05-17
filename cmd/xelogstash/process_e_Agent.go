@@ -47,7 +47,6 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		Trusted: true,
 	}
 
-	// connectionString := fmt.Sprintf("Driver={SQL Server Native Client 11.0};Server=%s; Trusted_Connection=yes; App=xecap.exe;", source.FQDN)
 	connectionString, err := cxn.ConnectionString()
 	if err != nil {
 		return result, errors.Wrap(err, "mssqlodbc.connectionstring")
@@ -178,24 +177,24 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		switch j.RunStatus {
 		case 0:
 			base.Set("run_status_text", "failed")
-			base.Set("xecap_severity_value", logstash.Error)
-			base.Set("xecap_severity_keyword", logstash.Error.String())
+			base.Set("xe_severity_value", logstash.Error)
+			base.Set("xe_severity_keyword", logstash.Error.String())
 		case 1:
 			base.Set("run_status_text", "succeeded")
-			base.Set("xecap_severity_value", logstash.Info)
-			base.Set("xecap_severity_keyword", logstash.Info.String())
+			base.Set("xe_severity_value", logstash.Info)
+			base.Set("xe_severity_keyword", logstash.Info.String())
 		case 2:
 			base.Set("run_status_text", "retry")
-			base.Set("xecap_severity_value", logstash.Warning)
-			base.Set("xecap_severity_keyword", logstash.Warning.String())
+			base.Set("xe_severity_value", logstash.Warning)
+			base.Set("xe_severity_keyword", logstash.Warning.String())
 		case 3:
 			base.Set("run_status_text", "cancelled")
-			base.Set("xecap_severity_value", logstash.Warning)
-			base.Set("xecap_severity_keyword", logstash.Warning.String())
+			base.Set("xe_severity_value", logstash.Warning)
+			base.Set("xe_severity_keyword", logstash.Warning.String())
 		default:
 			base.Set("run_status_text", "unknown")
-			base.Set("xecap_severity_value", logstash.Warning)
-			base.Set("xecap_severity_keyword", logstash.Warning.String())
+			base.Set("xe_severity_value", logstash.Warning)
+			base.Set("xe_severity_keyword", logstash.Warning.String())
 		}
 		base.Set("run_duration", j.RunDuration)
 		base.Set("timestamp", j.Timestamp)
@@ -216,7 +215,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			description = j.Message
 		}
 		if len(description) > 0 {
-			base.Set("xecap_description", description)
+			base.Set("xe_description", description)
 		}
 
 		//base.ToLower()

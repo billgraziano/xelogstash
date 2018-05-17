@@ -234,13 +234,13 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	// Fixup 2008 used "error" but 2012+ used error_number remap this
 	event.Rename("error", "error_number")
 	severity := event.getSeverity()
-	event["xecap_severity_value"] = severity
-	event["xecap_severity_keyword"] = severity.String()
+	event["xe_severity_value"] = severity
+	event["xe_severity_keyword"] = severity.String()
 
-	// set xecap_description
+	// set calc_description
 	desc := event.getDescription()
 	if len(desc) > 0 {
-		event["xecap_description"] = desc
+		event["xe_description"] = desc
 	}
 
 	// if the server_instance_name is empty, then set it
@@ -611,7 +611,7 @@ func (e *Event) SetAppSource() {
 		s = s + appstring
 	}
 	if len(s) > 0 {
-		(*e)["xecap_login_app"] = s
+		(*e)["xe_acct_app"] = s
 	}
 
 	client, ok := (*e)["client_hostname"]
@@ -626,7 +626,7 @@ func (e *Event) SetAppSource() {
 		}
 	}
 	if len(s) > 0 {
-		(*e)["xecap_login_app_client"] = s
+		(*e)["xe_acct_app_client"] = s
 	}
 }
 
@@ -723,5 +723,3 @@ func roundDuration(d time.Duration) string {
 
 	return fmt.Sprintf("%dns", d.Nanoseconds())
 }
-
-

@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	connectionString := "Driver={SQL Server Native Client 11.0};Server=D30\\SQL2016; Trusted_Connection=yes; App=xecap.exe;"
+	connectionString := "Driver={SQL Server Native Client 11.0};Server=D30\\SQL2016; Trusted_Connection=yes; App=xelogstash.exe;"
 	db, err := sql.Open("odbc", connectionString)
 	if err != nil {
 		panic(err)
