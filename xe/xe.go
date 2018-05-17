@@ -408,6 +408,7 @@ func (e *Event) getDescription() string {
 			dur = fmt.Sprintf("%s", roundDuration(time.Duration(t)*time.Millisecond))
 		}
 		wt := e.GetString("wait_type")
+		sqltext := e.GetString("sql_text")
 		if wt != "" {
 			if t > 0 {
 				s = fmt.Sprintf("(%s) %s", dur, wt)
@@ -415,8 +416,14 @@ func (e *Event) getDescription() string {
 				s = fmt.Sprintf("%s", wt)
 			}
 		}
-		return s
+		if len(sqltext) > 200 {
+			sqltext = sqltext[:199] + "..."
+		}
 
+		if sqltext != "" {
+			s += fmt.Sprintf(" (%s)", sqltext)
+		}
+		return s
 	}
 
 	return ""
