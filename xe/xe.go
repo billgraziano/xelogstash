@@ -366,7 +366,7 @@ func (e *Event) getDescription() string {
 		return e.getSQLDescription("sql_text")
 
 	case "rpc_completed":
-		return e.getSQLDescription("sql_text")
+		return e.getSQLDescription("statement")
 
 	case "sp_statement_completed":
 		return e.getSQLDescription("statement")
