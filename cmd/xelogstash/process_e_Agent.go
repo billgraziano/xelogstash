@@ -231,6 +231,11 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			lr[source.PayloadField] = base
 			lr[source.TimestampField] = base["timestamp"]
 		}
+		// if we're in the root
+		if source.TimestampField != "timestamp" && source.PayloadField == "" {
+			lr[source.TimestampField] = base["timestamp"]
+			delete(lr, "timestamp")
+		}
 
 		rs, err := lr.ToJSON()
 		if err != nil {

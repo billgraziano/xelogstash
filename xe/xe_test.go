@@ -1,7 +1,6 @@
 package xe
 
 import (
-	"database/sql"
 	"encoding/json"
 	"encoding/xml"
 	"testing"
@@ -10,17 +9,29 @@ import (
 	_ "github.com/alexbrainman/odbc"
 )
 
+var i SQLInfo
+
 func init() {
 	connectionString := "Driver={SQL Server Native Client 11.0};Server=D30\\SQL2016; Trusted_Connection=yes; App=xelogstash.exe;"
-	db, err := sql.Open("odbc", connectionString)
-	if err != nil {
-		panic(err)
+	// db, err := sql.Open("odbc", connectionString)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer db.Close()
+	// err = Initialize(db)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	i = SQLInfo{
+		Server:         "D30",
+		Domain:         "WORKGROUP",
+		Computer:       "D30",
+		ProductLevel:   "Test",
+		ProductRelease: "Test",
+		Version:        "13.0",
 	}
-	defer db.Close()
-	err = Initialize(db)
-	if err != nil {
-		panic(err)
-	}
+
 }
 
 var loginEventData = `
@@ -57,7 +68,7 @@ func TestXMLParsing(t *testing.T) {
 }
 
 func TestBasicParse(t *testing.T) {
-	event, err := Parse(loginEventData)
+	event, err := Parse(&i, loginEventData)
 	if err != nil {
 		t.Error(err)
 	}
@@ -91,7 +102,7 @@ func TestBasicParse(t *testing.T) {
 }
 
 func TestJson(t *testing.T) {
-	event, err := Parse(loginEventData)
+	event, err := Parse(&i, loginEventData)
 	if err != nil {
 		t.Error(err)
 	}
@@ -126,7 +137,7 @@ func TestErrorLogEvent(t *testing.T) {
 		</event>
 	`
 
-	event, err := Parse(rawXML)
+	event, err := Parse(&i, rawXML)
 	if err != nil {
 		t.Error(err)
 	}
@@ -158,7 +169,7 @@ func TestErrorReportedEvent(t *testing.T) {
 	</event>
 	`
 
-	rawXML = `<event name="error_reported" package="sqlserver" timestamp="2018-04-19T16:21:25.541Z"><data name="error_number"><value>208</value></data><data name="severity"><value>16</value></data><data name="state"><value>1</value></data><data name="user_defined"><value>false</value></data><data name="category"><value>2</value><text><![CDATA[SERVER]]></text></data><data name="destination"><value>0x00000002</value><text><![CDATA[USER]]></text></data><data name="is_intercepted"><value>false</value></data><data name="message"><value><![CDATA[Invalid object name 'sys.xe_object_columns'.]]></value></data><action name="sql_text" package="sqlserver"><value><![CDATA[select * from sys.xe_object_columns ]]></value></action><action name="server_principal_name" package="sqlserver"><value><![CDATA[MicrosoftAccount\graz@sqlteam.com]]></value></action><action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action><action name="is_system" package="sqlserver"><value>false</value></action><action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action><action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action><action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action><action name="collect_system_time" package="package0"><value>2018-04-19T16:21:25.540Z</value></action></event>`
+	rawXML = `<event name="error_reported" package="sqlserver" timestamp="2018-04-19T16:21:25.541Z"><data name="error_number"><value>208</value></data><data name="severity"><value>16</value></data><data name="state"><value>1</value></data><data name="user_defined"><value>false</value></data><data name="category"><value>2</value><text><![CDATA[SERVER]]></text></data><data name="destination"><value>0x00000002</value><text><![CDATA[USER]]></text></data><data name="is_intercepted"><value>false</value></data><data name="message"><value><![CDATA[Invalid object name 'sys.xe_object_columns'.]]></value></data><action name="sql_text" package="sqlserver"><value><![CDATA[select * from sys.xe_object_columns ]]></value></action><action name="server_principal_name" package="sqlserver"><value><![CDATA[MicrosoftAccount\graz]]></value></action><action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action><action name="is_system" package="sqlserver"><value>false</value></action><action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action><action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action><action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action><action name="collect_system_time" package="package0"><value>2018-04-19T16:21:25.540Z</value></action></event>`
 
 	event, err := Parse(rawXML)
 	if err != nil {

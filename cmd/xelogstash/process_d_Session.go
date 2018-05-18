@@ -192,7 +192,11 @@ func processSession(
 			lr[source.PayloadField] = event
 			lr[source.TimestampField] = event["timestamp"]
 		}
-		// else set timestamp and payload
+		//fmt.Println("tsfield:", source.TimestampField)
+		if source.TimestampField != "timestamp" && source.PayloadField == "" {
+			lr[source.TimestampField] = event["timestamp"]
+			delete(lr, "timestamp")
+		}
 
 		rs, err := lr.ToJSON()
 		if err != nil {
