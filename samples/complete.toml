@@ -18,7 +18,7 @@ moves = [ ]
 [defaults]
 prefix = "TEST" # Please see the docs
 sessions = ["system_health", "AlwaysOn_health", "your_session"]
-rows = 2000 # Process batches of 20000 at a time.  a good compromise.  0 or omitted processes all the rows
+rows = 20000 # Process batches of 20000 at a time.  a good compromise.  0 or omitted processes all the rows
 timestamp_field_name = "@timestamp"
 payload_field_name = "mssql" # all the XE events are under this field
 agentjobs = true # process SQL Server agent job history

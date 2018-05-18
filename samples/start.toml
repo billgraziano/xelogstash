@@ -3,15 +3,11 @@
 summary = true # prints a summary of events to stdout after running
 samples = true # prints one of each type event to samples.xe.json after running
 
-[applog]
-# logstash = "D30:8888"
-timestamp_field_name = "@timestamp"
-samples = true # prints the JSON application logging messaegs to samples.applog.json
 
 [defaults]
 prefix = "TEST" # Please see the docs
 sessions = ["system_health"]
-rows = 1 
+rows = 100 
 timestamp_field_name = "@timestamp"
 agentjobs = true # process SQL Server agent job history
 excludedEvents = [
@@ -25,6 +21,14 @@ excludedEvents = [
 
 [[source]]
 fqdn = "localhost"
+
+
+
+[applog]
+# logstash = "D30:8888"
+timestamp_field_name = "@timestamp"
+samples = true # prints the JSON application logging messaegs to samples.applog.json
+
 
 
 
