@@ -172,8 +172,6 @@ func processSession(
 		event.Set("xe_file_offset", fileOffset)
 		event.SetAppSource()
 
-	
-
 		lr := logstash.NewRecord()
 		// if payload field is empty
 		if source.PayloadField == "" {

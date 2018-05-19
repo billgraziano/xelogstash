@@ -242,9 +242,9 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	event.Set("mssql_server_name", i.Server)
 	event.Set("mssql_version", i.Version)
 
-	// Set defaults
+	// enrich data
 	event.SetIfEmpty("server_instance_name", i.Server)
-	//event.ToLower()
+	event.setDatabaseName(i)
 
 	// set calc_description
 	desc := event.getDescription()
@@ -253,6 +253,34 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	}
 
 	return event, nil
+}
+
+// setDatabaseName sets the name if we have a database_id
+// This is mainly used for AG health events
+func (e *Event) setDatabaseName(i *SQLInfo) {
+	// We need a database_id, but not a database_name
+	_, exists := (*e)["database_name"]
+	if exists {
+		return
+	}
+	dbid, exists := (*e).getDatabaseID()
+	if !exists {
+		return
+	}
+	dbv, exists := i.Databases[dbid]
+	if !exists {
+		return
+	}
+	ts := (*e).GetTime("timestamp")
+	if ts.IsZero() {
+		return
+	}
+
+	// if the event timestamp is before database.create_date, we are done
+	if ts.Before(dbv.CreateDate) {
+		return
+	}
+	(*e)["database_name"] = dbv.Name
 }
 
 func (e *Event) getSeverity() logstash.Severity {
@@ -409,6 +437,37 @@ func (e *Event) GetString(key string) string {
 		return ""
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+// getDatabaseID returns an int64 value
+func (e *Event) getDatabaseID() (int64, bool) {
+	var i int64
+	v, exists := (*e)["database_id"]
+	if !exists {
+		return 0, false
+	}
+	s := fmt.Sprintf("%v", v)
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return i, true
+}
+
+// GetTime returns a time.Time if the value is time.Time
+// Otherwise is returns a zero value time
+func (e *Event) GetTime(key string) time.Time {
+	var z time.Time
+	v, exists := (*e)[key]
+	if !exists {
+		return z
+	}
+	t, ok := v.(time.Time)
+	if !ok {
+		return z
+	}
+	return t
 }
 
 // GetResourceUsageDesc returns a compressed CPU, Reads, Writes, Duration field

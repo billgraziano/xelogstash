@@ -3,6 +3,7 @@ package xe
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/billgraziano/mssqlodbc"
 	"github.com/pkg/errors"
@@ -21,8 +22,15 @@ type SQLInfo struct {
 	Fields    map[FieldTypeKey]string
 	Actions   map[string]string
 	MapValues map[MapValueKey]string
+	Databases map[int64]*Database
 
 	DB *sql.DB
+}
+
+// Database holds some basic information about a database on the server
+type Database struct {
+	Name       string
+	CreateDate time.Time
 }
 
 // FieldTypeKey is the key for fields structure
@@ -150,7 +158,13 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 		return info, errors.Wrap(err, "info.getmapvalues")
 	}
 
+	err = info.getDatabases()
+	if err != nil {
+		return info, errors.Wrap(err, "info.getdatabases")
+	}
+
 	return info, err
+
 }
 
 func (i *SQLInfo) getMapValues() error {
@@ -173,6 +187,30 @@ func (i *SQLInfo) getMapValues() error {
 		mapValueKey := MapValueKey{Name: name, MapKey: mapKey}
 		//info.Fields[dtkey] = dt
 		i.MapValues[mapValueKey] = mapValue
+	}
+	rows.Close()
+	return nil
+}
+
+func (i *SQLInfo) getDatabases() error {
+	i.Databases = make(map[int64]*Database)
+
+	query := "SELECT [database_id], [name], [create_date] FROM [sys].[databases];"
+
+	rows, err := i.DB.Query(query)
+	if err != nil {
+		return errors.Wrap(err, "databases-query")
+	}
+	var dbid int64
+
+	for rows.Next() {
+		var dbv Database
+		err = rows.Scan(&dbid, &dbv.Name, &dbv.CreateDate)
+		if err != nil {
+			return errors.Wrap(err, "databases-scan")
+		}
+
+		i.Databases[dbid] = &dbv
 	}
 	rows.Close()
 	return nil
