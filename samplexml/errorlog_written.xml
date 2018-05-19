@@ -1,0 +1,16 @@
+<event 
+    name="errorlog_written" package="sqlserver" 
+    timestamp="2018-02-04T00:42:25.276Z">
+    
+    <data name="message"><value><![CDATA[2018-02-03 18:42:25.28 spid4s      SQL Trace ID 1 was started by login "sa".  ]]></value></data>
+    
+    <action name="session_id" package="sqlserver"><value>4</value></action>
+    <action name="server_principal_name" package="sqlserver"><value><![CDATA[sa]]></value></action>
+    <action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action>
+    <action name="is_system" package="sqlserver"><value>true</value></action>
+    <action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action>
+    <action name="client_pid" package="sqlserver"><value>0</value></action>
+    <action name="client_hostname" package="sqlserver"><value><![CDATA[]]></value></action>
+    <action name="client_app_name" package="sqlserver"><value><![CDATA[]]></value></action>
+    <action name="event_sequence" package="package0"><value>1</value></action>
+</event>

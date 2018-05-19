@@ -1,0 +1,16 @@
+<event name="login" package="sqlserver" timestamp="2018-04-08T16:00:53.427Z">
+	<data name="is_cached"><value>false</value></data>
+	<data name="is_dac"><value>false</value></data>
+	<data name="database_id"><value>1</value></data>
+	<data name="packet_size"><value>4096</value></data>
+	<data name="options"><value>2000002838f4010000000000</value></data>
+	<data name="options_text"><value><![CDATA[]]></value></data>
+	<data name="database_name"><value><![CDATA[]]></value></data>
+	
+	<action name="client_app_name" package="sqlserver"><value><![CDATA[IsItSQL]]></value></action>
+	<action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action>
+	<action name="client_pid" package="sqlserver"><value>12036</value></action>
+	<action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action>
+	<action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2012]]></value></action>
+	<action name="server_principal_name" package="sqlserver"><value><![CDATA[D30\Bill]]></value></action>
+</event>
