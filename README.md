@@ -1,7 +1,5 @@
 # XELogstash
-Pull SQL Server Extended Events and push them to Logstash.
-
-`xelogstash.exe` is a command-line application to pull extended event and SQL Server Agent job results and push them to Logstash.   This supports SQL Server 2012 and higher.  It is untested against SQL Server 2008 (R2).
+`xelogstash.exe` is a command-line application to pull SQL Server Extended Events and SQL Server Agent job results and push them to Logstash.   It supports SQL Server 2012 and higher.  It is untested against SQL Server 2008 (R2).
 
 1. [Getting started](#getting-started)
 2. [Sources and Defaults](#sources)
@@ -20,17 +18,17 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
 4. From a command-prompt, type "`xelogstash.exe /config start.toml`".  (This doesn't send anything to logstash yet)
 
-This should generate a `samples.xe.json`, `samples.applog.json`, and a "status" folder in the same directory.  The "xe" file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.
+This should generate a `samples.xe.json`, `samples.applog.json`, and a "status" folder in the same directory.  The "samples.xe.json" file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.
 
 ### Sending to Logstash
-To send events to Logstash, specify the `logstash` value under `[app]` in the TOML file.  It should be in _host:port_ format.  After that you can run the executable with same parameters. 
+To send events to Logstash, specify the `logstash` value under `[app]` in the TOML file.  It should be in _host:port_ format.  After that you can run the executable with the same parameters. 
 
 
 
 ## <a name="sources"></a>Sources and Defaults
 Each SQL Server you want to extract events from is called a "source".  You can specify each source using the `[[sourece]]` header in the TOML file.  (This is an array of sources.)  The only required field for a source is the `fqdn` which is how you connect to the server.
 
-The `[defaults]` section applies to all sources.  I find it's easiest to set most of your values in this section and then override them for each source.  The "default" section is just a source itself.  __Note: The  _source_ values override the _default_ values except for adds, copies and moves which are discussed below. Those are merged together.__
+The `[defaults]` section applies to all sources (but can be overridden by the source).  I find it's easiest to set most of your values in this section and then override them for each source.  The "default" section is just a source itself.  __Note: The  _source_ values override the _default_ values except for adds, copies and moves which are discussed below. Those are merged together.__
 
 You can set the following Source fields (or Default fields)
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
@@ -39,7 +37,7 @@ You can set the following Source fields (or Default fields)
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
 * `agentjobs` set to true will process the SQL Server Agent Job results as if they were extended events.  It tries to map the field names to the extended event field names.
 * `excludedEvents` is a list of events to ignore.  Both sample configuration files exclude some of the system health events like ring buffer recorded and diagnostic component results. 
-* `adds`, `moves`, and `copies` are described in the controlling the JSON section. 
+* `adds`, `moves`, and `copies` are described in their own section below.
 
 ## <a name="json"></a>Controlling the JSON
 The two fields `timestamp_field_name` and `payload_field_name` are available in the Source, Default, and AppLog sections.  The following examples best illustrate how they work.
@@ -48,14 +46,18 @@ The two fields `timestamp_field_name` and `payload_field_name` are available in 
 All the event fields are at the root level.
 
 ```
+- - - xelogstash.toml - - - 
+
 timestamp_field_name = "@timestamp"
 payload_field_name = ""
-----------------------
+
+ - - - generates - - - - - 
+
 {
   "@timestamp": "2018-05-08T01:23:45.691Z",
   "client_app_name": "xecap.exe",
   "client_hostname": "D30",
-  . . . .
+  . . . (lots of JSON fields) . . .
   "xe_severity_value": 6
 }
 ```
@@ -82,13 +84,13 @@ payload_field_name = "event"
 ## <a name="adds"></a>Add, Copies, and Moves
 Adds, moves, and copies give you the opptunity to modify the generated JSON.  All three are arrays with a format of "string1:string2".  
 
-Note: For these values, any Source overwrites the Default at _the individual level_.  So if both the default and source try to add a key for "environment" it will use the value from the Source.  But if the Default adds a key for "datacenter" and the Source adds a key for "environment", it will add both keys.  Copies and Moves are handled the same way.
+Note: For these values, any Source overwrites the Default at _the individual key level_.  If both the default and source try to add a key for "environment", it will use the value from the Source.  But if the Default adds a key for "datacenter" and the Source adds a key for "environment", it will add both keys.  Copies and Moves are handled the same way.
 
-* `adds` are "key:value" and add a key with the specified value
-* `copies` are "src:dest" and copy the value at _src_ to _dest_
-* `moves` are "src:dest" and move the value from _src_ to _dest_
+* `adds` are "key:value" that will add a key with the specified value
+* `copies` are "src:dest" that will copy the value at _src_ to _dest_
+* `moves` are "src:dest" that will move the value from _src_ to _dest_
 
-Further, they keys can be nested using a dotted notation.  For example, setting a key at "global.host.name" will nest the value three levels deep.
+Further, the keys can be nested using a dotted notation.  For example, setting a key at "global.host.name" will nest the value three levels deep.
 
 Consider the following settings:
 
@@ -154,7 +156,7 @@ The values that are added can be strings, integers, floats, booleans, or dates. 
 ### Replacements
 The adds, moves, and copies also support a few "replacement" values.  
 
-* `$(VERSION)` is the version of xelogstash.exe.  Note that $(VERSIONS) is forced to a string by enclosing it in single ticks.
+* `$(VERSION)` is the version of xelogstash.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
 * `$(EXENAMEPATH)` is the full path and name of the executable
 * `$(EXENAME)` is the name of the executable
 * `$(PID)` is the Process ID of xelogstash.exe
@@ -163,9 +165,9 @@ The adds, moves, and copies also support a few "replacement" values.
 See the section below on derived fields for a description of the "mssql_" and "xe_" fields
 
 ## <a name="prefixes"></a>Prefixes and keeping your place
-The application keeps track how far it has read into the extended event file target using a status file.  This file holds the file name and offset of each read for that session.  The file is named `PREFIX_ServerName_Session.status`.  There is also a ".0" while is used while the application is running.  You can tell the application to start all over by deleting the status file.  The "ServerName" above is populated by `@@SERVERNAME` from the instance.
+The application keeps track how far it has read into the extended event file target using a status file.  This file holds the file name and offset of each read for that session.  The file is named `PREFIX_ServerName_Session.status`.  There is also a ".0" fiel that is used while the application is running.  You can tell the application to start all over by deleting the status file.  The "ServerName" above is populated by `@@SERVERNAME` from the instance.
 
-The `PREFIX` is nothing more than a way to group files together.  I found it very useful for testing and when I was first starting.  Now I just have it to "PROD" in the defaults and don't mess with it.
+The `PREFIX` is nothing more than a way to group files together.  I found it very useful for testing and when I was first starting.  Now I just have it set to "PROD" in the defaults and don't mess with it.
 
 
 ## <a name="app-settings"></a>Application Settings
@@ -173,18 +175,18 @@ These are the fields you can set in the `[app]` and `[applog]` section of the co
 ### `[app]` section
 This controls the overall application.  All these fields are optional.
 * `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send events to logstash.
-* `samples` set to true will save a JSON file with one of each event type that was processed.  This is very helpful to control your JSON format.
+* `samples` set to true will save a JSON file with one of each event type that was processed.  This is very helpful for testing your JSON format.
 * `summary` set to true will print a nice summary of the output including how many of each type of event were processed.
-* `workers` controls how many concurrent workers will process the sources.  It defaults to 2 * the number of cores.  A given worker will process all the sessions for a source before moving on to the next source.
+* `workers` controls how many concurrent workers will process the sources.  It defaults to the number of cores in the computer.  A given worker will process all the sessions for a source before moving on to the next source.
 
 
 ### `[applog]` section
 This section control how XELogstash writes its own logging events.
 * `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send logging events to logstash.  This should probably be the same as the `logstash` above but doesn't have to be.
-* `samples` set to true will save a JSON file with every logging event written to it.  This is very helpful to control your JSON format.
+* `samples` set to true will save a JSON file with every logging event written to it.  This is very helpful for testing your JSON format.
 * `timestamp_field_name` defines the JSON field that will store the timestamp of the event.  This should be "@timestamp" unless you've been told to use a different value.  This field is required.
 * `payload_field_name` defines the parent field for all the logging fields.  This lets you nest all your fields under a parent field.  In production, we use "event" for this.  If you don't set a value, all application logging events are set at the root level.
-* `adds`, `moves` and `copies` are described below.
+* `adds`, `moves` and `copies` are described above.
 
 
 
@@ -196,7 +198,7 @@ Based on a particular event, the application computes a number of calculated fie
 * `mssql_server_name`: This is the result of @@SERVERNAME on the source computer
 * `mssql_version`: Is something like "SQL Server 2016 SP1" composed of various server property attributes.  
 * `xe_severity_value`: 3, 5, or 6 for ERR, WARN, INFO based on the syslog values
-* `xe_severity_keyword`: err, warn, info based on the syslog values
+* `xe_severity_keyword`: "err", "warning", "info" based on the syslog values
 * `xe_description`: a text description of the event.  The format
 depends on the type of event and what fields are available.  My goal is that seeing the name of the server, the event type (name), and this field are enough to know what happened
 * `xe_acct_app`: a combination of the server_principal_name and client_app_name in "acct - app" format.
@@ -213,8 +215,8 @@ depends on the type of event and what fields are available.  My goal is that see
 
 3. I make some decisions around setting the severity level.  Failed jobs and job steps are errors.  SQL Server errors are errors.  I haven't gone much beyond that yet.
 
-4. I haven't done much in the way of optimizations yet.  It will process between 2,000 and 3,000 events per second on my aging desktop with SQL Server running on the same box.  A properly scaled Logstash doesn't slow it down much.
+4. I haven't done much in the way of optimizations yet.  It will process between 2,000 and 3,000 events per second on my aging desktop with SQL Server running on the same box.  A properly scaled Logstash doesn't slow it down much.  I have a few servers that keep 1 GB of login events in 50 MB files.  It takes roughly 20 minutes to get through it the first time.
 
-5. If it gets behind and the offset becomes invalid, it will log an error.  It will also set a flag to try and catch up next time.  That flag is a third column in the status file that says "reset".  If it finds that it will start at the beginning of the extended event file target and read until it gets to an event after the last one it saw.  It will also log an error that events were probably skipped.
+5. If it gets behind and the offset becomes invalid, it will log an error.  It will also set a flag to try and catch up next time.  That flag is a third column in the status file that says "reset".  If it finds that, it will start at the beginning of the extended event file target and read until it gets to an event after the last one it saw.  It will also log an error that events were probably skipped.
 
 6. It is very limited on the file name.  It expects sessions to be in the SQL Server LOG directory and have the same file name as the session name.
