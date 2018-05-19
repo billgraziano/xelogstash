@@ -19,6 +19,7 @@
 *.log
 *.json
 *.pprof
+*.xml
 
 run1.toml
 runall.toml
