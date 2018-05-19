@@ -237,69 +237,23 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	event["xe_severity_value"] = severity
 	event["xe_severity_keyword"] = severity.String()
 
+	event.Set("mssql_domain", i.Domain)
+	event.Set("mssql_computer", i.Computer)
+	event.Set("mssql_server_name", i.Server)
+	event.Set("mssql_version", i.Version)
+
+	// Set defaults
+	event.SetIfEmpty("server_instance_name", i.Server)
+	//event.ToLower()
+
 	// set calc_description
 	desc := event.getDescription()
 	if len(desc) > 0 {
 		event["xe_description"] = desc
 	}
 
-	// if the server_instance_name is empty, then set it
-	sn := event.GetString("server_instance_name")
-	if sn == "" {
-		event.Set("server_instance_name", i.Server)
-	}
-
-	// These are stored in ms, so convert to us
-	// if ed.Name == "wait_info" || ed.Name == "wait_info_external" {
-	// 	durationToMicroSeconds(&event)
-	// }
-
-	// // set wait_type_name
-	// _, exists := event["wait_type"]
-	// if exists {
-	// 	err = event.setWaitName(i)
-	// 	if err != nil {
-	// 		return event, errors.Wrap(err, "event.setwaitname")
-	// 	}
-	//
-
 	return event, nil
 }
-
-// func durationToMicroSeconds(e *Event) {
-// 	v, exists := (*e)["duration"]
-// 	if !exists {
-// 		return
-// 	}
-// 	d, ok := v.(uint64)
-// 	if !ok {
-// 		return
-// 	}
-// 	d = d * 1000
-// 	(*e)["duration"] = d
-// }
-
-// func (e *Event) setWaitName(i *SQLInfo) error {
-// 	// get the wait type as integer
-// 	waitType := e.GetString("wait_type")
-// 	if waitType == "" {
-// 		return nil
-// 	}
-// 	//var waitTypeInt int
-// 	waitTypeInt, err := strconv.ParseInt(waitType, 10, 32)
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	if waitTypeInt > math.MaxInt32 || waitTypeInt < math.MinInt32 {
-// 		return nil
-// 	}
-// 	k := MapValueKey{Name: "wait_types", MapKey: int(waitTypeInt)}
-// 	name, exists := i.MapValues[k]
-// 	if exists {
-// 		(*e)["wait_type_name"] = name
-// 	}
-// 	return nil
-// }
 
 func (e *Event) getSeverity() logstash.Severity {
 	name := e.Name()

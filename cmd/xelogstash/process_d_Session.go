@@ -172,14 +172,7 @@ func processSession(
 		event.Set("xe_file_offset", fileOffset)
 		event.SetAppSource()
 
-		event.Set("mssql_domain", info.Domain)
-		event.Set("mssql_computer", info.Computer)
-		event.Set("mssql_server_name", info.Server)
-		event.Set("mssql_version", info.Version)
-
-		// Set defaults
-		event.SetIfEmpty("server_instance_name", info.Server)
-		//event.ToLower()
+	
 
 		lr := logstash.NewRecord()
 		// if payload field is empty
