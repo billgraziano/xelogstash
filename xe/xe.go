@@ -438,6 +438,8 @@ func (e *Event) getDescription() string {
 		return fmt.Sprintf("%s: %s", e.GetString("availability_group_name"), e.GetString("current_state"))
 	case "database_mirroring_state_change":
 		return fmt.Sprintf("%s: %s", e.GetString("database_name"), e.GetString("state_change_desc"))
+	case "sql_exit_invoked":
+		return e.GetString("shutdown_option")
 	}
 
 	return ""
