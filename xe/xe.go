@@ -346,16 +346,16 @@ func (e *Event) getDescription() string {
 		return e.GetString("message")
 
 	case "sql_batch_completed":
-		return e.getSQLDescription("sql_text")
+		return e.getSQLDescription("sql_text", "batch_text")
 
 	case "rpc_completed":
-		return e.getSQLDescription("statement")
+		return e.getSQLDescription("statement", "sql_text")
 
 	case "sp_statement_completed":
 		return e.getSQLDescription("statement", "sql_text")
 
 	case "sql_statement_completed":
-		return e.getSQLDescription("statement")
+		return e.getSQLDescription("statement", "sql_text")
 
 	case "error_reported":
 		var msg string
@@ -436,6 +436,8 @@ func (e *Event) getDescription() string {
 		return fmt.Sprintf("%s: %s -> %s", e.GetString("availability_group_name"), e.GetString("previous_state"), e.GetString("current_state"))
 	case "availability_replica_state":
 		return fmt.Sprintf("%s: %s", e.GetString("availability_group_name"), e.GetString("current_state"))
+	case "database_mirroring_state_change":
+		return fmt.Sprintf("%s: %s", e.GetString("database_name"), e.GetString("state_change_desc"))
 	}
 
 	return ""
@@ -444,7 +446,7 @@ func (e *Event) getDescription() string {
 func (e *Event) getSQLDescription(name ...string) string {
 	var txt string
 	for _, fld := range name {
-		txt := e.GetString(fld)
+		txt = e.GetString(fld)
 		if len(txt) > 0 {
 			break
 		}
