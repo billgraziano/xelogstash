@@ -21,6 +21,7 @@ type jobResult struct {
 	InstanceID    int    `json:"instance_id"`
 	JobID         string `json:"job_id"`
 	StepID        int    `json:"step_id"`
+	StepName      string `json:"step_name"`
 	JobName       string `json:"job_name"`
 	Message       string `json:"message"`
 	RunStatus     int    `json:"run_status"`
@@ -108,6 +109,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			,H.instance_id
 			,H.job_id
 			,H.step_id
+			,H.step_name
 			,J.[name] AS [job_name]
 			,H.[message] as [msg]
 			,H.[run_status]
@@ -151,7 +153,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		}
 
 		var j jobResult
-		err = rows.Scan(&j.Name, &j.InstanceID, &j.JobID, &j.StepID, &j.JobName, &j.Message, &j.RunStatus, &j.RunDuration, &j.Timestamp)
+		err = rows.Scan(&j.Name, &j.InstanceID, &j.JobID, &j.StepID, &j.StepName, &j.JobName, &j.Message, &j.RunStatus, &j.RunDuration, &j.Timestamp)
 		if err != nil {
 			return result, errors.Wrap(err, "rows.scan")
 		}
@@ -171,6 +173,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		base.Set("instance_id", j.InstanceID)
 		base.Set("job_id", j.JobID)
 		base.Set("step_id", j.StepID)
+		base.Set("step_name", j.StepName)
 		base.Set("job_name", j.JobName)
 		base.Set("message", j.Message)
 		base.Set("run_status", j.RunStatus)
@@ -210,9 +213,9 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		var description string
 		switch j.Name {
 		case "agent_job":
-			description = j.Message
+			description = fmt.Sprintf("%s: %s", j.JobName, j.Message)
 		case "agent_job_step":
-			description = j.Message
+			description = fmt.Sprintf("%s: [%d] %s: %s", j.JobName, j.StepID, j.StepName, j.Message)
 		}
 		if len(description) > 0 {
 			base.Set("xe_description", description)
