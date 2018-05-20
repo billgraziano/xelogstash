@@ -246,6 +246,7 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	event.SetIfEmpty("server_instance_name", i.Server)
 	event.setDatabaseName(i)
 
+	event.SetAppSource()
 	// set calc_description
 	desc := event.getDescription()
 	if len(desc) > 0 {
@@ -296,7 +297,7 @@ func (e *Event) getSeverity() logstash.Severity {
 		}
 	}
 
-	if name == "xml_deadlock_report" {
+	if name == "xml_deadlock_report" || name == "lock_deadlock_chain" {
 		return logstash.Error
 	}
 
@@ -351,7 +352,7 @@ func (e *Event) getDescription() string {
 		return e.getSQLDescription("statement")
 
 	case "sp_statement_completed":
-		return e.getSQLDescription("statement")
+		return e.getSQLDescription("statement", "sql_text")
 
 	case "sql_statement_completed":
 		return e.getSQLDescription("statement")
@@ -406,24 +407,57 @@ func (e *Event) getDescription() string {
 			s += fmt.Sprintf(" (%s)", sqltext)
 		}
 		return s
+
+	case "object_altered":
+		return fmt.Sprintf("ALTER %s..%s (%s)", e.GetString("database_name"), e.GetString("object_name"), e.GetString("object_type"))
+	case "object_created":
+		return fmt.Sprintf("CREATE %s..%s (%s)", e.GetString("database_name"), e.GetString("object_name"), e.GetString("object_type"))
+	case "object_deleted":
+		return fmt.Sprintf("DELETE %s..%s (%s)", e.GetString("database_name"), e.GetString("object_name"), e.GetString("object_type"))
+	case "lock_deadlock_chain":
+		return fmt.Sprintf("%s", e.GetString("resource_description"))
+	case "xml_deadlock_report":
+		return "xml_deadlock_report"
+	case "hadr_db_partner_set_sync_state":
+		return fmt.Sprintf("%s: %s -> %s (%s)", e.GetString("database_name"), e.GetString("commit_policy"), e.GetString("commit_policy_target"), e.GetString("sync_state"))
+	case "blocked_process_report":
+		var s string
+		r := e.GetResourceUsageDesc()
+		if r != "" {
+			s = fmt.Sprintf("(%s) ", r)
+		}
+		s += fmt.Sprintf("%s: (%s-%s[%s])", e.GetString("database_name"), e.GetString("resource_owner_type"), e.GetString("lock_mode"), e.GetString("object_id"))
+		return s
+	case "alwayson_ddl_executed":
+		return fmt.Sprintf("(%s) %s", e.GetString("ddl_phase"), e.GetString("statement"))
+	case "availability_replica_manager_state_change":
+		return fmt.Sprintf("state: %s", e.GetString("current_state"))
+	case "availability_replica_state_change":
+		return fmt.Sprintf("%s: %s -> %s", e.GetString("availability_group_name"), e.GetString("previous_state"), e.GetString("current_state"))
+	case "availability_replica_state":
+		return fmt.Sprintf("%s: %s", e.GetString("availability_group_name"), e.GetString("current_state"))
 	}
 
 	return ""
 }
 
-func (e *Event) getSQLDescription(name string) string {
+func (e *Event) getSQLDescription(name ...string) string {
+	var txt string
+	for _, fld := range name {
+		txt := e.GetString(fld)
+		if len(txt) > 0 {
+			break
+		}
+	}
+
 	var s string
 	r := e.GetResourceUsageDesc()
 	if len(r) > 0 {
 		s = fmt.Sprintf("(%s) ", r)
 	}
-	txt := e.GetString(name)
-	if len(txt) == 0 {
-		return ""
-	}
 
-	if len(txt) > 200 {
-		s += left(txt, 200) + "..."
+	if len(txt) > 300 {
+		s += left(txt, 300) + "..."
 	} else {
 		s += txt
 	}
