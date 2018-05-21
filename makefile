@@ -14,11 +14,11 @@ buildEXE:
 #	$(info "bang" $(sha1ver))
 #	$(info $(test))
 # 	go generate 
-	go build -o "$(TARGETDIR)\xelogstash.EXE" -a -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash  
+	go build -o "$(TARGETDIR)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash  
 
 buildRace:
 #	go generate 
-	go build -a -o "$(TARGETDIR)\xelogstash.EXE" -race -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash 
+	go build -a -o "$(TARGETDIR)\xelogstash.exe" -race -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash 
 
 copyFiles:
 	copy .\samples\*.toml $(TARGETDIR)
