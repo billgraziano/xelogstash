@@ -10,8 +10,9 @@ timestamp_field_name = "@timestamp"
 payload_field_name = "event" # all app fields will be nested under this field.  Optional.
 samples = true # prints the JSON application logging messaegs to samples.applog.json
 
-adds = [    "global.host:$(HOST)",
-            "global.app:$(EXE)" ]
+adds = [    "global.host:$(HOST)",  # $(VAR) must be upper case.  the resulting value is lower case.
+            "global.app:$(EXE)" 
+            ]
 copies = [  "@timestamp:newtimestamp" ]
 moves = [ ] 
 
@@ -30,11 +31,13 @@ excludedEvents = [
     "security_error_ring_buffer_recorded"
     ]
 
-adds = [    "global.collector:$(EXE)",
+adds = [    "global.collector:$(EXE)", # $(VAR) must be upper case.  the resulting value is lower case.
             "global.collector.version:$(VERSION)"
-            "global.logtype:sqlxe" ]
+            "global.logtype:sqlxe" 
+            ]
 copies = [  "mssql.timestasmp:newtimestamp",
-            "mssql.server_instance_name:global.host" ]
+            "mssql.server_instance_name:global.host" 
+            ]
 moves = [ ] 
 
 

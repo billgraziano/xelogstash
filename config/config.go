@@ -203,13 +203,13 @@ func buildmap(a []string, version string) (map[string]string, error) {
 		// process any substitutions
 		value := kv[1]
 
-		value = strings.ToLower(strings.Replace(value, "$(EXENAMEPATH)", exeNamePath, -1))
-		value = strings.ToLower(strings.Replace(value, "$(EXENAME)", exeName, -1))
-		value = strings.ToLower(strings.Replace(value, "$(PID)", strconv.Itoa(os.Getpid()), -1))
-		value = strings.ToLower(strings.Replace(value, "$(VERSION)", version, -1))
-		value = strings.ToLower(strings.Replace(value, "$(HOST)", fqdn.Get(), -1))
+		value = strings.Replace(value, "$(EXENAMEPATH)", exeNamePath, -1)
+		value = strings.Replace(value, "$(EXENAME)", exeName, -1)
+		value = strings.Replace(value, "$(PID)", strconv.Itoa(os.Getpid()), -1)
+		value = strings.Replace(value, "$(VERSION)", version, -1)
+		value = strings.Replace(value, "$(HOST)", fqdn.Get(), -1)
 
-		m[kv[0]] = value
+		m[kv[0]] = strings.ToLower(value)
 	}
 	return m, err
 }

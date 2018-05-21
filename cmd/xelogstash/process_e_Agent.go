@@ -17,22 +17,23 @@ import (
 )
 
 type jobResult struct {
-	Name          string `json:"name"`
-	InstanceID    int    `json:"instance_id"`
-	JobID         string `json:"job_id"`
-	StepID        int    `json:"step_id"`
-	StepName      string `json:"step_name"`
-	JobName       string `json:"job_name"`
-	Message       string `json:"message"`
-	RunStatus     int    `json:"run_status"`
-	RunStatusText string
-	RunDuration   int       `json:"run_duration"`
-	Timestamp     time.Time `json:"timestamp"`
-	FQDN          string    `json:"mssql_fqdn"`
-	Computer      string    `json:"mssql_computer"`
-	Server        string    `json:"mssql_server_name"`
-	Version       string    `json:"mssql_version"`
-	Domain        string    `json:"mssql_domain"`
+	Name           string `json:"name"`
+	InstanceID     int    `json:"instance_id"`
+	JobID          string `json:"job_id"`
+	StepID         int    `json:"step_id"`
+	StepName       string `json:"step_name"`
+	JobName        string `json:"job_name"`
+	Message        string `json:"message"`
+	RunStatus      int    `json:"run_status"`
+	RunStatusText  string
+	RunDuration    int       `json:"run_duration"`
+	TimestampLocal time.Time `json:"timestamp"`
+	TimestampUTC   time.Time
+	FQDN           string `json:"mssql_fqdn"`
+	Computer       string `json:"mssql_computer"`
+	Server         string `json:"mssql_server_name"`
+	Version        string `json:"mssql_version"`
+	Domain         string `json:"mssql_domain"`
 }
 
 func processAgentJobs(wid int, source config.Source) (result Result, err error) {
@@ -99,37 +100,72 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	if source.Rows > 0 {
 		top = source.Rows
 	}
-	topClause := fmt.Sprintf(" TOP (%d) ", top)
-	query = "SELECT " + topClause
-	query += `
+	//topClause := fmt.Sprintf(" TOP (%d) ", top)
+	// query = "SELECT " + topClause
+	// query += `
+	// 			CASE
+	// 			WHEN H.step_id = 0 THEN 'agent_job'
+	// 			ELSE 'agent_job_step'
+	// 		END AS [name]
+	// 		,H.instance_id
+	// 		,H.job_id
+	// 		,H.step_id
+	// 		,H.step_name
+	// 		,J.[name] AS [job_name]
+	// 		,H.[message] as [msg]
+	// 		,H.[run_status]
+	// 		,H.[run_duration]
+	// 		,convert( datetime,
+	// 			SUBSTRING(CAST(run_date AS VARCHAR(8)),1,4) + '-' +
+	// 			SUBSTRING(CAST(run_date AS VARCHAR(8)),5,2) + '-'+
+	// 			SUBSTRING(CAST(run_date AS VARCHAR(8)),7,2) + ' ' +
+	// 			convert(varchar, run_time/10000)+':'+
+	// 			convert(varchar, run_time%10000/100)+':'+
+	// 			convert(varchar, run_time%100)+'.000' ) AS [Timestamp]
+	// 	FROM	[msdb].[dbo].[sysjobhistory] H
+	// 	JOIN	[msdb].[dbo].[sysjobs] J on J.[job_id] = H.[job_id]
+	// 	WHERE	1=1
+	// 	-- AND  H.[run_status] NOT IN (2, 4) -- Don't want retry or in progress
+	// 	AND		H.[instance_id] > ?
+	// 	ORDER BY H.[instance_id] ASC;
+	// `
+
+	query = fmt.Sprintf(`
+		; WITH CTE AS (
+			SELECT 
 				CASE 
-				WHEN H.step_id = 0 THEN 'agent_job' 
-				ELSE 'agent_job_step'
-			END AS [name]
-			,H.instance_id
-			,H.job_id
-			,H.step_id
-			,H.step_name
-			,J.[name] AS [job_name]
-			,H.[message] as [msg]
-			,H.[run_status]
-			,H.[run_duration]
-			,convert( datetime,
-				SUBSTRING(CAST(run_date AS VARCHAR(8)),1,4) + '-' + 
-				SUBSTRING(CAST(run_date AS VARCHAR(8)),5,2) + '-'+ 
-				SUBSTRING(CAST(run_date AS VARCHAR(8)),7,2) + ' ' +
-				convert(varchar, run_time/10000)+':'+
-				convert(varchar, run_time%10000/100)+':'+
-				convert(varchar, run_time%100)+'.000' ) AS [Timestamp]
-
-
-		FROM	[msdb].[dbo].[sysjobhistory] H
-		JOIN	[msdb].[dbo].[sysjobs] J on J.[job_id] = H.[job_id]
-		WHERE	1=1
-		-- AND  H.[run_status] NOT IN (2, 4) -- Don't want retry or in progress
-		AND		H.[instance_id] > ?
-		ORDER BY H.[instance_id] ASC;
-	`
+					WHEN H.step_id = 0 THEN 'agent_job' 
+					ELSE 'agent_job_step'
+				END AS [name]
+				,H.instance_id
+				,H.job_id
+				,H.step_id
+				,H.step_name
+				,J.[name] AS [job_name]
+				,H.[message] as [msg]
+				,H.[run_status]
+				,H.[run_duration]
+				,convert( datetime,
+					SUBSTRING(CAST(run_date AS VARCHAR(8)),1,4) + '-' + 
+					SUBSTRING(CAST(run_date AS VARCHAR(8)),5,2) + '-'+ 
+					SUBSTRING(CAST(run_date AS VARCHAR(8)),7,2) + ' ' +
+					convert(varchar, run_time/10000)+':'+
+					convert(varchar, run_time%%10000/100)+':'+
+					convert(varchar, run_time%%100)+'.000' ) AS [timestamp_local]
+				FROM	[msdb].[dbo].[sysjobhistory] H
+				JOIN	[msdb].[dbo].[sysjobs] J on J.[job_id] = H.[job_id]
+				WHERE	1=1
+				-- AND  H.[run_status] NOT IN (2, 4) -- Don't want retry or in progress
+				--AND		H.[instance_id] > ?
+				--ORDER BY H.[instance_id] ASC
+		)
+		SELECT TOP (%d)  *
+			, CONVERT(VARCHAR(30), CAST(DATEADD(mi, -1 * DATEDIFF(MINUTE, GETUTCDATE(), GETDATE()), timestamp_local) AS DATETIMEOFFSET), 127) AS timestamp_utc
+		FROM CTE
+		WHERE [instance_id] > ?
+		ORDER BY [instance_id]
+		
+		`, top)
 
 	rows, err := db.Query(query, lastInstanceID)
 	if err != nil {
@@ -152,11 +188,18 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			defer safeClose(netconn, &err)
 		}
 
+		var tsutc string
 		var j jobResult
-		err = rows.Scan(&j.Name, &j.InstanceID, &j.JobID, &j.StepID, &j.StepName, &j.JobName, &j.Message, &j.RunStatus, &j.RunDuration, &j.Timestamp)
+		err = rows.Scan(&j.Name, &j.InstanceID, &j.JobID, &j.StepID, &j.StepName, &j.JobName, &j.Message, &j.RunStatus, &j.RunDuration, &j.TimestampLocal, &tsutc)
 		if err != nil {
 			return result, errors.Wrap(err, "rows.scan")
 		}
+
+		j.TimestampUTC, err = time.Parse(time.RFC3339Nano, tsutc)
+		if err != nil {
+			return result, errors.Wrap(err, "invalid utc from sql")
+		}
+
 		instanceID = j.InstanceID
 
 		// TODO do the copies, adds, renames
@@ -200,7 +243,9 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			base.Set("xe_severity_keyword", logstash.Warning.String())
 		}
 		base.Set("run_duration", j.RunDuration)
-		base.Set("timestamp", j.Timestamp)
+		base.Set("timestamp", j.TimestampUTC)
+		base.Set("timestamp_local", j.TimestampLocal)
+		base.Set("timestamp_utc_calculated", j.TimestampUTC)
 
 		base.Set("mssql_domain", info.Domain)
 		base.Set("mssql_computer", info.Computer)
