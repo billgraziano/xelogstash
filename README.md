@@ -35,7 +35,7 @@ You can set the following Source fields (or Default fields)
 * `prefix` is the prefix for the status file (see below)
 * `sessions` is a list of sessions to process.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
-* `agentjobs` set to true will process the SQL Server Agent Job results as if they were extended events.  It tries to map the field names to the extended event field names.
+* `agentjobs` can be "all", "failed" or "none".  It tries to map the field names to the extended event field names.
 * `excludedEvents` is a list of events to ignore.  Both sample configuration files exclude some of the system health events like ring buffer recorded and diagnostic component results. 
 * `adds`, `moves`, and `copies` are described in their own section below.
 

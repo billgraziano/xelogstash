@@ -80,7 +80,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	}
 
 	// Process Agent Jobs
-	if source.AgentJobs {
+	if source.AgentJobs == config.JobsAll || source.AgentJobs == config.JobsFailed {
 		start := time.Now()
 		result, err := processAgentJobs(wid, source)
 		runtime := time.Since(start)

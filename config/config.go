@@ -14,12 +14,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	JobsAll    = "all" // JobsAll is a possibo value for including agent jobs
+	JobsFailed = "failed"
+	JobsNone   = "none"
+)
+
 // Source defines a source of extended event information
 type Source struct {
 	FQDN           string
 	Sessions       []string
 	Prefix         string
-	AgentJobs      bool
+	AgentJobs      string
 	PayloadField   string `toml:"payload_field_name"`
 	TimestampField string `toml:"timestamp_field_name"`
 	Rows           int
@@ -115,6 +121,10 @@ func (s *Source) validate() error {
 	// if timestamp_field_name is provided, it must have a value
 	if s.TimestampField == "" {
 		return fmt.Errorf("timestamp_field_name must have a value.  suggest \"@timestamp\"")
+	}
+
+	if s.AgentJobs != JobsAll && s.AgentJobs != JobsFailed && s.AgentJobs != JobsNone && s.AgentJobs != "" {
+		return fmt.Errorf("agentjobs must be all, none, or failed or not specified")
 	}
 
 	return nil
@@ -254,9 +264,11 @@ func (c *Config) setDefaults() {
 		if v.Prefix != "" {
 			n.Prefix = v.Prefix
 		}
-		if v.AgentJobs == true {
-			n.AgentJobs = true
+
+		if v.AgentJobs != "" {
+			n.AgentJobs = v.AgentJobs
 		}
+
 		if v.PayloadField != "" {
 			n.PayloadField = v.PayloadField
 		}
@@ -264,9 +276,7 @@ func (c *Config) setDefaults() {
 		if v.TimestampField != "" {
 			n.TimestampField = v.TimestampField
 		}
-		// if v.Priority != 0 {
-		// 	n.Priority = v.Priority
-		// }
+
 		if v.Rows != 0 {
 			n.Rows = v.Rows
 		}

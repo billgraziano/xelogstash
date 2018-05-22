@@ -266,49 +266,51 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			base.Set("xe_description", description)
 		}
 
-		//base.ToLower()
-
-		lr := logstash.NewRecord()
-		// if payload field is empty
-		if source.PayloadField == "" {
-			for k, v := range base {
-				lr[k] = v
+		// only save if we are doing all or failed and it isn't successful
+		if source.AgentJobs == config.JobsAll || (source.AgentJobs == config.JobsFailed && j.RunStatus != 1 && j.RunStatus != 4) {
+			lr := logstash.NewRecord()
+			// if payload field is empty
+			if source.PayloadField == "" {
+				for k, v := range base {
+					lr[k] = v
+				}
+			} else {
+				//fmt.Println(source.PayloadField)
+				lr[source.PayloadField] = base
+				lr[source.TimestampField] = base["timestamp"]
 			}
-		} else {
-			//fmt.Println(source.PayloadField)
-			lr[source.PayloadField] = base
-			lr[source.TimestampField] = base["timestamp"]
-		}
-		// if we're in the root
-		if source.TimestampField != "timestamp" && source.PayloadField == "" {
-			lr[source.TimestampField] = base["timestamp"]
-			delete(lr, "timestamp")
-		}
+			// if we're in the root
+			if source.TimestampField != "timestamp" && source.PayloadField == "" {
+				lr[source.TimestampField] = base["timestamp"]
+				delete(lr, "timestamp")
+			}
 
-		rs, err := lr.ToJSON()
-		if err != nil {
-			return result, errors.Wrap(err, "record.tojson")
-		}
-
-		// process the adds and such
-		rs, err = logstash.ProcessMods(rs, source.Adds, source.Copies, source.Moves)
-		if err != nil {
-			return result, errors.Wrap(err, "logstash.processmods")
-		}
-
-		// TODO if test, write {}
-		if ls != nil {
-			err = ls.Writeln(rs)
+			rs, err := lr.ToJSON()
 			if err != nil {
-				log.Printf("\r\n")
-				log.Printf("%s\r\n", rs)
-				log.Printf("\r\n")
-				return result, errors.Wrap(err, "logstash-writeln")
+				return result, errors.Wrap(err, "record.tojson")
 			}
-		}
 
-		if appConfig.Summary {
-			summary.Add(j.Name, &rs)
+			// process the adds and such
+			rs, err = logstash.ProcessMods(rs, source.Adds, source.Copies, source.Moves)
+			if err != nil {
+				return result, errors.Wrap(err, "logstash.processmods")
+			}
+
+			// TODO if test, write {}
+			if ls != nil {
+				err = ls.Writeln(rs)
+				if err != nil {
+					log.Printf("\r\n")
+					log.Printf("%s\r\n", rs)
+					log.Printf("\r\n")
+					return result, errors.Wrap(err, "logstash-writeln")
+				}
+			}
+
+			if appConfig.Summary {
+				summary.Add(j.Name, &rs)
+			}
+			result.Rows++
 		}
 
 		// write the status field
@@ -320,7 +322,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		first = false
 		gotRows = true
 		//rowCount++
-		result.Rows++
+
 	}
 
 	if gotRows {
