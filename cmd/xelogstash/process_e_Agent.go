@@ -237,8 +237,12 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			base.Set("run_status_text", "cancelled")
 			base.Set("xe_severity_value", logstash.Warning)
 			base.Set("xe_severity_keyword", logstash.Warning.String())
+		case 4:
+			base.Set("run_status_text", "inprogress")
+			base.Set("xe_severity_value", logstash.Info)
+			base.Set("xe_severity_keyword", logstash.Info.String())
 		default:
-			base.Set("run_status_text", "unknown")
+			base.Set("run_status_text", "undefined")
 			base.Set("xe_severity_value", logstash.Warning)
 			base.Set("xe_severity_keyword", logstash.Warning.String())
 		}
