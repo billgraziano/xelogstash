@@ -23,7 +23,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.16"
+const version = "0.17"
 
 var sha1ver string
 
@@ -50,8 +50,14 @@ func main() {
 
 	log.SetFlags(log.Ltime)
 	log.Println("Starting...")
-	if sha1ver != "" {
-		log.Println("repository sha1:", sha1ver[0:6])
+
+	// did we get a full SHA1?
+	if len(sha1ver) == 40 {
+		sha1ver = sha1ver[0:7]
+	}
+
+	if sha1ver == "" {
+		sha1ver = "dev"
 	}
 
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
@@ -94,7 +100,7 @@ func main() {
 	var logMessage string
 	logMessage = fmt.Sprintf("app-start version: %s; workers %d; default rows: %d", version, settings.App.Workers, settings.Defaults.Rows)
 	if sha1ver != "" {
-		logMessage += fmt.Sprintf("; sha1: %s", sha1ver[0:6])
+		logMessage += fmt.Sprintf("; sha1: %s", sha1ver)
 	}
 	log.Println(logMessage)
 	err = applog.Info(logMessage)
