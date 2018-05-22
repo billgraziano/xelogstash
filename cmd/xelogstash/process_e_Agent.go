@@ -271,7 +271,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		}
 
 		// only save if we are doing all or failed and it isn't successful
-		if source.AgentJobs == config.JobsAll || (source.AgentJobs == config.JobsFailed && j.RunStatus != 1 && j.RunStatus != 4) {
+		if source.AgentJobs == config.JobsAll ||
+			(source.AgentJobs == config.JobsFailed && (j.RunStatus == 0 || j.RunStatus == 2 || j.RunStatus == 3)) {
 			lr := logstash.NewRecord()
 			// if payload field is empty
 			if source.PayloadField == "" {
