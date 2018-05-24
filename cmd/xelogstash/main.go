@@ -116,7 +116,10 @@ func main() {
 		logMessage = fmt.Sprintf("app.logstash: %s", settings.App.Logstash)
 	}
 	log.Println(logMessage)
-	_ = applog.Info(logMessage)
+	err = applog.Info(logMessage)
+	if err != nil {
+		log.Println("applog.info:", err)
+	}
 
 	// Report hte app logstash
 	if settings.AppLog.Logstash == "" {

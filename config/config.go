@@ -100,6 +100,9 @@ func Get(f string, version string) (config Config, err error) {
 	}
 
 	for _, s := range config.Sources {
+		if s.FQDN == "" {
+			return config, errors.New("source without fqdn")
+		}
 		err = s.validate()
 		if err != nil {
 			return config, errors.Wrap(err, "validate")
