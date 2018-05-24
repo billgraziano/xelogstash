@@ -66,6 +66,7 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 	if err != nil {
 		return info, errors.Wrap(err, "mssqlodbc.connectionstring")
 	}
+
 	db, err := sql.Open("odbc", connectionString)
 	if err != nil {
 		return info, errors.Wrap(err, "db.open")
@@ -75,6 +76,7 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 	if err != nil {
 		return info, errors.Wrap(err, "db.ping")
 	}
+
 	info.DB = db
 
 	query := `

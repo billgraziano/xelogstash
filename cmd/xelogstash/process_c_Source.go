@@ -16,9 +16,12 @@ import (
 
 func processSource(wid int, source config.Source) (sourceResult Result, err error) {
 
-	//log.Printf("[%d] source-start %s (%s)", wid, source.FQDN, source.Prefix)
+	var textMessage string
 	info, err := xe.GetSQLInfo(source.FQDN)
 	if err != nil {
+		textMessage = fmt.Sprintf("[%d] %s - fqdn: %s err: %v", wid, source.Prefix, source.FQDN, err)
+		log.Println(textMessage)
+		_ = applog.Error(textMessage)
 		return sourceResult, errors.Wrap(err, "xe.getsqlinfo")
 	}
 
@@ -37,8 +40,6 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 		}
 		sourceResult.Instance = result.Instance
 		sourceResult.Rows += result.Rows
-
-		var textMessage string
 
 		txtDuration := fmt.Sprintf(" (%s)", roundDuration(runtime, time.Second))
 		if runtime.Seconds() < 10 {

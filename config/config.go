@@ -89,9 +89,6 @@ func Get(f string, version string) (config Config, err error) {
 	if err != nil {
 		return config, errors.Wrap(err, "decodekv")
 	}
-	// if config.App.Logstash == "" {
-	// 	return config, errors.New("Logstash is required in format host:port")
-	// }
 
 	config.setDefaults()
 	err = config.Defaults.validate()
