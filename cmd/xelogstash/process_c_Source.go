@@ -46,11 +46,12 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			txtDuration = ""
 		}
 
-		if errors.Cause(err) == xe.ErrInvalidSession && source.Sessions[i] == "AlwaysOn_health" {
-			break
-		} else if errors.Cause(err) == xe.ErrInvalidSession {
-			textMessage = fmt.Sprintf("[%d] %s - %s - %s is not available.  Skipped.", wid, source.Prefix, result.Instance, result.Session)
-			_ = applog.Warn(textMessage)
+		if errors.Cause(err) == xe.ErrNotFound {
+			// TODO: if strict, then warning:
+			// textMessage = fmt.Sprintf("[%d] %s - %s - %s is not available.  Skipped.", wid, source.Prefix, result.Instance, result.Session)
+			// _ = applog.Warn(textMessage)
+			// else
+			continue
 		} else if err != nil {
 			textMessage = fmt.Sprintf("[%d] *** ERROR: Prefix: %s - FQDN: %s - %s - %s : %s\r\n", wid, source.Prefix, source.FQDN, status.ClassXE, source.Sessions[i], err.Error())
 			cleanRun = false
