@@ -42,11 +42,10 @@ func processSession(
 		return result, errors.Wrap(err, "validatesession")
 	}
 
-	// cofigure the XE reader
-	// reader, err := xe.NewReader(info.DB)
-	// if err != nil {
-	// 	return result, errors.Wrap(err, "xe.newreader")
-	// }
+	session, err := xe.GetSession(info.DB, result.Session)
+	if err != nil {
+		return result, errors.Wrap(err, "xe.getsession")
+	}
 
 	sf, err := status.NewFile(source.Prefix, result.Instance, status.ClassXE, result.Session)
 	if err != nil {
@@ -75,9 +74,9 @@ func processSession(
 	}
 
 	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StatusReset {
-		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s_*.xel', NULL, NULL, NULL);", result.Session)
+		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
 	} else {
-		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s_*.xel', NULL, '%s', %d);", result.Session, lastFileName, lastFileOffset)
+		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, '%s', %d);", session.WildCard, lastFileName, lastFileOffset)
 	}
 	rows, err := info.DB.Query(query)
 	if err != nil {
