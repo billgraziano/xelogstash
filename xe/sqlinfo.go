@@ -131,7 +131,10 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 		}
 		info.Actions[name] = dt
 	}
-	rows.Close()
+	err = rows.Close()
+	if err != nil {
+		return info, errors.Wrap(err, "rows.close")
+	}
 
 	// Get the fields
 	query = `
@@ -153,7 +156,10 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 		dtkey := FieldTypeKey{Name: name, Object: object}
 		info.Fields[dtkey] = dt
 	}
-	rows.Close()
+	err = rows.Close()
+	if err != nil {
+		return info, errors.Wrap(err, "rows.close")
+	}
 
 	err = info.getMapValues()
 	if err != nil {
@@ -190,7 +196,10 @@ func (i *SQLInfo) getMapValues() error {
 		//info.Fields[dtkey] = dt
 		i.MapValues[mapValueKey] = mapValue
 	}
-	rows.Close()
+	err = rows.Close()
+	if err != nil {
+		return errors.Wrap(err, "rows.close")
+	}
 	return nil
 }
 
@@ -214,6 +223,9 @@ func (i *SQLInfo) getDatabases() error {
 
 		i.Databases[dbid] = &dbv
 	}
-	rows.Close()
+	err = rows.Close()
+	if err != nil {
+		return errors.Wrap(err, "rows.close")
+	}
 	return nil
 }
