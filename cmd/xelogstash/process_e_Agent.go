@@ -305,9 +305,9 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			if ls != nil {
 				err = ls.Writeln(rs)
 				if err != nil {
-					log.Printf("\r\n")
-					log.Printf("%s\r\n", rs)
-					log.Printf("\r\n")
+					log.Error("\r\n")
+					log.Error("%s\r\n", rs)
+					log.Error("\r\n")
 					return result, errors.Wrap(err, "logstash-writeln")
 				}
 			}

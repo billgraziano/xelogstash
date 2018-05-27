@@ -46,7 +46,7 @@ type App struct {
 	Logstash string
 	Samples  bool // Print sample JSON to stdout
 	Summary  bool // Print a summary to stdout
-	//Debug    bool
+	// Debug    bool // Enable debug logging
 }
 
 // AppLog controls the applicaiton logging

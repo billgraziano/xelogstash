@@ -68,7 +68,7 @@ func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 func safeClose(c io.Closer, err *error) {
 	cerr := c.Close()
 	if cerr != nil {
-		log.Println("safeClose: ", cerr)
+		log.Error("safeClose: ", cerr)
 		if *err == nil {
 			*err = cerr
 		}
@@ -108,10 +108,6 @@ func resolveIP(hostAndPort string) (addr *net.TCPAddr, err error) {
 	}
 	return addr, nil
 }
-
-// func winlog(a ...interface{}) {
-// 	log.Println(a...)
-// }
 
 func containsString(array []string, search string) bool {
 	s := strings.ToLower(search)

@@ -153,12 +153,10 @@ func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err 
 	}
 
 	// TODO close & reopen the file
-	//log.Println("I'm opening for append")
 	fp, err := os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		return "", 0, StatusReset, errors.Wrap(err, "openappend")
 	}
-	//log.Println("setup name: ", f.Name)
 
 	_, err = fp.Stat()
 	if err != nil {

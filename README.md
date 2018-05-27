@@ -21,8 +21,14 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 This should generate a `samples.xe.json`, `samples.applog.json`, and a "status" folder in the same directory.  The "samples.xe.json" file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.
 
 ### Sending to Logstash
-To send events to Logstash, specify the `logstash` value under `[app]` in the TOML file.  It should be in _host:port_ format.  After that you can run the executable with the same parameters. 
+To send events to Logstash, specify the `logstash` value under `[app]` in the TOML file.  It should be in `host:port` format.  After that you can run the executable with the same parameters. 
 
+### Command Line Options 
+There are three command line options.  Running `xelogstash /?` will display the help for the options.
+
+- `/config filename` tries to load the TOML file from _filename_. If this isn't specified, `xelogstash.toml` is used.
+- `/log` logs the output to a log file in addition to standard out.  The log file is named `xelogstash_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
+- `/debug` enables some additional debugging output.  
 
 
 ## <a name="sources"></a>Sources and Defaults
@@ -45,7 +51,7 @@ The two fields `timestamp_field_name` and `payload_field_name` are available in 
 ### Example 1
 All the event fields are at the root level.
 
-```
+```json 
 - - - xelogstash.toml - - - 
 
 timestamp_field_name = "@timestamp"
@@ -65,7 +71,7 @@ payload_field_name = ""
 ### Example 2
 All the event fields are nested inside and "event" field.
 
-```
+```json
 timestamp_field_name = "@timestamp"
 payload_field_name = "event"
 ----------------------
@@ -94,7 +100,7 @@ Further, the keys can be nested using a dotted notation.  For example, setting a
 
 Consider the following settings:
 
-```
+```json 
 timestamp_field_name = "@timestamp"
 payload_field_name = "event"
 

@@ -57,9 +57,9 @@ func processSession(
 	}
 
 	if xestatus == status.StatusReset {
-		log.Printf("[%d] *** ERROR ***\r\n", wid)
-		log.Printf("[%d] *** Missing events in previous run from: [%s-%s-%s] starting at [%s-%d]\r\n", wid, source.Prefix, result.Instance, result.Session, lastFileName, lastFileOffset)
-		log.Printf("[%d] *** Attempting to read past this offset.  Events are probably missed.", wid)
+		log.Error("[%d] *** ERROR ***", wid)
+		log.Error("[%d] *** Missing events in previous run from: [%s-%s-%s] starting at [%s-%d]", wid, source.Prefix, result.Instance, result.Session, lastFileName, lastFileOffset)
+		log.Error("[%d] *** Attempting to read past this offset.  Events are probably missed.", wid)
 		// returnErr = errors.New("Recovering from missing events")
 		// TODO Log to logstash with error
 	}
@@ -84,12 +84,12 @@ func processSession(
 		if len(lastFileName) > 0 {
 			saveErr := sf.Done(lastFileName, lastFileOffset, status.StatusReset)
 			if saveErr != nil {
-				log.Printf("[%d] Error saving the status file: %v\r\n", wid, saveErr)
+				log.Error("[%d] Error saving the status file: %v", wid, saveErr)
 
 			}
 		}
-		log.Printf("[%d] *** Read XE file target error occurred.\r\n", wid)
-		log.Printf("[%d] *** The next run will attempt to read past this error.  Events may be skipped.\r\n", wid)
+		log.Error("[%d] *** Read XE file target error occurred.", wid)
+		log.Error("[%d] *** The next run will attempt to read past this error.  Events may be skipped.", wid)
 
 		// TODO log this error
 		return result, errors.Wrap(err, "query")
@@ -202,9 +202,9 @@ func processSession(
 		if ls != nil {
 			err = ls.Writeln(rs)
 			if err != nil {
-				log.Printf("\r\n")
-				log.Printf("%s\r\n", rs)
-				log.Printf("\r\n")
+				log.Error("")
+				log.Error("%s", rs)
+				log.Error("")
 				return result, errors.Wrap(err, "logstash-writeln")
 			}
 		}
@@ -216,11 +216,6 @@ func processSession(
 			//summary.Add(eventName, &eventString)
 			summary.Add(eventName, &rs)
 		}
-
-		// if result.Session == "system_health" /* && time.Now().Sub(start) > 1*time.Millisecond */ {
-		// 	log.Printf("[%d] %s  (%v)\r\n", wid, event.Name(), time.Now().Sub(start))
-		// }
-
 	}
 
 	err = rows.Err()

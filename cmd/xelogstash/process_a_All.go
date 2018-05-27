@@ -19,10 +19,10 @@ func processall(settings config.Config) (string, bool) {
 	cleanRun := true
 
 	msg := fmt.Sprintf("Processing %d sources...", len(settings.Sources))
-	log.Println(msg)
+	log.Info(msg)
 	err := applog.Info(msg)
 	if err != nil {
-		log.Println(errors.Wrap(err, "applog.info"))
+		log.Error(errors.Wrap(err, "applog.info"))
 	}
 
 	// how big to make channels

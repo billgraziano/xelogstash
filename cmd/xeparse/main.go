@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	_ "github.com/alexbrainman/odbc"
+	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/xe"
 	flags "github.com/jessevdk/go-flags"
@@ -25,12 +25,12 @@ func main() {
 	var err error
 
 	log.SetFlags(log.Ltime)
-	log.Println("Starting...")
+	log.Info("Starting...")
 
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
-		log.Println(errors.Wrap(err, "flags.Parse"))
+		log.Error(errors.Wrap(err, "flags.Parse"))
 		os.Exit(1)
 	}
 
@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("path:", dir)
+	log.Info("path:", dir)
 	dirname := ".\\samplexml"
 
 	files, err := ioutil.ReadDir(dirname)
@@ -56,7 +56,7 @@ func main() {
 		if filepath.Ext(fi) != ".xml" {
 			continue
 		}
-		log.Println("file:", fi)
+		log.Info("file:", fi)
 		b, err := ioutil.ReadFile(fi)
 		if err != nil {
 			log.Fatal(err)
@@ -78,13 +78,12 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// log.Println(rs)
+		// log.Debug(rs)
 		var out bytes.Buffer
 		err = json.Indent(&out, []byte(rs), "", "  ")
 		if err != nil {
 			log.Fatal(err)
 		}
-		// log.Printf("\r\n%s\r\n\r\n", out.String())
 
 		// get output file name
 		basefile := strings.TrimSuffix(fi, filepath.Ext(fi))

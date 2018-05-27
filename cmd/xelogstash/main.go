@@ -9,6 +9,7 @@ I used the one here: https://coderwall.com/p/wohavg/creating-a-simple-tcp-server
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 
@@ -28,7 +29,9 @@ const version = "0.17"
 var sha1ver string
 
 var opts struct {
-	TOMLFile string `long:"config" description:"Read configuration from this TOML file."`
+	TOMLFile string `long:"config" description:"Read configuration from this TOML file"`
+	Log      bool   `long:"log" description:"Also write to log file based on the EXE name"`
+	Debug    bool   `long:"debug" description:"Enable debug logging"`
 }
 
 var appConfig config.App
@@ -48,8 +51,7 @@ func main() {
 	// defer pprof.StopCPUProfile()
 	// defer f.Close()
 
-	log.SetFlags(log.Ltime)
-	log.Println("Starting...")
+	log.SetFlags(log.LstdFlags | log.LUTC)
 
 	// did we get a full SHA1?
 	if len(sha1ver) == 40 {
@@ -63,16 +65,35 @@ func main() {
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
-		log.Println(errors.Wrap(err, "flags.Parse"))
+		log.Error(errors.Wrap(err, "flags.Parse"))
 		os.Exit(1)
 	}
 
-	// u, err := uuid.NewV4()
-	// if err != nil {
-	// 	log.Println("unable to generate uuid execution_id")
-	// 	os.Exit(1)
-	// }
+	if opts.Debug {
+		log.SetLevel(log.DEBUG)
+	}
 
+	if opts.Log {
+		// configure full logging
+		// TODO set the file name based on _YYMMDD
+
+		logfilename, err := getLogFileName()
+		if err != nil {
+			log.Error("getLogFileName", err)
+		}
+		log.Debug("log file:", logfilename)
+
+		lf, err := os.OpenFile(logfilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Error("failed to open log file")
+			os.Exit(1)
+		}
+
+		multi := io.MultiWriter(os.Stdout, lf)
+		log.SetOutput(multi)
+	}
+
+	// TODO: use the EXE name here
 	if opts.TOMLFile == "" {
 		opts.TOMLFile = "xelogstash.toml"
 	}
@@ -80,12 +101,12 @@ func main() {
 	var settings config.Config
 	settings, err = config.Get(opts.TOMLFile, version)
 	if err != nil {
-		log.Println(errors.Wrap(err, "config.get"))
+		log.Error(errors.Wrap(err, "config.get"))
 		os.Exit(1)
 	}
 
-	// if settings.App.Debug {
-	// 	opts.Debug = true
+	// if config.App.Debug {
+	// 	log.SetLevel(log.DEBUG)
 	// }
 
 	if settings.App.Workers == 0 {
@@ -93,7 +114,7 @@ func main() {
 	}
 	err = applog.Initialize(settings.AppLog)
 	if err != nil {
-		log.Println(errors.Wrap(err, "applog.init"))
+		log.Error(errors.Wrap(err, "applog.init"))
 		os.Exit(1)
 	}
 
@@ -102,10 +123,10 @@ func main() {
 	if sha1ver != "" {
 		logMessage += fmt.Sprintf("; sha1: %s", sha1ver)
 	}
-	log.Println(logMessage)
+	log.Info(logMessage)
 	err = applog.Info(logMessage)
 	if err != nil {
-		log.Println("applog to logstash failed:", err)
+		log.Error("applog to logstash failed:", err)
 		os.Exit(1)
 	}
 
@@ -115,10 +136,10 @@ func main() {
 	} else {
 		logMessage = fmt.Sprintf("app.logstash: %s", settings.App.Logstash)
 	}
-	log.Println(logMessage)
+	log.Info(logMessage)
 	err = applog.Info(logMessage)
 	if err != nil {
-		log.Println("applog.info:", err)
+		log.Error("applog.info:", err)
 	}
 
 	// Report hte app logstash
@@ -127,19 +148,19 @@ func main() {
 	} else {
 		logMessage = fmt.Sprintf("applog.logstash: %s", settings.AppLog.Logstash)
 	}
-	log.Println(logMessage)
+	log.Info(logMessage)
 
 	appConfig = settings.App
 
 	message, cleanRun := processall(settings)
-	log.Println(message)
+	log.Info(message)
 	if cleanRun {
 		err = applog.Info(message)
 	} else {
 		err = applog.Error(message)
 	}
 	if err != nil {
-		log.Println("applog to logstash failed:", err)
+		log.Error("applog to logstash failed:", err)
 	}
 
 	if settings.App.Summary {
@@ -149,24 +170,31 @@ func main() {
 	if settings.App.Samples {
 		err = summary.PrintSamples()
 		if err != nil {
-			log.Println(errors.Wrap(err, "summary.printsamples"))
+			log.Error(errors.Wrap(err, "summary.printsamples"))
 		}
 	}
 
 	if settings.AppLog.Samples {
 		err = applog.PrintSamples()
 		if err != nil {
-			log.Println(errors.Wrap(err, "applog.samples"))
+			log.Error(errors.Wrap(err, "applog.samples"))
 		}
 	}
 
 	if !cleanRun {
-		log.Printf("*** ERROR ****\r\n")
+		log.Error("*** ERROR ****")
 		os.Exit(1)
 	}
 
 	// stop.Stop()
 	// time.Sleep(time.Duration(2 * time.Second))
+
+	// TODO clean up the old log files
+	err = cleanOldLogFiles(7)
+	if err != nil {
+		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
+		os.Exit(1)
+	}
 
 	os.Exit(0)
 }

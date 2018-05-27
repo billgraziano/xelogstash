@@ -20,7 +20,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	info, err := xe.GetSQLInfo(source.FQDN)
 	if err != nil {
 		textMessage = fmt.Sprintf("[%d] %s - fqdn: %s err: %v", wid, source.Prefix, source.FQDN, err)
-		log.Println(textMessage)
+		log.Error(textMessage)
 		_ = applog.Error(textMessage)
 		return sourceResult, errors.Wrap(err, "xe.getsqlinfo")
 	}
@@ -78,7 +78,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 		}
 
 		// TODO - Write the message here
-		log.Println(textMessage)
+		log.Info(textMessage)
 	}
 
 	// Process Agent Jobs
@@ -119,7 +119,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 		}
 
 		// TODO - Write the message here
-		log.Println(textMessage)
+		log.Info(textMessage)
 	}
 
 	if !cleanRun {
