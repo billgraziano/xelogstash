@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/pkg/errors"
 )
@@ -53,7 +53,7 @@ func Error(msg string) (err error) {
 	r["severity"] = logstash.Error.String()
 	err = Log(r)
 	if err != nil {
-		log.Println("applog to logstash failed:", err)
+		log.Error("applog to logstash failed:", err)
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func Warn(msg string) (err error) {
 	r["severity"] = logstash.Warning.String()
 	err = Log(r)
 	if err != nil {
-		log.Println("applog to logstash failed:", err)
+		log.Error("applog to logstash failed:", err)
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func Info(msg string) error {
 	r["message"] = msg
 	err = Log(r)
 	if err != nil {
-		log.Println("applog to logstash failed:", err)
+		log.Error("applog to logstash failed:", err)
 	}
 	return nil
 }
@@ -137,15 +137,15 @@ func Log(src logstash.Record) error {
 	}
 
 	if ls.Connection == nil {
-		log.Println("ls.connection is nil")
+		log.Debug("ls.connection is nil")
 	}
 
 	//fmt.Println(rs)
 	err = ls.Writeln(rs)
 	if err != nil {
-		log.Printf("\r\n")
-		log.Printf("%s\r\n", rs)
-		log.Printf("\r\n")
+		log.Error("")
+		log.Error("%s", rs)
+		log.Error("")
 		return errors.Wrap(err, "logstash-writeln")
 	}
 
@@ -181,7 +181,10 @@ func PrintSamples() error {
 			return errors.Wrap(err, "file.write")
 		}
 	}
-	file.Sync()
+	err = file.Sync()
+	if err != nil {
+		return errors.Wrap(err, "file.sync")
+	}
 
 	return nil
 }
