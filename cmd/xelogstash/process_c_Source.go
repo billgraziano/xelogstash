@@ -55,6 +55,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 		} else if err != nil {
 			textMessage = fmt.Sprintf("[%d] *** ERROR: Domain: %s - FQDN: %s - %s - %s : %s\r\n", wid, info.Domain, source.FQDN, status.ClassXE, source.Sessions[i], err.Error())
 			cleanRun = false
+			log.Error(textMessage)
 			_ = applog.Error(textMessage)
 		} else {
 			if rowsPerSecond > 0 && totalSeconds > 1 {
@@ -75,10 +76,8 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			if result.Rows > 0 {
 				_ = applog.Info(textMessage)
 			}
+			log.Info(textMessage)
 		}
-
-		// TODO - Write the message here
-		log.Info(textMessage)
 	}
 
 	// Process Agent Jobs
@@ -101,6 +100,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			textMessage = fmt.Sprintf("[%d] *** ERROR: Domain: %s; FQDN: %s; (%s) %s\r\n", wid, info.Domain, source.FQDN, "Agent Jobs", err.Error())
 			cleanRun = false
 			_ = applog.Error(textMessage)
+			log.Error(textMessage)
 		} else {
 			if rowsPerSecond > 0 && totalSeconds > 1 {
 				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s - %s per second",
@@ -116,10 +116,8 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			if result.Rows > 0 {
 				_ = applog.Info(textMessage)
 			}
+			log.Info(textMessage)
 		}
-
-		// TODO - Write the message here
-		log.Info(textMessage)
 	}
 
 	if !cleanRun {
