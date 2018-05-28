@@ -38,7 +38,7 @@ The `[defaults]` section applies to all sources (but can be overridden by the so
 
 You can set the following Source fields (or Default fields)
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
-* `prefix` is the prefix for the status file (see below)
+* `prefix` is the prefix for the status file (see below).  NOTE: This is being removed.  Don't use it for new sources.
 * `sessions` is a list of sessions to process.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
 * `agentjobs` can be "all", "failed" or "none".  It tries to map the field names to the extended event field names.
@@ -171,10 +171,9 @@ The adds, moves, and copies also support a few "replacement" values.
 See the section below on derived fields for a description of the "mssql_" and "xe_" fields
 
 ## <a name="prefixes"></a>Prefixes and keeping your place
-The application keeps track how far it has read into the extended event file target using a status file.  This file holds the file name and offset of each read for that session.  The file is named `PREFIX_ServerName_Session.status`.  There is also a ".0" fiel that is used while the application is running.  You can tell the application to start all over by deleting the status file.  The "ServerName" above is populated by `@@SERVERNAME` from the instance.
+**NOTE**: Starting in v0.20, the /status directory is being moved to the /xestate field.  This should be done for you by the application.  The new file name format is `domain_instance_class_identifier.state`.  Please leave the Prefix in the TOML file for now.  It will be removed in a future release.
 
-The `PREFIX` is nothing more than a way to group files together.  I found it very useful for testing and when I was first starting.  Now I just have it set to "PROD" in the defaults and don't mess with it.
-
+The application keeps track how far it has read into the extended event file target using a state file.  This file holds the file name and offset of each read for that session.  The file is named `Domain_ServerName_Session.state`.  There is also a ".0" file that is used while the application is running.  You can tell the application to start all over by deleting the state file.  The "ServerName" above is populated by `@@SERVERNAME` from the instance.
 
 ## <a name="app-settings"></a>Application Settings
 These are the fields you can set in the `[app]` and `[applog]` section of the configuration file.
