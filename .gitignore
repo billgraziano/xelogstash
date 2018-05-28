@@ -15,6 +15,9 @@
 
 *.status
 *.status.0
+*.state
+*.state.0
+/xestate/*
 *.cmd
 *.log
 *.json

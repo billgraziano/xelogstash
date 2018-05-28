@@ -70,15 +70,20 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	}
 	result.Instance = info.Server
 
+	err = status.SwitchV2(wid, source.Prefix, info.Domain, info.Server, status.ClassAgentJobs, result.Session)
+	if err != nil {
+		return result, errors.Wrap(err, "status.switchv2")
+	}
+
 	// do the dupe check based on the actual instance since that's what is stored
-	err = status.CheckDupe(source.Prefix, result.Instance, status.ClassAgentJobs, result.Session)
+	err = status.CheckDupe(info.Domain, result.Instance, status.ClassAgentJobs, result.Session)
 	if err != nil {
 		return result, errors.Wrap(err, "dupe.check")
 	}
 
 	//appStart := time.Now()
 
-	sf, err := status.NewFile(source.Prefix, result.Instance, status.ClassAgentJobs, result.Session)
+	sf, err := status.NewFile(info.Domain, result.Instance, status.ClassAgentJobs, result.Session)
 	if err != nil {
 		return result, errors.Wrap(err, "status.newfile")
 	}
@@ -319,7 +324,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		}
 
 		// write the status field
-		err = sf.Save(dummyFileName, int64(j.InstanceID), status.StatusSuccess)
+		err = sf.Save(dummyFileName, int64(j.InstanceID), status.StateSuccess)
 		if err != nil {
 			return result, errors.Wrap(err, "status.Save")
 		}
@@ -331,7 +336,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	}
 
 	if gotRows {
-		err = sf.Done(dummyFileName, int64(instanceID), status.StatusSuccess)
+		err = sf.Done(dummyFileName, int64(instanceID), status.StateSuccess)
 		if err != nil {
 			return result, errors.Wrap(err, "status.done")
 		}

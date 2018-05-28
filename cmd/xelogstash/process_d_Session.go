@@ -32,8 +32,13 @@ func processSession(
 
 	result.Instance = info.Server
 
+	err = status.SwitchV2(wid, source.Prefix, info.Domain, info.Server, status.ClassXE, result.Session)
+	if err != nil {
+		return result, errors.Wrap(err, "status.switchv2")
+	}
+	
 	// do the dupe check based on the actual instance since that's what is stored
-	err = status.CheckDupe(source.Prefix, result.Instance, status.ClassXE, result.Session)
+	err = status.CheckDupe(info.Domain, result.Instance, status.ClassXE, result.Session)
 	if err != nil {
 		return result, errors.Wrap(err, "dupe.check")
 	}
@@ -47,7 +52,7 @@ func processSession(
 		return result, errors.Wrap(err, "xe.getsession")
 	}
 
-	sf, err := status.NewFile(source.Prefix, result.Instance, status.ClassXE, result.Session)
+	sf, err := status.NewFile(info.Domain, result.Instance, status.ClassXE, result.Session)
 	if err != nil {
 		return result, errors.Wrap(err, "status.newfile")
 	}
@@ -56,9 +61,9 @@ func processSession(
 		return result, errors.Wrap(err, "status.getoffset")
 	}
 
-	if xestatus == status.StatusReset {
+	if xestatus == status.StateReset {
 		log.Error("[%d] *** ERROR ***", wid)
-		log.Error("[%d] *** Missing events in previous run from: [%s-%s-%s] starting at [%s-%d]", wid, source.Prefix, result.Instance, result.Session, lastFileName, lastFileOffset)
+		log.Error("[%d] *** Missing events in previous run from: [%s-%s-%s] starting at [%s-%d]", wid, info.Domain, result.Instance, result.Session, lastFileName, lastFileOffset)
 		log.Error("[%d] *** Attempting to read past this offset.  Events are probably missed.", wid)
 		// returnErr = errors.New("Recovering from missing events")
 		// TODO Log to logstash with error
@@ -73,7 +78,7 @@ func processSession(
 		}
 	}
 
-	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StatusReset {
+	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StateReset {
 		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
 	} else {
 		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, '%s', %d);", session.WildCard, lastFileName, lastFileOffset)
@@ -82,7 +87,7 @@ func processSession(
 	if err != nil {
 		// if we have a file name, save it with a reset status
 		if len(lastFileName) > 0 {
-			saveErr := sf.Done(lastFileName, lastFileOffset, status.StatusReset)
+			saveErr := sf.Done(lastFileName, lastFileOffset, status.StateReset)
 			if saveErr != nil {
 				log.Error("[%d] Error saving the status file: %v", wid, saveErr)
 
@@ -117,7 +122,7 @@ func processSession(
 
 		// We had an issue last time, we are starting from scratch to find a good offset
 		// We read until we get past a point we already had
-		if xestatus == status.StatusReset {
+		if xestatus == status.StateReset {
 			if fileName < lastFileName { // we are reading an earlier file
 				continue
 			}
@@ -136,7 +141,7 @@ func processSession(
 		// Did we just finish a file offset
 		if fileName != lastFileName || fileOffset != lastFileOffset {
 			//if !source.Test {
-			err = sf.Save(lastFileName, lastFileOffset, status.StatusSuccess)
+			err = sf.Save(lastFileName, lastFileOffset, status.StateSuccess)
 			if err != nil {
 				return result, errors.Wrap(err, "status.Save")
 			}
@@ -224,12 +229,12 @@ func processSession(
 	}
 
 	if gotRows /* && !source.Test */ {
-		err = sf.Save(lastFileName, lastFileOffset, status.StatusSuccess)
+		err = sf.Save(lastFileName, lastFileOffset, status.StateSuccess)
 		if err != nil {
 			return result, errors.Wrap(err, "status.Save")
 		}
 
-		err = sf.Done(lastFileName, lastFileOffset, status.StatusSuccess)
+		err = sf.Done(lastFileName, lastFileOffset, status.StateSuccess)
 		if err != nil {
 			return result, errors.Wrap(err, "status.done")
 		}

@@ -24,7 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.17"
+const version = "0.20"
 
 var sha1ver string
 

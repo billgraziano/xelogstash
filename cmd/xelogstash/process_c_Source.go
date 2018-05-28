@@ -19,7 +19,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	var textMessage string
 	info, err := xe.GetSQLInfo(source.FQDN)
 	if err != nil {
-		textMessage = fmt.Sprintf("[%d] %s - fqdn: %s err: %v", wid, source.Prefix, source.FQDN, err)
+		textMessage = fmt.Sprintf("[%d] %s - fqdn: %s err: %v", wid, info.Domain, source.FQDN, err)
 		log.Error(textMessage)
 		_ = applog.Error(textMessage)
 		return sourceResult, errors.Wrap(err, "xe.getsqlinfo")
@@ -53,20 +53,20 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			// else
 			continue
 		} else if err != nil {
-			textMessage = fmt.Sprintf("[%d] *** ERROR: Prefix: %s - FQDN: %s - %s - %s : %s\r\n", wid, source.Prefix, source.FQDN, status.ClassXE, source.Sessions[i], err.Error())
+			textMessage = fmt.Sprintf("[%d] *** ERROR: Domain: %s - FQDN: %s - %s - %s : %s\r\n", wid, info.Domain, source.FQDN, status.ClassXE, source.Sessions[i], err.Error())
 			cleanRun = false
 			_ = applog.Error(textMessage)
 		} else {
 			if rowsPerSecond > 0 && totalSeconds > 1 {
 				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s - %s per second%s",
-					wid, source.Prefix, result.Instance, result.Session,
+					wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""),
 					humanize.Comma(int64(rowsPerSecond)),
 					txtDuration,
 				)
 			} else {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s%s", wid, source.Prefix, result.Instance, result.Session,
+				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s%s", wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""),
 					txtDuration,
@@ -98,18 +98,18 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 		var textMessage string
 
 		if err != nil {
-			textMessage = fmt.Sprintf("[%d] *** ERROR: Prefix: %s; FQDN: %s; (%s) %s\r\n", wid, source.Prefix, source.FQDN, "Agent Jobs", err.Error())
+			textMessage = fmt.Sprintf("[%d] *** ERROR: Domain: %s; FQDN: %s; (%s) %s\r\n", wid, info.Domain, source.FQDN, "Agent Jobs", err.Error())
 			cleanRun = false
 			_ = applog.Error(textMessage)
 		} else {
 			if rowsPerSecond > 0 && totalSeconds > 1 {
 				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s - %s per second",
-					wid, source.Prefix, result.Instance, result.Session,
+					wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""),
 					humanize.Comma(int64(rowsPerSecond)))
 			} else {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s", wid, source.Prefix, result.Instance, result.Session,
+				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s", wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""))
 			}

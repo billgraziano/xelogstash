@@ -2,13 +2,13 @@ package status
 
 import "testing"
 
-func TestCheck(t *testing.T) {
+func TestCheckDupe(t *testing.T) {
 	var err error
-	err = Check("a", "b", "c", "d")
+	err = CheckDupe("a", "b", "c", "d")
 	if err != nil {
 		t.Error("It shouldn't exist")
 	}
-	err = Check("a", "b", "c", "d")
+	err = CheckDupe("a", "b", "c", "d")
 	if err == nil {
 		t.Error("It should exist")
 	}
@@ -16,11 +16,11 @@ func TestCheck(t *testing.T) {
 
 func TestCaseSensitive(t *testing.T) {
 	var err error
-	err = Check("d", "d", "f", "G")
+	err = CheckDupe("d", "d", "f", "G")
 	if err != nil {
 		t.Error("It shouldn't exist")
 	}
-	err = Check("D", "D", "F", "g")
+	err = CheckDupe("D", "D", "F", "g")
 	if err == nil {
 		t.Error("It should exist")
 	}
