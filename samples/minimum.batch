@@ -5,7 +5,7 @@ REN
 REM Includes error handling so that the EXE 
 REM failing returns an error to SQL Server Agent
 REM
-xelogstash.exe  /config "start.toml"
+xelogstash.exe  /config "start.toml" /log
 IF ERRORLEVEL 1 SET ERR=1
 
 IF %ERR%==1 ECHO *** CMD File: The EXE set an error level ***

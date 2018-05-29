@@ -311,6 +311,7 @@ func SwitchV2(wid int, prefix, domain, instance, class, session string) error {
 		return nil
 	}
 
+	log.Debug(fmt.Sprintf("[%d] Legacy status file: %s", wid, legacyFile))
 	newDir := filepath.Join(exeDir, "xestate")
 	newFile := filepath.Join(newDir, fileName(domain, instance, class, session))
 
@@ -349,7 +350,5 @@ func SwitchV2(wid int, prefix, domain, instance, class, session string) error {
 			return errors.Wrap(err, "os.remove")
 		}
 	}
-
 	return nil
-
 }

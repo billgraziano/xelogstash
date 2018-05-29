@@ -1,4 +1,4 @@
-TARGETDIR=D:\Deploy\xelogstash
+TARGETDIR=.\deploy\xelogstash
 #buildTime=$(shell %date%)
 #sha1ver=_sha1ver_
 # @echo "test"

@@ -16,6 +16,8 @@ import (
 
 func processSource(wid int, source config.Source) (sourceResult Result, err error) {
 
+	log.Debug(fmt.Sprintf("[%d] Starting source: %s  sessions: %d", wid, source.FQDN, len(source.Sessions)))
+
 	var textMessage string
 	info, err := xe.GetSQLInfo(source.FQDN)
 	if err != nil {
@@ -29,6 +31,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 
 	cleanRun := true
 	for i := range source.Sessions {
+		log.Debug(fmt.Sprintf("[%d] Starting session: %s on  %s", wid, source.Sessions[i], source.FQDN))
 		start := time.Now()
 		result, err := processSession(wid, info, source, i)
 		runtime := time.Since(start)
