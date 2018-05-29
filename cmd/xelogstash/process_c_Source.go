@@ -33,7 +33,9 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	for i := range source.Sessions {
 		log.Debug(fmt.Sprintf("[%d] Starting session: %s on  %s", wid, source.Sessions[i], source.FQDN))
 		start := time.Now()
-		result, err := processSession(wid, info, source, i)
+
+		var result Result
+		result, err = processSession(wid, info, source, i)
 		runtime := time.Since(start)
 		totalSeconds := runtime.Seconds()
 
@@ -86,7 +88,9 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	// Process Agent Jobs
 	if source.AgentJobs == config.JobsAll || source.AgentJobs == config.JobsFailed {
 		start := time.Now()
-		result, err := processAgentJobs(wid, source)
+
+		var result Result
+		result, err = processAgentJobs(wid, source)
 		runtime := time.Since(start)
 		totalSeconds := runtime.Seconds()
 		// TODO - based on the error, generate a message

@@ -295,7 +295,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 				delete(lr, "timestamp")
 			}
 
-			rs, err := lr.ToJSON()
+			var rs string
+			rs, err = lr.ToJSON()
 			if err != nil {
 				return result, errors.Wrap(err, "record.tojson")
 			}
@@ -310,9 +311,9 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			if ls != nil {
 				err = ls.Writeln(rs)
 				if err != nil {
-					log.Error("\r\n")
-					log.Error("%s\r\n", rs)
-					log.Error("\r\n")
+					log.Error("")
+					log.Error(fmt.Sprintf("%s\r\n", rs))
+					log.Error("")
 					return result, errors.Wrap(err, "logstash-writeln")
 				}
 			}

@@ -36,7 +36,7 @@ func processSession(
 	if err != nil {
 		return result, errors.Wrap(err, "status.switchv2")
 	}
-	
+
 	// do the dupe check based on the actual instance since that's what is stored
 	err = status.CheckDupe(info.Domain, result.Instance, status.ClassXE, result.Session)
 	if err != nil {
@@ -62,9 +62,9 @@ func processSession(
 	}
 
 	if xestatus == status.StateReset {
-		log.Error("[%d] *** ERROR ***", wid)
-		log.Error("[%d] *** Missing events in previous run from: [%s-%s-%s] starting at [%s-%d]", wid, info.Domain, result.Instance, result.Session, lastFileName, lastFileOffset)
-		log.Error("[%d] *** Attempting to read past this offset.  Events are probably missed.", wid)
+		log.Error(fmt.Sprintf("[%d] *** ERROR ***", wid))
+		log.Error(fmt.Sprintf("[%d] *** Missing events in previous run from: [%s-%s-%s] starting at [%s-%d]", wid, info.Domain, result.Instance, result.Session, lastFileName, lastFileOffset))
+		log.Error(fmt.Sprintf("[%d] *** Attempting to read past this offset.  Events are probably missed.", wid))
 		// returnErr = errors.New("Recovering from missing events")
 		// TODO Log to logstash with error
 	}
@@ -89,12 +89,12 @@ func processSession(
 		if len(lastFileName) > 0 {
 			saveErr := sf.Done(lastFileName, lastFileOffset, status.StateReset)
 			if saveErr != nil {
-				log.Error("[%d] Error saving the status file: %v", wid, saveErr)
+				log.Error(fmt.Sprintf("[%d] Error saving the status file: %v", wid, saveErr))
 
 			}
 		}
-		log.Error("[%d] *** Read XE file target error occurred.", wid)
-		log.Error("[%d] *** The next run will attempt to read past this error.  Events may be skipped.", wid)
+		log.Error(fmt.Sprintf("[%d] *** Read XE file target error occurred.", wid))
+		log.Error(fmt.Sprintf("[%d] *** The next run will attempt to read past this error.  Events may be skipped.", wid))
 
 		// TODO log this error
 		return result, errors.Wrap(err, "query")
@@ -158,7 +158,8 @@ func processSession(
 
 		first = false
 
-		event, err := xe.Parse(&info, eventData)
+		var event xe.Event
+		event, err = xe.Parse(&info, eventData)
 		if err != nil {
 			return result, errors.Wrap(err, "xe.Parse")
 		}
@@ -193,7 +194,8 @@ func processSession(
 			delete(lr, "timestamp")
 		}
 
-		rs, err := lr.ToJSON()
+		var rs string
+		rs, err = lr.ToJSON()
 		if err != nil {
 			return result, errors.Wrap(err, "record.tojson")
 		}
@@ -208,7 +210,7 @@ func processSession(
 			err = ls.Writeln(rs)
 			if err != nil {
 				log.Error("")
-				log.Error("%s", rs)
+				log.Error(fmt.Sprintf("%s", rs))
 				log.Error("")
 				return result, errors.Wrap(err, "logstash-writeln")
 			}

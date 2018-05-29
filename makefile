@@ -7,7 +7,10 @@ test := $(shell date /t)
 #buildTime := $(shell @echo %date%)
 #j=%date%
 
-all: clean buildEXE copyFiles
+all: vet clean buildEXE copyFiles
+
+vet:
+	go vet -all -shadow .\cmd\xelogstash
 
 buildEXE:
 #	@echo $(buildTime)

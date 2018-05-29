@@ -75,12 +75,14 @@ func main() {
 
 	// Log to file
 	if opts.Log {
-		logfilename, err := getLogFileName()
+		var logfilename string
+		logfilename, err = getLogFileName()
 		if err != nil {
 			log.Error("getLogFileName", err)
 		}
 
-		lf, err := os.OpenFile(logfilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		var lf *os.File
+		lf, err = os.OpenFile(logfilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			log.Error("failed to open log file")
 			os.Exit(1)
