@@ -3,7 +3,7 @@ package main
 /*
 
 This can be tested locally using a simple TCP listener.
-I used the one here: https://coderwall.com/p/wohavg/creating-a-simple-tcp-server-in-go
+I use the one here: https://coderwall.com/p/wohavg/creating-a-simple-tcp-server-in-go
 
 */
 
@@ -73,15 +73,12 @@ func main() {
 		log.SetLevel(log.DEBUG)
 	}
 
+	// Log to file
 	if opts.Log {
-		// configure full logging
-		// TODO set the file name based on _YYMMDD
-
 		logfilename, err := getLogFileName()
 		if err != nil {
 			log.Error("getLogFileName", err)
 		}
-		log.Debug("log file:", logfilename)
 
 		lf, err := os.OpenFile(logfilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
@@ -92,6 +89,8 @@ func main() {
 		multi := io.MultiWriter(os.Stdout, lf)
 		log.SetOutput(multi)
 	}
+
+	log.Info("==================================================================")
 
 	// TODO: use the EXE name here
 	if opts.TOMLFile == "" {

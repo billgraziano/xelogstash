@@ -24,9 +24,6 @@ var opts struct {
 func main() {
 	var err error
 
-	log.SetFlags(log.Ltime)
-	log.Info("Starting...")
-
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
