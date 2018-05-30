@@ -111,7 +111,7 @@ func main() {
 	// }
 
 	if settings.App.Workers == 0 {
-		settings.App.Workers = runtime.NumCPU()
+		settings.App.Workers = runtime.NumCPU() * 4
 	}
 	err = applog.Initialize(settings.AppLog)
 	if err != nil {
