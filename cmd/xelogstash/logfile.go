@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/billgraziano/xelogstash/log"
 	"github.com/pkg/errors"
 )
 
@@ -72,7 +73,7 @@ func cleanOldLogFiles(days int) error {
 			}
 			hoursago := time.Since(fd).Hours()
 			if hoursago > hours {
-				// fmt.Println("deleting:", fi.Name())
+				log.Debug("Deleting log file:", fi.Name())
 				err = os.Remove(fi.Name())
 				if err != nil {
 					return errors.Wrap(err, fmt.Sprintf("os.remove: %s", fi.Name()))

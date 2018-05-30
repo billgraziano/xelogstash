@@ -165,10 +165,12 @@ func main() {
 	}
 
 	if settings.App.Summary {
+		log.Debug("Printing summary...")
 		summary.PrintSummary()
 	}
 
 	if settings.App.Samples {
+		log.Debug("Printing JSON samples...")
 		err = summary.PrintSamples()
 		if err != nil {
 			log.Error(errors.Wrap(err, "summary.printsamples"))
@@ -176,6 +178,7 @@ func main() {
 	}
 
 	if settings.AppLog.Samples {
+		log.Debug("Pringing app log samples...")
 		err = applog.PrintSamples()
 		if err != nil {
 			log.Error(errors.Wrap(err, "applog.samples"))
@@ -192,6 +195,7 @@ func main() {
 
 	// TODO clean up the old log files
 	err = cleanOldLogFiles(7)
+	log.Debug("Cleaning old log files...")
 	if err != nil {
 		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
 		os.Exit(1)
