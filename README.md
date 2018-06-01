@@ -40,6 +40,7 @@ You can set the following Source fields (or Default fields)
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
 * `prefix` is the prefix for the status file (see below).  NOTE: This is being removed.  Don't use it for new sources.
 * `sessions` is a list of sessions to process.
+* `ignore_sessions` says to not process any sessions for this source.  This is mainly useful if you have a list of default sessions but some old SQL Server 2008 boxes that you want to ignore the sessions completely so you can just get the failed agent jobs.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
 * `agentjobs` can be "all", "failed" or "none".  It tries to map the field names to the extended event field names.
 * `excludedEvents` is a list of events to ignore.  Both sample configuration files exclude some of the system health events like ring buffer recorded and diagnostic component results. 

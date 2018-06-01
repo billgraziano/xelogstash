@@ -358,7 +358,7 @@ func parseAgentTime(d, t int) (time.Time, error) {
 	dt := strconv.Itoa(d)
 	tm := "000000" + strconv.Itoa(t)
 	tm = tm[len(tm)-6:]
-	fmt.Println(dt, tm, dt+tm)
+	// fmt.Println(dt, tm, dt+tm)
 	v, err := time.Parse("20060102150405", dt+tm)
 
 	if err != nil {

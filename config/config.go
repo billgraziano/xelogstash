@@ -14,8 +14,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// JobsAll, JobsFailed, JobsNone are possible values for including agent jobs
 const (
-	JobsAll    = "all" // JobsAll is a possibo value for including agent jobs
+	JobsAll    = "all"
 	JobsFailed = "failed"
 	JobsNone   = "none"
 )
@@ -24,6 +25,7 @@ const (
 type Source struct {
 	FQDN           string
 	Sessions       []string
+	IgnoreSessions bool `toml:"ignore_sessions"` // if true, skip XE sessions
 	Prefix         string
 	AgentJobs      string
 	PayloadField   string `toml:"payload_field_name"`
@@ -80,6 +82,7 @@ func Get(f string, version string) (config Config, err error) {
 	if err != nil {
 		return config, errors.Wrap(err, "toml.decode")
 	}
+
 	config.MetaData = md
 	if config.AppLog.TimestampField == "" {
 		return config, fmt.Errorf("applog.timestamp_field_name is required.  Suggest \"@timestamp\"")
@@ -256,6 +259,10 @@ func (c *Config) setDefaults() {
 		}
 		if len(v.Sessions) > 0 {
 			n.Sessions = v.Sessions
+		}
+		// if we are ignoring the sessions, set to empty array
+		if v.IgnoreSessions {
+			n.Sessions = []string{}
 		}
 		if len(v.ExcludedEvents) > 0 {
 			n.ExcludedEvents = v.ExcludedEvents
