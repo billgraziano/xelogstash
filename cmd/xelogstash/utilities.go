@@ -26,7 +26,7 @@ type SQLInfo struct {
 	Version        string
 }
 
-// GetInstance returns the instance and domain name TODO: and an error if the session is invalid
+// GetInstance returns the instance and domain name
 func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 
 	query := `
