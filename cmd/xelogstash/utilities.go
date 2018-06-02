@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -136,4 +139,17 @@ func roundDuration(d, r time.Duration) time.Duration {
 		return -d
 	}
 	return d
+}
+
+func getDefaultConfigFileName() (fn string, err error) {
+	var s string
+	s, err = os.Executable()
+	if err != nil {
+		return "", errors.Wrap(err, "os.executable")
+	}
+	s = filepath.Base(s)
+	base := strings.TrimSuffix(s, path.Ext(s))
+	fn = base + ".toml"
+
+	return fn, nil
 }

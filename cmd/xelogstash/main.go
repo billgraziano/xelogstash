@@ -97,9 +97,14 @@ func main() {
 
 	log.Info("==================================================================")
 
-	// TODO: use the EXE name here
+	// use default config file if one isn't specified
 	if opts.TOMLFile == "" {
-		opts.TOMLFile = "xelogstash.toml"
+		fn, err := getDefaultConfigFileName()
+		if err != nil {
+			log.Error(errors.Wrap(err, "getdefaultconfigfilename"))
+			os.Exit(1)
+		}
+		opts.TOMLFile = fn
 	}
 
 	var settings config.Config
@@ -201,7 +206,6 @@ func main() {
 	// stop.Stop()
 	// time.Sleep(time.Duration(2 * time.Second))
 
-	// TODO clean up the old log files
 	err = cleanOldLogFiles(7)
 	log.Debug("Cleaning old log files...")
 	if err != nil {
