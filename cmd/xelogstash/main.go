@@ -8,8 +8,11 @@ I use the one here: https://coderwall.com/p/wohavg/creating-a-simple-tcp-server-
 */
 
 import (
+	_ "expvar"
 	"fmt"
 	"io"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 
@@ -24,7 +27,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.20"
+const version = "0.21"
 
 var sha1ver string
 
@@ -152,6 +155,11 @@ func main() {
 	log.Info(logMessage)
 
 	appConfig = settings.App
+
+	// Enables a web server on :8080 with basic metrics
+	if appConfig.HTTPMetrics {
+		go http.ListenAndServe(":8080", http.DefaultServeMux)
+	}
 
 	message, cleanRun := processall(settings)
 	log.Info(message)

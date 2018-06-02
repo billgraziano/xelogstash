@@ -184,6 +184,10 @@ This controls the overall application.  All these fields are optional.
 * `samples` set to true will save a JSON file with one of each event type that was processed.  This is very helpful for testing your JSON format.
 * `summary` set to true will print a nice summary of the output including how many of each type of event were processed.
 * `workers` controls how many concurrent workers will process the sources.  It defaults to 4 * the number of cores in the computer.  A given worker will process all the sessions for a source before moving on to the next source.  The application doesn't use much CPU.  It spends lots of time waiting on data to return from sources.  I regularly run with 32 workers on a 2 core VM and it uses 15% at moste.  Obviously your initial load may consume more.
+* `http_metrics` enables a local web server that can provide diagnostic information.  This defaults to false.  It exposes the following two URLs:
+  * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars]) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
+  * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the GO PPROF web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.
+
 
 
 ### `[applog]` section

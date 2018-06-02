@@ -48,7 +48,8 @@ type App struct {
 	Logstash string
 	Samples  bool // Print sample JSON to stdout
 	Summary  bool // Print a summary to stdout
-	// Debug    bool // Enable debug logging
+	// Enables a web server on :8080 with basic metrics
+	HTTPMetrics bool `toml:"http_metrics"`
 }
 
 // AppLog controls the applicaiton logging

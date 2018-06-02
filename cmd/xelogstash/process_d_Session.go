@@ -219,6 +219,8 @@ func processSession(
 		//fmt.Printf("\r\n\r\n%s\r\n\r\n", rs)
 
 		result.Rows++
+		totalCount.Add(1)
+		eventCount.Add(eventName, 1)
 		if appConfig.Summary {
 			//summary.Add(eventName, &eventString)
 			summary.Add(eventName, &rs)

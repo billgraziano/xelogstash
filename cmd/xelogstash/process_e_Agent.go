@@ -322,6 +322,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 				summary.Add(j.Name, &rs)
 			}
 			result.Rows++
+			totalCount.Add(1)
+			eventCount.Add(j.Name, 1)
 		}
 
 		// write the status field
@@ -332,8 +334,6 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 
 		first = false
 		gotRows = true
-		//rowCount++
-
 	}
 
 	if gotRows {
