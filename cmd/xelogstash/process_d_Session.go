@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/log"
@@ -221,6 +222,8 @@ func processSession(
 		result.Rows++
 		totalCount.Add(1)
 		eventCount.Add(eventName, 1)
+		serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), result.Session)
+		serverCount.Add(serverKey, 1)
 		if appConfig.Summary {
 			//summary.Add(eventName, &eventString)
 			summary.Add(eventName, &rs)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/billgraziano/mssqlodbc"
@@ -324,6 +325,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			result.Rows++
 			totalCount.Add(1)
 			eventCount.Add(j.Name, 1)
+			serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), "agent_jobs")
+			serverCount.Add(serverKey, 1)
 		}
 
 		// write the status field

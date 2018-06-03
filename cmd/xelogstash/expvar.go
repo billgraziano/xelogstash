@@ -3,10 +3,7 @@ package main
 import "expvar"
 
 var (
-	totalCount *expvar.Int
-	eventCount = expvar.NewMap("events").Init()
+	totalCount  = expvar.NewInt("totalEvents")
+	eventCount  = expvar.NewMap("events").Init()
+	serverCount = expvar.NewMap("servers").Init()
 )
-
-func init() {
-	totalCount = expvar.NewInt("totalEvents")
-}
