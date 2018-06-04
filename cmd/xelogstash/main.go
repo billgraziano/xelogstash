@@ -27,7 +27,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.21"
+const version = "0.22"
 
 var sha1ver string
 
@@ -98,8 +98,9 @@ func main() {
 	log.Info("==================================================================")
 
 	// use default config file if one isn't specified
+	var fn string
 	if opts.TOMLFile == "" {
-		fn, err := getDefaultConfigFileName()
+		fn, err = getDefaultConfigFileName()
 		if err != nil {
 			log.Error(errors.Wrap(err, "getdefaultconfigfilename"))
 			os.Exit(1)
