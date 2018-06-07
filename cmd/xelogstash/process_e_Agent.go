@@ -102,7 +102,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	}
 
 	var query string
-	top := 100000
+	top := 50000
 	if source.Rows > 0 {
 		top = source.Rows
 	}
@@ -158,8 +158,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 					convert(varchar, run_time/10000)+':'+
 					convert(varchar, run_time%%10000/100)+':'+
 					convert(varchar, run_time%%100)+'.000' ) AS [timestamp_local]
-				FROM	[msdb].[dbo].[sysjobhistory] H
-				JOIN	[msdb].[dbo].[sysjobs] J on J.[job_id] = H.[job_id]
+				FROM	[msdb].[dbo].[sysjobhistory] H WITH(NOLOCK)
+				JOIN	[msdb].[dbo].[sysjobs] J WITH(NOLOCK) on J.[job_id] = H.[job_id]
 				WHERE	1=1
 				-- AND  H.[run_status] NOT IN (2, 4) -- Don't want retry or in progress
 				--AND		H.[instance_id] > ?
