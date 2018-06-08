@@ -58,6 +58,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/mattheath/base62",
+			"repository": "https://github.com/mattheath/base62",
+			"vcs": "git",
+			"revision": "b80cdc656a7a61702f293555d54777d6ff617eb7",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/pkg/errors",
 			"repository": "https://github.com/pkg/errors",
 			"vcs": "git",

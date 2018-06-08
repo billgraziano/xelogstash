@@ -12,6 +12,7 @@ import (
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
+	"github.com/billgraziano/xelogstash/seq"
 	"github.com/pkg/errors"
 )
 
@@ -103,6 +104,8 @@ func Log(src logstash.Record) error {
 	if !ok {
 		src["severity"] = logstash.Info.String()
 	}
+
+	src["sequence_value"] = seq.Get()
 
 	// if payload field is empty
 	if appconfig.PayloadField == "" {
