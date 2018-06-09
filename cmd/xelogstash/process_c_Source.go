@@ -128,7 +128,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	}
 
 	if !cleanRun {
-		err = errors.New("errors occured - see previous")
+		err = errors.New("errors occurred - see previous")
 	}
 	return sourceResult, err
 }

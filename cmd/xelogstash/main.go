@@ -43,17 +43,6 @@ func main() {
 
 	var err error
 
-	// stop := profile.Start(profile.ProfilePath("."))
-	// f, err := os.Create("cpu_profile.prof")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// if err = pprof.StartCPUProfile(f); err != nil {
-	// 	log.Fatal("pprof.cpu.start", err)
-	// }
-	// defer pprof.StopCPUProfile()
-	// defer f.Close()
-
 	log.SetFlags(log.LstdFlags | log.LUTC)
 
 	// did we get a full SHA1?
@@ -192,7 +181,7 @@ func main() {
 	}
 
 	if settings.AppLog.Samples {
-		log.Debug("Pringing app log samples...")
+		log.Debug("Printing app log samples...")
 		err = applog.PrintSamples()
 		if err != nil {
 			log.Error(errors.Wrap(err, "applog.samples"))
@@ -203,9 +192,6 @@ func main() {
 		log.Error("*** ERROR ****")
 		os.Exit(1)
 	}
-
-	// stop.Stop()
-	// time.Sleep(time.Duration(2 * time.Second))
 
 	err = cleanOldLogFiles(7)
 	log.Debug("Cleaning old log files...")

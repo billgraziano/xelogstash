@@ -70,57 +70,6 @@ func (e *Event) Name() string {
 	return s
 }
 
-// XEReader sets the data types of data and actions
-// func NewReader(db *sql.DB) (*Reader, error) {
-// 	var rdr Reader
-// 	var err error
-
-// 	var query string
-// 	var object, name, dt string
-
-// 	rdr.fields = make(map[dataTypeKey]string)
-// 	rdr.actions = make(map[string]string)
-
-// 	// Get the action types
-// 	query = "select name, type_name from sys.dm_xe_objects where object_type = 'action' order by type_name;"
-// 	rows, err := db.Query(query)
-// 	if err != nil {
-// 		return nil, errors.Wrap(err, "action-query")
-// 	}
-
-// 	for rows.Next() {
-// 		err = rows.Scan(&name, &dt)
-// 		if err != nil {
-// 			return nil, errors.Wrap(err, "action-scan")
-// 		}
-// 		rdr.actions[name] = dt
-// 	}
-// 	rows.Close()
-
-// 	query = `
-// 	select object_name, [name], type_name
-// 	from sys.dm_xe_object_columns
-// 	where column_type = 'data'
-// 	`
-
-// 	rows, err = db.Query(query)
-// 	if err != nil {
-// 		return nil, errors.Wrap(err, "action-query")
-// 	}
-
-// 	for rows.Next() {
-// 		err = rows.Scan(&object, &name, &dt)
-// 		if err != nil {
-// 			return nil, errors.Wrap(err, "action-scan")
-// 		}
-// 		dtkey := dataTypeKey{Name: name, Object: object}
-// 		rdr.fields[dtkey] = dt
-// 	}
-// 	rows.Close()
-
-// 	return &rdr, nil
-// }
-
 // CacheSize returns the number of items in the cache
 func (i *SQLInfo) CacheSize() int {
 	return len(i.Actions) + len(i.Fields)
@@ -696,42 +645,6 @@ func (e *Event) SetAppSource() {
 	}
 }
 
-// ToLower sets most fields to lower case.  Fields like message
-// and various SQL statements are unchanged
-// func (e *Event) ToLower() {
-// 	for k, v := range *e {
-// 		if k != "message" && k != "timestamp" && k != "sql_text" && k != "statement" && k != "batch_text" {
-// 			s, ok := v.(string)
-// 			if ok {
-// 				(*e)[k] = strings.ToLower(s)
-// 			}
-// 		}
-// 	}
-// }
-
-/*
-
--- some handy queries
-
-SELECT	[name]
-FROM	sys.dm_xe_sessions s
-JOIN	sys.dm_xe_session_targets t on s.address = t.event_session_address
-WHERE	target_name = 'event_file'
-ORDER BY s.[name]
-
-;with cte as (
-select [name], object_name, type_name
-from sys.dm_xe_object_columns
-where object_name in ('login')
-and column_type = 'data')
-select type_name, count(*) from cte group by type_name order by count(*) DESC
-
-select * from sys.dm_xe_object_columns where object_name = 'login'
-
-select * from sys.dm_xe_objects where object_type = 'action' order by [name]
-
-*/
-
 func left(s string, n int) string {
 	if n < 0 {
 		return s
@@ -743,8 +656,7 @@ func left(s string, n int) string {
 }
 
 func roundDuration(d time.Duration) string {
-	//h := d.Hours()
-	//m := d.Minutes()
+
 	var s string
 	// 17h3m
 	if d.Minutes() > 90 {

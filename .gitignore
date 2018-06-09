@@ -23,6 +23,7 @@
 *.log
 *.json
 *.pprof
+*.prof
 *.xml
 
 run1.toml

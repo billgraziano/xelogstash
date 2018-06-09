@@ -52,7 +52,7 @@ type App struct {
 	HTTPMetrics bool `toml:"http_metrics"`
 }
 
-// AppLog controls the applicaiton logging
+// AppLog controls the application logging
 type AppLog struct {
 	Logstash       string
 	PayloadField   string `toml:"payload_field_name"`
@@ -252,7 +252,7 @@ func (c *Config) setDefaults() {
 
 	// Start with the defaults
 	// Then apply the settings from source if it has a value
-	// Then replace the orginal source source
+	// Then replace the original source
 	for i, v := range c.Sources {
 		n := c.Defaults
 		if v.FQDN != "" {

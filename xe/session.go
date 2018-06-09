@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// ErrNotFound is returnd non-existant session
+	// ErrNotFound is returned for a non-existent session
 	ErrNotFound = errors.New("session not found")
 	// ErrNotRunning is return for autostart sessions that aren't running
 	ErrNotRunning = errors.New("session not running")
