@@ -136,6 +136,10 @@ func (i *SQLInfo) getActionValue(a xmlAction, eventData string) interface{} {
 	}
 	var newValue interface{}
 	newValue = a.Value
+	// hardcode some hacks
+	if a.Name == "query_hash" {
+		return newValue // leave as string
+	}
 	newValue = getValue(a.Name, dt, a.Value, eventData)
 
 	return newValue
