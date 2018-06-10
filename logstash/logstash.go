@@ -154,7 +154,7 @@ func NewRecord() Record {
 // 	}
 // }
 
-// ToJSON marshalls to a byte array
+// ToJSON marshalls to a string
 func (r *Record) ToJSON() (string, error) {
 	jsonBytes, err := json.Marshal(r)
 	if err != nil {
@@ -163,6 +163,15 @@ func (r *Record) ToJSON() (string, error) {
 
 	jsonString := string(jsonBytes)
 	return jsonString, nil
+}
+
+// ToJSONBytes marshalls to a byte array
+func (r *Record) ToJSONBytes() ([]byte, error) {
+	jsonBytes, err := json.Marshal(r)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "marshal")
+	}
+	return jsonBytes, nil
 }
 
 // ProcessMods applies adds, renames, and moves to a JSON string
@@ -191,10 +200,11 @@ func ProcessMods(json string, adds, copies, moves map[string]string) (string, er
 		if !r.Exists() {
 			continue
 		}
-		json, err = sjson.Set(json, dst, r.Value())
+		json, err = sjson.Set(json, dst, doubleSlashes(r.Value()))
 		if err != nil {
 			return json, errors.Wrapf(err, "sjson.set: %s %v", dst, r.Value())
 		}
+		//fmt.Println(r.Value(), doubleSlashes(r.Value()))
 	}
 
 	// Moves
@@ -207,7 +217,7 @@ func ProcessMods(json string, adds, copies, moves map[string]string) (string, er
 		if !r.Exists() {
 			continue
 		}
-		json, err = sjson.Set(json, dst, r.Value())
+		json, err = sjson.Set(json, dst, doubleSlashes(r.Value()))
 		if err != nil {
 			return json, errors.Wrapf(err, "sjson.set: %s %v", dst, r.Value)
 		}
@@ -218,6 +228,14 @@ func ProcessMods(json string, adds, copies, moves map[string]string) (string, er
 	}
 
 	return json, err
+}
+
+func doubleSlashes(v interface{}) interface{} {
+	x, ok := v.(string)
+	if !ok {
+		return v
+	}
+	return strings.Replace(x, "\\", "\\\\", -1)
 }
 
 func getValue(s string) (v interface{}) {
@@ -242,7 +260,7 @@ func getValue(s string) (v interface{}) {
 		s = s[1 : len(s)-1]
 	}
 
-	return s
+	return doubleSlashes(s)
 }
 
 // Set assigns a string value to a key in the event
