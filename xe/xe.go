@@ -70,6 +70,21 @@ func (e *Event) Name() string {
 	return s
 }
 
+// Timestamp returns the "timestamp" attribute from the event
+// It returns the zero value if it doesn't exist
+func (e *Event) Timestamp() time.Time {
+	zero := time.Time{}
+	i, ok := (*e)["timestamp"]
+	if !ok {
+		return zero
+	}
+	ts, ok := i.(time.Time)
+	if !ok {
+		return zero
+	}
+	return ts
+}
+
 // CacheSize returns the number of items in the cache
 func (i *SQLInfo) CacheSize() int {
 	return len(i.Actions) + len(i.Fields)

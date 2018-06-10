@@ -1,6 +1,10 @@
 package config
 
-import "github.com/billgraziano/toml"
+import (
+	"time"
+
+	"github.com/billgraziano/toml"
+)
 
 // Source defines a source of extended event information
 type Source struct {
@@ -12,7 +16,9 @@ type Source struct {
 	PayloadField   string `toml:"payload_field_name"`
 	TimestampField string `toml:"timestamp_field_name"`
 	Rows           int
-	StripCRLF      bool `toml:"strip_crlf"`
+	StripCRLF      bool      `toml:"strip_crlf"`
+	StartAt        time.Time `toml:"start_at"`
+	StopAt         time.Time `toml:"stop_at"`
 
 	Adds           map[string]string
 	Copies         map[string]string

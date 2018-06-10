@@ -46,6 +46,7 @@ You can set the following Source fields (or Default fields)
 * `excludedEvents` is a list of events to ignore.  Both sample configuration files exclude some of the system health events like ring buffer recorded and diagnostic component results. 
 * `adds`, `moves`, and `copies` are described in their own section below.
 * `strip_crlf` (boolean) will replace common newline patterns with a space. Some logstash configurations don't handle newlines in their JSON.  The downside is that it de-formats SQL and deadlock fields.
+* `start_at` and `stop_at` are used to limit the date range of returned events.  __Please be aware this will almost certainly lead to dropped or duplicated events.  It should only be used for testing.__  The date must be in "2018-01-01T13:14:15Z" or "2018-06-01T12:00:00-05:00" and must be enclosed in quotes in the TOML file.
 
 ## <a name="json"></a>Controlling the JSON
 The two fields `timestamp_field_name` and `payload_field_name` are available in the Source, Default, and AppLog sections.  The following examples best illustrate how they work.

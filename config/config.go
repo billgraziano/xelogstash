@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Showmax/go-fqdn"
 
@@ -21,6 +22,8 @@ const (
 	JobsNone   = "none"
 )
 
+// DefaultStopAt is the date we use for stop at if not defined
+var DefaultStopAt = time.Date(9999, time.December, 31, 0, 0, 0, 0, time.UTC)
 
 // Get the configuration from a configuration file
 func Get(f string, version string) (config Config, err error) {
@@ -37,6 +40,10 @@ func Get(f string, version string) (config Config, err error) {
 	err = config.decodekv(version)
 	if err != nil {
 		return config, errors.Wrap(err, "decodekv")
+	}
+
+	if config.Defaults.StopAt.IsZero() {
+		config.Defaults.StopAt = DefaultStopAt
 	}
 
 	config.setDefaults()
@@ -234,6 +241,15 @@ func (c *Config) setDefaults() {
 		if v.Rows != 0 {
 			n.Rows = v.Rows
 		}
+
+		if !v.StartAt.IsZero() {
+			n.StartAt = v.StartAt
+		}
+
+		if !v.StopAt.IsZero() {
+			n.StopAt = v.StopAt
+		}
+
 		// if v.Test != false {
 		// 	n.Test = v.Test
 		// }

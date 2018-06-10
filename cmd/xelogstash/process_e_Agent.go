@@ -184,6 +184,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	//var rowCount int
 	var instanceID int
 	var gotRows bool
+	var startAtHit bool
 
 	for rows.Next() {
 		if first && ls != nil {
@@ -204,6 +205,18 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		j.TimestampUTC, err = time.Parse(time.RFC3339Nano, tsutc)
 		if err != nil {
 			return result, errors.Wrap(err, "invalid utc from sql")
+		}
+
+		if j.TimestampUTC.Before(source.StartAt) {
+			if !startAtHit {
+				log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Start At' skipped at least one event", wid, info.Server, "agent-jobs"))
+				startAtHit = true
+			}
+			continue
+		}
+		if j.TimestampUTC.After(source.StopAt) {
+			log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Stop At' stopped processing", wid, info.Server, "agent-jobs"))
+			break
 		}
 
 		instanceID = j.InstanceID

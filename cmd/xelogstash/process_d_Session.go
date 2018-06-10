@@ -107,6 +107,7 @@ func processSession(
 	var netconn *net.TCPConn
 	first := true
 	gotRows := false
+	startAtHit := false
 
 	for rows.Next() {
 		if first && ls != nil {
@@ -173,6 +174,21 @@ func processSession(
 		eventName := event.Name()
 		if containsString(source.ExcludedEvents, eventName) {
 			continue
+		}
+
+		// check date range
+		// If I move these inside the file rollover I may avoid skipping events. Ugh.
+		eventTime := event.Timestamp()
+		if eventTime.Before(source.StartAt) {
+			if !startAtHit {
+				log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Start At' skipped at least one event", wid, info.Server, session.Name))
+				startAtHit = true
+			}
+			continue
+		}
+		if eventTime.After(source.StopAt) {
+			log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Stop At' stopped processing", wid, info.Server, session.Name))
+			break
 		}
 
 		// add default columns
