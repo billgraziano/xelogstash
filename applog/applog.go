@@ -177,7 +177,7 @@ func PrintSamples() error {
 		var out bytes.Buffer
 		err := json.Indent(&out, []byte(v), "", "  ")
 		if err != nil {
-			fmt.Printf("error\r\n")
+			return errors.Wrap(err, "json.indent")
 		}
 
 		if _, err = file.Write([]byte(fmt.Sprintf("%s\r\n\r\n", out.String()))); err != nil {
