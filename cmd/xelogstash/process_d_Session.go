@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/billgraziano/xelogstash/config"
@@ -30,6 +31,8 @@ func processSession(
 	var lastFileName string
 	var lastFileOffset int64
 	var xestatus string
+
+	newlineRegex := regexp.MustCompile(`\r?\n`)
 
 	result.Instance = info.Server
 
@@ -176,20 +179,18 @@ func processSession(
 		event.Set("xe_session_name", result.Session)
 		event.Set("xe_file_name", fileName)
 		event.Set("xe_file_offset", fileOffset)
-		//event.SetAppSource()
 
 		lr := logstash.NewRecord()
-		// if payload field is empty
+		// if payload field is empty, put at root
 		if source.PayloadField == "" {
 			for k, v := range event {
 				lr[k] = v
 			}
-		} else {
-			//fmt.Println(source.PayloadField)
+		} else { // else put in a field
 			lr[source.PayloadField] = event
 			lr[source.TimestampField] = event["timestamp"]
 		}
-		//fmt.Println("tsfield:", source.TimestampField)
+		// and don't forget timestamp
 		if source.TimestampField != "timestamp" && source.PayloadField == "" {
 			lr[source.TimestampField] = event["timestamp"]
 			delete(lr, "timestamp")
@@ -207,6 +208,11 @@ func processSession(
 			return result, errors.Wrap(err, "logstash.processmods")
 		}
 
+		// strip newlines
+		if source.StripCRLF {
+			rs = newlineRegex.ReplaceAllString(rs, " ")
+		}
+
 		if ls != nil {
 			err = ls.Writeln(rs)
 			if err != nil {
@@ -217,15 +223,12 @@ func processSession(
 			}
 		}
 
-		//fmt.Printf("\r\n\r\n%s\r\n\r\n", rs)
-
 		result.Rows++
 		totalCount.Add(1)
 		eventCount.Add(eventName, 1)
 		serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), result.Session)
 		serverCount.Add(serverKey, 1)
 		if appConfig.Summary {
-			//summary.Add(eventName, &eventString)
 			summary.Add(eventName, &rs)
 		}
 	}
