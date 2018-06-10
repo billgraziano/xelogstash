@@ -8,7 +8,7 @@
 2. [Prefixes and keeping your place](#prefixes)
 2. [Application Settings](#app-settings)
 3. [Derived Fields](#derived-fields)
-4. [Other Notse](#notes)
+4. [Other Notes](#notes)
 
 ## <a name="getting-started"></a>Getting Started
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
@@ -221,7 +221,7 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_file_offset`: file offset where we found this event
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from @@SERVERNAME of the source server.
 
-## <a name="notes"></a>Notes
+## <a name="notes"></a>Other Notes
 1. If find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  It's not so many that adding a new server runs for 20 minutes and everything else pauses.
 
 2. The sources are processd in the order they are listed.
