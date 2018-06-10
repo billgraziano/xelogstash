@@ -108,9 +108,10 @@ func NewFile(domain, instance, class, id string) (File, error) {
 // GetOffset returns the last file and offset for this file state
 func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err error) {
 
+	var fp *os.File
 	_, err = os.Stat(f.Name)
 	if os.IsNotExist(err) {
-		fp, err := os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		fp, err = os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			return "", 0, StateReset, errors.Wrap(err, "create")
 		}
@@ -125,9 +126,10 @@ func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err 
 		return "", 0, StateReset, errors.Wrap(err, "openreadonly")
 	}
 
+	var line []string
 	reader := csv.NewReader(bufio.NewReader(readonly))
 	for {
-		line, err := reader.Read()
+		line, err = reader.Read()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -154,7 +156,7 @@ func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err 
 	}
 
 	// TODO close & reopen the file
-	fp, err := os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	fp, err = os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		return "", 0, StateReset, errors.Wrap(err, "openappend")
 	}

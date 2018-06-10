@@ -147,7 +147,7 @@ func Log(src logstash.Record) error {
 	err = ls.Writeln(rs)
 	if err != nil {
 		log.Error("")
-		log.Error("%s", rs)
+		log.Error(fmt.Sprintf("%s", rs))
 		log.Error("")
 		return errors.Wrap(err, "logstash-writeln")
 	}
@@ -175,7 +175,7 @@ func PrintSamples() error {
 		//json, err := json.Unmarshal(v.Sample)
 		// z := bytes.NewBufferString(v.Sample)
 		var out bytes.Buffer
-		err := json.Indent(&out, []byte(v), "", "  ")
+		err = json.Indent(&out, []byte(v), "", "  ")
 		if err != nil {
 			return errors.Wrap(err, "json.indent")
 		}

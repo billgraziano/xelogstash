@@ -11,6 +11,7 @@ all: vet clean buildEXE copyFiles
 
 vet:
 	go vet -all -shadow .\cmd\xelogstash
+	go vet -all -shadow .\applog .\config .\log .\logstash .\seq .\status .\summary .\xe
 
 buildEXE:
 #	@echo $(buildTime)
