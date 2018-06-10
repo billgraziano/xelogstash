@@ -21,61 +21,6 @@ const (
 	JobsNone   = "none"
 )
 
-// Source defines a source of extended event information
-type Source struct {
-	FQDN           string
-	Sessions       []string
-	IgnoreSessions bool `toml:"ignore_sessions"` // if true, skip XE sessions
-	Prefix         string
-	AgentJobs      string
-	PayloadField   string `toml:"payload_field_name"`
-	TimestampField string `toml:"timestamp_field_name"`
-	Rows           int
-
-	Adds           map[string]string
-	Copies         map[string]string
-	Moves          map[string]string
-	ExcludedEvents []string //XE events that are excluded.  Mostly from system health
-
-	RawAdds   []string `toml:"adds"`
-	RawCopies []string `toml:"copies"`
-	RawMoves  []string `toml:"moves"`
-}
-
-// App defines the application configuration
-type App struct {
-	Workers  int
-	Logstash string
-	Samples  bool // Print sample JSON to stdout
-	Summary  bool // Print a summary to stdout
-	// Enables a web server on :8080 with basic metrics
-	HTTPMetrics bool `toml:"http_metrics"`
-}
-
-// AppLog controls the application logging
-type AppLog struct {
-	Logstash       string
-	PayloadField   string `toml:"payload_field_name"`
-	TimestampField string `toml:"timestamp_field_name"`
-	Samples        bool
-
-	Adds   map[string]string
-	Copies map[string]string
-	Moves  map[string]string
-
-	RawAdds   []string `toml:"adds"`
-	RawCopies []string `toml:"copies"`
-	RawMoves  []string `toml:"moves"`
-}
-
-// Config defines the configuration read from the TOML file
-type Config struct {
-	App      App
-	AppLog   AppLog
-	Defaults Source   `toml:"defaults"`
-	Sources  []Source `toml:"source"`
-	MetaData toml.MetaData
-}
 
 // Get the configuration from a configuration file
 func Get(f string, version string) (config Config, err error) {
@@ -217,13 +162,14 @@ func buildmap(a []string, version string) (map[string]string, error) {
 		// process any substitutions
 		value := kv[1]
 
-		value = strings.Replace(value, "$(EXENAMEPATH)", exeNamePath, -1)
-		value = strings.Replace(value, "$(EXENAME)", exeName, -1)
+		value = strings.Replace(value, "$(EXENAMEPATH)", strings.ToLower(exeNamePath), -1)
+		value = strings.Replace(value, "$(EXENAME)", strings.ToLower(exeName), -1)
 		value = strings.Replace(value, "$(PID)", strconv.Itoa(os.Getpid()), -1)
 		value = strings.Replace(value, "$(VERSION)", version, -1)
-		value = strings.Replace(value, "$(HOST)", fqdn.Get(), -1)
+		value = strings.Replace(value, "$(HOST)", strings.ToLower(fqdn.Get()), -1)
 
-		m[kv[0]] = strings.ToLower(value)
+		m[kv[0]] = value
+
 	}
 	return m, err
 }

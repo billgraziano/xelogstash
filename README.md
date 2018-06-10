@@ -45,6 +45,7 @@ You can set the following Source fields (or Default fields)
 * `agentjobs` can be "all", "failed" or "none".  It tries to map the field names to the extended event field names.
 * `excludedEvents` is a list of events to ignore.  Both sample configuration files exclude some of the system health events like ring buffer recorded and diagnostic component results. 
 * `adds`, `moves`, and `copies` are described in their own section below.
+* `strip_crlf` (boolean) will replace common newline patterns with a space. Some logstash configurations don't handle newlines in their JSON.  The downside is that it de-formats SQL and deadlock fields.
 
 ## <a name="json"></a>Controlling the JSON
 The two fields `timestamp_field_name` and `payload_field_name` are available in the Source, Default, and AppLog sections.  The following examples best illustrate how they work.
