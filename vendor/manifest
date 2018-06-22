@@ -18,6 +18,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/allan-simon/go-singleinstance",
+			"repository": "https://github.com/allan-simon/go-singleinstance",
+			"vcs": "git",
+			"revision": "79edcfdc2dfc93da913f46ae8d9f8a9602250431",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/billgraziano/mssqlodbc",
 			"repository": "https://github.com/billgraziano/mssqlodbc",
 			"vcs": "git",

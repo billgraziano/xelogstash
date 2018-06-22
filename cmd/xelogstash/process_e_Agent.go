@@ -187,6 +187,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	var startAtHit bool
 
 	for rows.Next() {
+		readCount.Add(1)
 		if first && ls != nil {
 			netconn, err = ls.Connect()
 			if err != nil {

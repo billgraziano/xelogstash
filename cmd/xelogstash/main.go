@@ -27,7 +27,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.24"
+const version = "0.25"
 
 var sha1ver string
 
@@ -141,7 +141,7 @@ func main() {
 		log.Error("applog.info:", err)
 	}
 
-	// Report hte app logstash
+	// Report the app logstash
 	if settings.AppLog.Logstash == "" {
 		logMessage = "applog.logstash is empty.  Not logging application events to logstash."
 	} else {
@@ -155,6 +155,22 @@ func main() {
 	if appConfig.HTTPMetrics {
 		go http.ListenAndServe(":8080", http.DefaultServeMux)
 	}
+
+	// check the lock file
+	// _, err = singleinstance.CreateLockFile("app.lock")
+	// if err != nil {
+	// 	log.Error("instance already running")
+	// 	applog.Error("instance already running")
+	// 	os.Exit(1)
+	// }
+	// log.Info("lock file err:", err)
+
+	// pid, err := singleinstance.GetLockFilePid(a)
+	// if err != nil {
+	// 	log.Error("singleinstance.getlockfilepid:", err)
+	// 	os.Exit(1)
+	// }
+	// log.Info("lock file pid:", pid)
 
 	message, cleanRun := processall(settings)
 	log.Info(message)
@@ -200,5 +216,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	os.Exit(0)
+	//os.Exit(0)
 }

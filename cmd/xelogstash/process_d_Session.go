@@ -110,6 +110,7 @@ func processSession(
 	startAtHit := false
 
 	for rows.Next() {
+		readCount.Add(1)
 		if first && ls != nil {
 			netconn, err = ls.Connect()
 			if err != nil {

@@ -25,6 +25,7 @@
 *.pprof
 *.prof
 *.xml
+*.lock
 
 run1.toml
 runall.toml
