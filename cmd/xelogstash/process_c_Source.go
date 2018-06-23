@@ -73,7 +73,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			_ = applog.Error(textMessage)
 		} else {
 			if rowsPerSecond > 0 && totalSeconds > 1 {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s - %s per second%s",
+				textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s - %s per second%s",
 					wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""),
@@ -81,7 +81,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 					txtDuration,
 				)
 			} else {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s%s", wid, info.Domain, result.Instance, result.Session,
+				textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s%s", wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""),
 					txtDuration,
@@ -119,13 +119,13 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			log.Error(textMessage)
 		} else {
 			if rowsPerSecond > 0 && totalSeconds > 1 {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s - %s per second",
+				textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s - %s per second",
 					wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""),
 					humanize.Comma(int64(rowsPerSecond)))
 			} else {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s processed %s %s", wid, info.Domain, result.Instance, result.Session,
+				textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s", wid, info.Domain, result.Instance, result.Session,
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""))
 			}

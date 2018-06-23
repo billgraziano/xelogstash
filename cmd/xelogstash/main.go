@@ -16,6 +16,7 @@ import (
 	"os"
 	"runtime"
 
+	singleinstance "github.com/allan-simon/go-singleinstance"
 	"github.com/billgraziano/xelogstash/applog"
 
 	"github.com/billgraziano/xelogstash/log"
@@ -27,7 +28,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.26"
+const version = "0.27"
 
 var sha1ver string
 
@@ -149,28 +150,22 @@ func main() {
 	}
 	log.Info(logMessage)
 
+	// check the lock file
+	lockFileName := opts.TOMLFile + ".lock"
+	lockfile, err := singleinstance.CreateLockFile(lockFileName)
+	if err != nil {
+		msg := fmt.Sprintf("instance running: lock file: %s", lockFileName)
+		log.Error(msg)
+		applog.Error(msg)
+		os.Exit(1)
+	}
+
 	appConfig = settings.App
 
 	// Enables a web server on :8080 with basic metrics
 	if appConfig.HTTPMetrics {
 		go http.ListenAndServe(":8080", http.DefaultServeMux)
 	}
-
-	// check the lock file
-	// _, err = singleinstance.CreateLockFile("app.lock")
-	// if err != nil {
-	// 	log.Error("instance already running")
-	// 	applog.Error("instance already running")
-	// 	os.Exit(1)
-	// }
-	// log.Info("lock file err:", err)
-
-	// pid, err := singleinstance.GetLockFilePid(a)
-	// if err != nil {
-	// 	log.Error("singleinstance.getlockfilepid:", err)
-	// 	os.Exit(1)
-	// }
-	// log.Info("lock file pid:", pid)
 
 	message, cleanRun := processall(settings)
 	log.Info(message)
@@ -216,5 +211,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	//os.Exit(0)
+	lockfile.Close()
+	err = os.Remove(lockFileName)
+	if err != nil {
+		msg := errors.Wrap(err, "os.remove").Error()
+		log.Error(msg)
+		applog.Error(msg)
+	}
 }
