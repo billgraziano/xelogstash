@@ -250,6 +250,10 @@ func (c *Config) setDefaults() {
 			n.StopAt = v.StopAt
 		}
 
+		if v.Exclude17830 {
+			n.Exclude17830 = v.Exclude17830
+		}
+
 		// if v.Test != false {
 		// 	n.Test = v.Test
 		// }

@@ -24,6 +24,7 @@ type Source struct {
 	Copies         map[string]string
 	Moves          map[string]string
 	ExcludedEvents []string //XE events that are excluded.  Mostly from system health
+	Exclude17830   bool     `toml:"exclude_17830"`
 
 	RawAdds   []string `toml:"adds"`
 	RawCopies []string `toml:"copies"`

@@ -192,6 +192,15 @@ func processSession(
 			break
 		}
 
+		// check for 17830 error
+		if eventName == "error_reported" {
+			errnum, ok := event.GetInt("error_number")
+			if ok && errnum == 17830 {
+				continue
+				log.Println("skipping 17830")
+			}
+		}
+
 		// add default columns
 		event.Set("xe_session_name", result.Session)
 		event.Set("xe_file_name", fileName)

@@ -85,6 +85,19 @@ func (e *Event) Timestamp() time.Time {
 	return ts
 }
 
+// GetInt returns an integer value
+func (e *Event) GetInt(key string) (int, bool) {
+	raw, ok := (*e)[key]
+	if !ok {
+		return 0, false
+	}
+	i, ok := raw.(int)
+	if !ok {
+		return 0, false
+	}
+	return i, true
+}
+
 // CacheSize returns the number of items in the cache
 func (i *SQLInfo) CacheSize() int {
 	return len(i.Actions) + len(i.Fields)

@@ -16,10 +16,16 @@ import (
 
 func processSource(wid int, source config.Source) (sourceResult Result, err error) {
 
-	log.Debug(fmt.Sprintf("[%d] Source: %s  sessions: %d", wid, source.FQDN, len(source.Sessions)))
-	if !source.StartAt.IsZero() || source.StopAt != config.DefaultStopAt {
-		log.Info(fmt.Sprintf("[%d] Source: %s;  Start At: %v;  Stop At: %v", wid, source.FQDN, source.StartAt, source.StopAt))
+	logmsg := fmt.Sprintf("[%d] Source: %s;  Sessions: %d", wid, source.FQDN, len(source.Sessions))
+	if source.Exclude17830 {
+		logmsg += ";  Excluding 17830 errors"
 	}
+
+	if !source.StartAt.IsZero() || source.StopAt != config.DefaultStopAt {
+		//log.Info(fmt.Sprintf("[%d] Source: %s;  Start At: %v;  Stop At: %v", wid, source.FQDN, source.StartAt, source.StopAt))
+		logmsg += fmt.Sprintf(";  Start at: %v;  Stop at %v", source.StartAt, source.StopAt)
+	}
+	log.Info(logmsg)
 
 	var textMessage string
 	info, err := xe.GetSQLInfo(source.FQDN)
