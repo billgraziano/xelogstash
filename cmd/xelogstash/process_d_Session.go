@@ -193,11 +193,10 @@ func processSession(
 		}
 
 		// check for 17830 error
-		if eventName == "error_reported" {
-			errnum, ok := event.GetInt("error_number")
+		if source.Exclude17830 && eventName == "error_reported" {
+			errnum, ok := event.GetInt64("error_number")
 			if ok && errnum == 17830 {
 				continue
-				//log.Println("skipping 17830")
 			}
 		}
 

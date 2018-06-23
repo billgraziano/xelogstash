@@ -85,17 +85,19 @@ func (e *Event) Timestamp() time.Time {
 	return ts
 }
 
-// GetInt returns an integer value
-func (e *Event) GetInt(key string) (int, bool) {
+// GetInt64 returns an integer value
+func (e *Event) GetInt64(key string) (int64, bool) {
 	raw, ok := (*e)[key]
 	if !ok {
 		return 0, false
 	}
-	i, ok := raw.(int)
+
+	i64, ok := raw.(int64)
 	if !ok {
 		return 0, false
 	}
-	return i, true
+
+	return i64, true
 }
 
 // CacheSize returns the number of items in the cache
