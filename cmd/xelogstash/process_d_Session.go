@@ -197,7 +197,7 @@ func processSession(
 			errnum, ok := event.GetInt("error_number")
 			if ok && errnum == 17830 {
 				continue
-				log.Println("skipping 17830")
+				//log.Println("skipping 17830")
 			}
 		}
 
