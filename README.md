@@ -224,7 +224,9 @@ depends on the type of event and what fields are available.  My goal is that see
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from @@SERVERNAME of the source server.
 
 ## <a name="notes"></a>Other Notes
-1. If find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  It's not so many that adding a new server runs for 20 minutes and everything else pauses.
+1. I've had issues with the SQL Server Agent job ending but not stopping the executable when I manually stop the job.  The application now sets a lock file so that a second instance will exit with an error.   The lock file name is based on the TOML file name (`TOML_file_name.lock`).  Find the first instance in Task Manager and kill it.  I usually only see this if I stop it in the middle of a run or Logstash is behaving oddly.
+
+1. I find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  It's not so many that adding a new server runs for 20 minutes and everything else pauses.
 
 2. The sources are processd in the order they are listed.
 
