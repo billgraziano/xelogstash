@@ -28,7 +28,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = "0.27"
+const version = "0.28"
 
 var sha1ver string
 
@@ -211,7 +211,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	lockfile.Close()
+	log.Debug("Closing lock file...")
+	err = lockfile.Close()
+	if err != nil {
+		msg := errors.Wrap(err, "os.close").Error()
+		log.Error(msg)
+		applog.Error(msg)
+		os.Exit(1)
+	}
+
+	log.Debug("Removing lock file...")
 	err = os.Remove(lockFileName)
 	if err != nil {
 		msg := errors.Wrap(err, "os.remove").Error()
