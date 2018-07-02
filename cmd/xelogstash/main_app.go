@@ -210,20 +210,28 @@ func runApp() error {
 	}
 
 	log.Debug("Closing lock file...")
-	err = lockfile.Close()
+	// err = lockfile.Close()
+	// if err != nil {
+	// 	msg := errors.Wrap(err, "os.close").Error()
+	// 	log.Error(msg)
+	// 	applog.Error(msg)
+	// 	return err
+	// }
+	err = closeLockFile(lockfile)
 	if err != nil {
-		msg := errors.Wrap(err, "os.close").Error()
+		msg := errors.Wrap(err, "closelockfile").Error()
 		log.Error(msg)
 		applog.Error(msg)
 		return err
 	}
 
 	log.Debug("Removing lock file...")
-	err = os.Remove(lockFileName)
+	err = removeLockFile(lockFileName)
 	if err != nil {
-		msg := errors.Wrap(err, "os.remove").Error()
+		msg := errors.Wrap(err, "removelockfile").Error()
 		log.Error(msg)
 		applog.Error(msg)
+		return err
 	}
 
 	return nil
