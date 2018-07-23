@@ -233,6 +233,7 @@ func runApp() error {
 		applog.Error(msg)
 		return err
 	}
+	log.Debug("Returned from removing lock file...")
 
 	return nil
 }
