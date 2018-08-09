@@ -210,6 +210,14 @@ func processSession(
 			}
 		}
 
+		// check if we can exclude a dbghelp.dll messages
+		if eventName == "errorlog_written" && !source.IncludeDebugDLLMsg {
+			logmsg := event.GetString("message")
+			if strings.Contains(strings.ToLower(logmsg), "using 'dbghelp.dll'") {
+				continue
+			}
+		}
+
 		// add default columns
 		event.Set("xe_session_name", result.Session)
 		event.Set("xe_file_name", fileName)
