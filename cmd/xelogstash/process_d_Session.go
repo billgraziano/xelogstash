@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"regexp"
 	"strings"
@@ -167,7 +168,16 @@ func processSession(
 		var event xe.Event
 		event, err = xe.Parse(&info, eventData)
 		if err != nil {
-			return result, errors.Wrap(err, "xe.Parse")
+			log.Error(errors.Wrap(err, "xe.parse"))
+			if source.LogBadXML {
+				err = ioutil.WriteFile("bad_xml.log", []byte(eventData), 0666)
+				if err != nil {
+					log.Error(errors.Wrap(err, "write bad xml: ioutil.writefile"))
+				}
+			}
+			// count the error, fail if more than X?
+
+			continue
 		}
 
 		// is this an event we are skipping?

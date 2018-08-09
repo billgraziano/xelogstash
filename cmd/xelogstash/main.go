@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-const version = "0.30"
+const version = "0.31"
 
 func main() {
 	err := runApp()
