@@ -197,26 +197,7 @@ func runApp() error {
 		}
 	}
 
-	if !cleanRun {
-		log.Error("*** ERROR ****")
-		return err
-	}
-
-	err = cleanOldLogFiles(7)
-	log.Debug("Cleaning old log files...")
-	if err != nil {
-		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
-		return err
-	}
-
 	log.Debug("Closing lock file...")
-	// err = lockfile.Close()
-	// if err != nil {
-	// 	msg := errors.Wrap(err, "os.close").Error()
-	// 	log.Error(msg)
-	// 	applog.Error(msg)
-	// 	return err
-	// }
 	err = closeLockFile(lockfile)
 	if err != nil {
 		msg := errors.Wrap(err, "closelockfile").Error()
@@ -234,6 +215,17 @@ func runApp() error {
 		return err
 	}
 	log.Debug("Returned from removing lock file...")
+
+	log.Debug("Cleaning old log files...")
+	err = cleanOldLogFiles(7)
+	if err != nil {
+		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
+	}
+
+	if !cleanRun {
+		log.Error("*** ERROR ****")
+		return err
+	}
 
 	return nil
 }
