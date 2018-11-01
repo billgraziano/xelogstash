@@ -104,6 +104,14 @@ func SetLevel(lvl Level) {
 	std.lvl = lvl
 }
 
+// IsDebug returns true if we are debug or higher
+func IsDebug() bool {
+	if std.lvl >= DEBUG {
+		return true
+	}
+	return false
+}
+
 // SetOutput sets the output destination for the logger.
 func (l *Logger) SetOutput(w io.Writer) {
 	l.mu.Lock()
