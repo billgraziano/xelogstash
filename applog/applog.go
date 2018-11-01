@@ -155,6 +155,23 @@ func Log(src logstash.Record) error {
 	return nil
 }
 
+// GetLogFile returns a log file pointer for writing
+func GetLogFile(name string) (*os.File, error) {
+	// Get EXE directory
+	executable, err := os.Executable()
+	if err != nil {
+		return nil, errors.Wrap(err, "os.executable")
+	}
+	exeDir := filepath.Dir(executable)
+	fileName := filepath.Join(exeDir, name)
+
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return nil, errors.Wrap(err, "os.openfile")
+	}
+	return file, nil
+}
+
 // PrintSamples prints out the JSON log messages
 func PrintSamples() error {
 	// Get EXE directory
