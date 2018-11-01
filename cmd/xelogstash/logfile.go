@@ -55,7 +55,7 @@ func cleanOldLogFiles(days int) error {
 	}
 	re := regexp.MustCompile(fmt.Sprintf("%s_(?P<date>\\d{8})\\.log", exe))
 	for _, fi := range files {
-		log.Debug(fmt.Sprintf("ranging: %s", fi.Name()))
+		//log.Debug(fmt.Sprintf("ranging: %s", fi.Name()))
 		if fi.IsDir() {
 			continue
 		}

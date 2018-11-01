@@ -104,6 +104,7 @@ func processSession(
 		// TODO log this error
 		return result, errors.Wrap(err, "query")
 	}
+	defer safeClose(rows, &err)
 
 	var netconn *net.TCPConn
 	first := true

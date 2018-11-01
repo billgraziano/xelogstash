@@ -58,6 +58,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	if err != nil {
 		return result, errors.Wrap(err, "db.open")
 	}
+	defer safeClose(db, &err)
 
 	err = db.Ping()
 	if err != nil {
