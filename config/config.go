@@ -138,6 +138,11 @@ func (c *Config) decodekv(version string) error {
 		return errors.Wrap(err, "buildmap.moves")
 	}
 
+	c.Elastic.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, version)
+	if err != nil {
+		return errors.Wrap(err, "buildmap.elastic.eventindexmap")
+	}
+
 	// if c.App.Copies, err = buildmap(c.App.RawCopies); err != nil {
 	// 	return errors.Wrap(err, "app-copies")
 	// }
@@ -303,4 +308,20 @@ func (s *Source) ToJSON() string {
 		return ""
 	}
 	return string(b)
+}
+
+// Print the values of elastic config
+func (e *ElasticConfig) Print() {
+	fmt.Println("-- elastic config --------------------------------")
+	for i, v := range e.Addresses {
+		fmt.Printf("-- address[%d]: %s\r\n", i, v)
+	}
+	fmt.Println("-- username:", e.Username)
+	fmt.Println("-- applog_index:", e.AppLogIndex)
+	fmt.Println("-- default_index:", e.DefaultIndex)
+	for k, v := range e.EventIndexMap {
+		fmt.Printf("-- event: %s -> %s\r\n", k, v)
+	}
+	fmt.Println("--------------------------------------------------")
+
 }

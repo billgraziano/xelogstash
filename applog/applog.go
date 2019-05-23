@@ -9,7 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/billgraziano/go-elasticsearch"
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/seq"
@@ -17,32 +19,43 @@ import (
 )
 
 // appconfig holds the AppLog appconfig
-var appconfig config.AppLog
+var cfg config.Config
 var mux sync.Mutex
 var ls *logstash.Logstash
+
+var elasticBuffer bytes.Buffer
+var esclient *elasticsearch.Client
 
 var logs []string
 
 // Initialize configures the app logging
-func Initialize(c config.AppLog) (err error) {
-	appconfig = c
+func Initialize(c config.Config) (err error) {
+	cfg = c
 
-	if appconfig.Logstash == "" {
-		return nil
+	mux.Lock()
+	defer mux.Unlock()
+
+	if cfg.AppLog.Logstash != "" {
+
+		ls, err = logstash.NewHost(cfg.AppLog.Logstash, 180)
+		if err != nil {
+			return errors.Wrap(err, "logstash.newhost")
+		}
+
+		//var netconn *net.TCPConn
+		_, err = ls.Connect()
+		if err != nil {
+			return errors.Wrap(err, "logstash-connect")
+		}
 	}
 
-	ls, err = logstash.NewHost(appconfig.Logstash, 180)
-	if err != nil {
-		return errors.Wrap(err, "logstash.newhost")
+	// Setup the Elastic client
+	if len(cfg.Elastic.Addresses) > 0 && cfg.Elastic.Username != "" && cfg.Elastic.Password != "" {
+		esclient, err = eshelper.NewClient(cfg.Elastic.Addresses, cfg.Elastic.Username, cfg.Elastic.Password)
+		if err != nil {
+			return errors.Wrap(err, "eshelper.newclient")
+		}
 	}
-
-	//var netconn *net.TCPConn
-	_, err = ls.Connect()
-	if err != nil {
-		return errors.Wrap(err, "logstash-connect")
-	}
-
-	//fmt.Println(ls.Connection, ls.Timeout, ls.Host)
 
 	return nil
 }
@@ -85,8 +98,6 @@ func Info(msg string) error {
 
 // Log writes a log to logstash
 func Log(src logstash.Record) error {
-	mux.Lock()
-	defer mux.Unlock()
 
 	//fmt.Println(ls)
 
@@ -108,18 +119,18 @@ func Log(src logstash.Record) error {
 	src["sequence_value"] = seq.Get()
 
 	// if payload field is empty
-	if appconfig.PayloadField == "" {
+	if cfg.AppLog.PayloadField == "" {
 		for k, v := range src {
 			lr[k] = v
 		}
 	} else {
-		lr[appconfig.PayloadField] = src
+		lr[cfg.AppLog.PayloadField] = src
 	}
 
-	if appconfig.TimestampField == "" {
+	if cfg.AppLog.TimestampField == "" {
 		lr["timestamp"] = now
 	} else {
-		lr[appconfig.TimestampField] = now
+		lr[cfg.AppLog.TimestampField] = now
 	}
 
 	rs, err := lr.ToJSON()
@@ -128,28 +139,44 @@ func Log(src logstash.Record) error {
 	}
 
 	// process the adds and such
-	rs, err = logstash.ProcessMods(rs, appconfig.Adds, appconfig.Copies, appconfig.Moves)
+	rs, err = logstash.ProcessMods(rs, cfg.AppLog.Adds, cfg.AppLog.Copies, cfg.AppLog.Moves)
 	if err != nil {
 		return errors.Wrap(err, "logstash.processmods")
 	}
 
+	mux.Lock()
+	defer mux.Unlock()
+
 	logs = append(logs, rs)
 
-	if appconfig.Logstash == "" {
-		return nil
+	if cfg.AppLog.Logstash != "" {
+
+		if ls.Connection == nil {
+			log.Debug("ls.connection is nil")
+		}
+
+		//fmt.Println(rs)
+		err = ls.Writeln(rs)
+		if err != nil {
+			log.Error("")
+			log.Error(fmt.Sprintf("%s", rs))
+			log.Error("")
+			return errors.Wrap(err, "logstash-writeln")
+		}
 	}
 
-	if ls.Connection == nil {
-		log.Debug("ls.connection is nil")
-	}
+	// Write one entry to the buffer
+	if esclient != nil && cfg.Elastic.AppLogIndex != "" {
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index" : "%s" } }%s`, cfg.Elastic.AppLogIndex, "\n"))
+		espayload := []byte(rs + "\n")
+		elasticBuffer.Grow(len(meta) + len(espayload))
+		elasticBuffer.Write(meta)
+		elasticBuffer.Write(espayload)
 
-	//fmt.Println(rs)
-	err = ls.Writeln(rs)
-	if err != nil {
-		log.Error("")
-		log.Error(fmt.Sprintf("%s", rs))
-		log.Error("")
-		return errors.Wrap(err, "logstash-writeln")
+		err = eshelper.WriteElasticBuffer(esclient, &elasticBuffer)
+		if err != nil {
+			return errors.Wrap(err, "eshelper.writeelasticbuffer")
+		}
 	}
 
 	return nil

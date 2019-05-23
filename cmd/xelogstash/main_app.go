@@ -15,10 +15,13 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"runtime"
+	"strings"
 
 	singleinstance "github.com/allan-simon/go-singleinstance"
+	/* "github.com/billgraziano/go-elasticsearch/esapi" */
 	"github.com/billgraziano/xelogstash/applog"
 
+	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/summary"
 
@@ -37,6 +40,7 @@ var opts struct {
 }
 
 var appConfig config.App
+var globalConfig config.Config
 
 func runApp() error {
 
@@ -110,7 +114,7 @@ func runApp() error {
 	if settings.App.Workers == 0 {
 		settings.App.Workers = runtime.NumCPU() * 4
 	}
-	err = applog.Initialize(settings.AppLog)
+	err = applog.Initialize(settings)
 	if err != nil {
 		log.Error(errors.Wrap(err, "applog.init"))
 		return err
@@ -159,6 +163,40 @@ func runApp() error {
 	}
 
 	appConfig = settings.App
+	globalConfig = settings
+
+	// If we're using elastic directly, do the index maintenance
+	if len(globalConfig.Elastic.Addresses) > 0 {
+		logMessage = fmt.Sprintf("elastic.addresses: %s", strings.Join(globalConfig.Elastic.Addresses, ", "))
+		log.Info(logMessage)
+		if globalConfig.Elastic.Username == "" || globalConfig.Elastic.Password == "" {
+			return errors.New("elastic search is missing the username or password")
+		}
+
+		// Set up the elastic indexes
+		if globalConfig.Elastic.AutoCreateIndexes {
+			esIndexes := make([]string, 0)
+			if globalConfig.Elastic.DefaultIndex != "" {
+				esIndexes = append(esIndexes, globalConfig.Elastic.DefaultIndex)
+			}
+			if globalConfig.Elastic.AppLogIndex != "" {
+				esIndexes = append(esIndexes, globalConfig.Elastic.AppLogIndex)
+			}
+			for _, ix := range globalConfig.Elastic.EventIndexMap {
+				esIndexes = append(esIndexes, ix)
+			}
+
+			esClient, err := eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
+			if err != nil {
+				return errors.Wrap(err, "eshelper.newclient")
+			}
+			err = eshelper.CreateIndexes(esClient, esIndexes)
+			if err != nil {
+				return errors.Wrap(err, "eshelper.createindexes")
+			}
+		}
+	}
+	// globalConfig.Elastic.Print()
 
 	// Enables a web server on :8080 with basic metrics
 	if appConfig.HTTPMetrics {

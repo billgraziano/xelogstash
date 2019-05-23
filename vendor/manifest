@@ -10,6 +10,23 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/alecthomas/chroma",
+			"repository": "https://github.com/alecthomas/chroma",
+			"vcs": "git",
+			"revision": "f1ba5bf4f3d3fd4a1bbfd8e8644cb2602b1c3881",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/alecthomas/chroma/formatters",
+			"repository": "https://github.com/alecthomas/chroma",
+			"vcs": "git",
+			"revision": "f1ba5bf4f3d3fd4a1bbfd8e8644cb2602b1c3881",
+			"branch": "master",
+			"path": "/formatters",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/alexbrainman/odbc",
 			"repository": "https://github.com/alexbrainman/odbc",
 			"vcs": "git",
@@ -22,6 +39,14 @@
 			"repository": "https://github.com/allan-simon/go-singleinstance",
 			"vcs": "git",
 			"revision": "79edcfdc2dfc93da913f46ae8d9f8a9602250431",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/billgraziano/go-elasticsearch",
+			"repository": "https://github.com/billgraziano/go-elasticsearch",
+			"vcs": "git",
+			"revision": "a30a816423ad91fdae29671a8794a20befde10fd",
 			"branch": "master",
 			"notests": true
 		},
@@ -42,11 +67,44 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/danwakefield/fnmatch",
+			"repository": "https://github.com/danwakefield/fnmatch",
+			"vcs": "git",
+			"revision": "cbb64ac3d964b81592e64f957ad53df015803288",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/dlclark/regexp2",
+			"repository": "https://github.com/dlclark/regexp2",
+			"vcs": "git",
+			"revision": "7632a260cbaf5e7594fc1544a503456ecd0827f1",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/dustin/go-humanize",
 			"repository": "https://github.com/dustin/go-humanize",
 			"vcs": "git",
 			"revision": "bb3d318650d48840a39aa21a027c6630e198e626",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/elastic/go-elasticsearch",
+			"repository": "https://github.com/elastic/go-elasticsearch",
+			"vcs": "git",
+			"revision": "a30a816423ad91fdae29671a8794a20befde10fd",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/elastic/go-elasticsearch/esapi",
+			"repository": "https://github.com/elastic/go-elasticsearch",
+			"vcs": "git",
+			"revision": "a30a816423ad91fdae29671a8794a20befde10fd",
+			"branch": "master",
+			"path": "/esapi",
 			"notests": true
 		},
 		{

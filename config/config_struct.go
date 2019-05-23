@@ -39,6 +39,7 @@ type App struct {
 	Logstash string
 	Samples  bool // Print sample JSON to stdout
 	Summary  bool // Print a summary to stdout
+
 	// Enables a web server on :8080 with basic metrics
 	HTTPMetrics bool `toml:"http_metrics"`
 }
@@ -59,11 +60,24 @@ type AppLog struct {
 	RawMoves  []string `toml:"moves"`
 }
 
+// ElasticConfig holds the configuration for sending events to elastic
+type ElasticConfig struct {
+	Addresses         []string `toml:"addresses"`
+	Username          string   `toml:"username"`
+	Password          string   `toml:"password"`
+	DefaultIndex      string   `toml:"default_index"`
+	AppLogIndex       string   `toml:"applog_index"`
+	EventIndexMap     map[string]string
+	RawEventMap       []string `toml:"event_index_map"`
+	AutoCreateIndexes bool     `toml:"auto_create_indexes"`
+}
+
 // Config defines the configuration read from the TOML file
 type Config struct {
 	App      App
 	AppLog   AppLog
-	Defaults Source   `toml:"defaults"`
-	Sources  []Source `toml:"source"`
+	Elastic  ElasticConfig `toml:"elastic"`
+	Defaults Source        `toml:"defaults"`
+	Sources  []Source      `toml:"source"`
 	MetaData toml.MetaData
 }

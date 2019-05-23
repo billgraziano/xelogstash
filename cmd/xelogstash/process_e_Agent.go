@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"net"
@@ -8,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/billgraziano/go-elasticsearch"
 	"github.com/billgraziano/mssqlodbc"
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/status"
@@ -99,6 +102,16 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		ls, err = logstash.NewHost(appConfig.Logstash, 180)
 		if err != nil {
 			return result, errors.Wrap(err, "logstash-new")
+		}
+	}
+
+	// Setup the Elastic client
+	var elasticBuffer bytes.Buffer
+	var esclient *elasticsearch.Client
+	if len(globalConfig.Elastic.Addresses) > 0 && globalConfig.Elastic.Username != "" && globalConfig.Elastic.Password != "" {
+		esclient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
+		if err != nil {
+			return result, errors.Wrap(err, "eshelper.NewClient")
 		}
 	}
 
@@ -332,6 +345,26 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 					log.Error("")
 					return result, errors.Wrap(err, "logstash-writeln")
 				}
+			}
+
+			// Write one entry to the buffer
+			if esclient != nil {
+				var esIndex string
+				var ok bool
+				esIndex, ok = globalConfig.Elastic.EventIndexMap[j.Name]
+				if !ok {
+					esIndex = globalConfig.Elastic.DefaultIndex
+				}
+				meta := []byte(fmt.Sprintf(`{ "index" : { "_index" : "%s" } }%s`, esIndex, "\n"))
+				espayload := []byte(rs + "\n")
+				elasticBuffer.Grow(len(meta) + len(espayload))
+				elasticBuffer.Write(meta)
+				elasticBuffer.Write(espayload)
+			}
+
+			err = eshelper.WriteElasticBuffer(esclient, &elasticBuffer)
+			if err != nil {
+				return result, errors.Wrap(err, "writeelasticbuffer")
 			}
 
 			if appConfig.Summary {

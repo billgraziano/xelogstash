@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"regexp"
 	"strings"
+
+	elasticsearch "github.com/billgraziano/go-elasticsearch"
+	"github.com/billgraziano/xelogstash/eshelper"
 
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/log"
@@ -83,6 +87,15 @@ func processSession(
 		}
 	}
 
+	// Setup the Elastic client
+	var esclient *elasticsearch.Client
+	if len(globalConfig.Elastic.Addresses) > 0 && globalConfig.Elastic.Username != "" && globalConfig.Elastic.Password != "" {
+		esclient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
+		if err != nil {
+			return result, errors.Wrap(err, "eshelper.NewClient")
+		}
+	}
+
 	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StateReset {
 		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
 	} else {
@@ -110,6 +123,8 @@ func processSession(
 	first := true
 	gotRows := false
 	startAtHit := false
+
+	var elasticBuffer bytes.Buffer
 
 	for rows.Next() {
 		readCount.Add(1)
@@ -158,6 +173,12 @@ func processSession(
 			// do we have as many rows as we need?
 			if source.Rows > 0 && result.Rows >= source.Rows {
 				break
+			}
+
+			// Write the elastic buffer & reset
+			err = eshelper.WriteElasticBuffer(esclient, &elasticBuffer)
+			if err != nil {
+				return result, errors.Wrap(err, "writeelasticbuffer")
 			}
 		}
 
@@ -267,6 +288,21 @@ func processSession(
 			}
 		}
 
+		// Write one entry to the buffer
+		if esclient != nil {
+			var esIndex string
+			var ok bool
+			esIndex, ok = globalConfig.Elastic.EventIndexMap[eventName]
+			if !ok {
+				esIndex = globalConfig.Elastic.DefaultIndex
+			}
+			meta := []byte(fmt.Sprintf(`{ "index" : { "_index" : "%s" } }%s`, esIndex, "\n"))
+			espayload := []byte(rs + "\n")
+			elasticBuffer.Grow(len(meta) + len(espayload))
+			elasticBuffer.Write(meta)
+			elasticBuffer.Write(espayload)
+		}
+
 		result.Rows++
 		totalCount.Add(1)
 		eventCount.Add(eventName, 1)
@@ -292,7 +328,15 @@ func processSession(
 		if err != nil {
 			return result, errors.Wrap(err, "status.done")
 		}
+
+		// write the elastic buffer & reset
+		err = eshelper.WriteElasticBuffer(esclient, &elasticBuffer)
+		if err != nil {
+			return result, errors.Wrap(err, "writeelasticbuffer")
+		}
 	}
 
 	return result, nil
 }
+
+
