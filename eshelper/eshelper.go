@@ -41,8 +41,31 @@ type BulkResponse struct {
 	} `json:"items"`
 }
 
-// NewClient returns a new elastic search client
-func NewClient(addresses []string, username, password string) (*elasticsearch.Client, error) {
+// NewClient creates a client given an http.Transport.  This is typically used for a proxy.
+func NewClient(addresses []string, t *http.Transport, username, password string) (*elasticsearch.Client, error) {
+	cfg := elasticsearch.Config{
+		Addresses: addresses,
+		Username:  username,
+		Password:  password,
+		Transport: t,
+	}
+
+	es, err := elasticsearch.NewClient(cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "elasticsearch.newclient")
+	}
+	//log.Print(es.Transport.(*estransport.Client).URLs())
+	//log.Println(elasticsearch.Version)
+
+	_, err = es.Info()
+	if err != nil {
+		return nil, errors.Wrap(err, "es.info")
+	}
+	return es, nil
+}
+
+// NewDefaultClient returns a new elastic search client
+func NewDefaultClient(addresses []string, username, password string) (*elasticsearch.Client, error) {
 	cfg := elasticsearch.Config{
 		Addresses: addresses,
 		Username:  username,
