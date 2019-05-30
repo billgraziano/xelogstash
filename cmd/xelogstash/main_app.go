@@ -186,7 +186,7 @@ func runApp() error {
 				esIndexes = append(esIndexes, ix)
 			}
 
-			esClient, err := eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
+			esClient, err := eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
 			if err != nil {
 				return errors.Wrap(err, "eshelper.newclient")
 			}

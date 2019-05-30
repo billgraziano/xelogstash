@@ -90,7 +90,7 @@ func processSession(
 	// Setup the Elastic client
 	var esclient *elasticsearch.Client
 	if len(globalConfig.Elastic.Addresses) > 0 && globalConfig.Elastic.Username != "" && globalConfig.Elastic.Password != "" {
-		esclient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
+		esclient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
 		if err != nil {
 			return result, errors.Wrap(err, "eshelper.NewClient")
 		}
@@ -338,5 +338,3 @@ func processSession(
 
 	return result, nil
 }
-
-

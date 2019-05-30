@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/billgraziano/go-elasticsearch"
@@ -42,20 +43,33 @@ type BulkResponse struct {
 }
 
 // NewClient creates a client given an http.Transport.  This is typically used for a proxy.
-func NewClient(addresses []string, t *http.Transport, username, password string) (*elasticsearch.Client, error) {
+func NewClient(addresses []string, proxy, username, password string) (*elasticsearch.Client, error) {
+
+	proxyURL, err := url.Parse(proxy)
+	if err != nil {
+		log.Fatal(err)
+	}
+	t := http.Transport{
+		Proxy:                 http.ProxyURL(proxyURL),
+		MaxIdleConnsPerHost:   10,
+		ResponseHeaderTimeout: time.Second,
+		DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS11,
+		},
+	}
+
 	cfg := elasticsearch.Config{
 		Addresses: addresses,
 		Username:  username,
 		Password:  password,
-		Transport: t,
+		Transport: &t,
 	}
 
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "elasticsearch.newclient")
 	}
-	//log.Print(es.Transport.(*estransport.Client).URLs())
-	//log.Println(elasticsearch.Version)
 
 	_, err = es.Info()
 	if err != nil {
@@ -66,31 +80,11 @@ func NewClient(addresses []string, t *http.Transport, username, password string)
 
 // NewDefaultClient returns a new elastic search client
 func NewDefaultClient(addresses []string, username, password string) (*elasticsearch.Client, error) {
-	cfg := elasticsearch.Config{
-		Addresses: addresses,
-		Username:  username,
-		Password:  password,
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost:   10,
-			ResponseHeaderTimeout: time.Second,
-			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS11,
-			},
-		},
+	es, err := NewClient(addresses, "", username, password)
+	if err != nil {
+		return nil, errors.Wrap(err, "eshelper.newclient")
 	}
 
-	es, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		return nil, errors.Wrap(err, "elasticsearch.newclient")
-	}
-	//log.Print(es.Transport.(*estransport.Client).URLs())
-	//log.Println(elasticsearch.Version)
-
-	_, err = es.Info()
-	if err != nil {
-		return nil, errors.Wrap(err, "es.info")
-	}
 	return es, nil
 }
 

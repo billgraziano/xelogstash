@@ -51,7 +51,7 @@ func Initialize(c config.Config) (err error) {
 
 	// Setup the Elastic client
 	if len(cfg.Elastic.Addresses) > 0 && cfg.Elastic.Username != "" && cfg.Elastic.Password != "" {
-		esclient, err = eshelper.NewClient(cfg.Elastic.Addresses, cfg.Elastic.Username, cfg.Elastic.Password)
+		esclient, err = eshelper.NewClient(cfg.Elastic.Addresses, cfg.Elastic.ProxyServer, cfg.Elastic.Username, cfg.Elastic.Password)
 		if err != nil {
 			return errors.Wrap(err, "eshelper.newclient")
 		}

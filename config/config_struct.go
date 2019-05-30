@@ -70,6 +70,7 @@ type ElasticConfig struct {
 	EventIndexMap     map[string]string
 	RawEventMap       []string `toml:"event_index_map"`
 	AutoCreateIndexes bool     `toml:"auto_create_indexes"`
+	ProxyServer       string   `toml:"proxy_server"`
 }
 
 // Config defines the configuration read from the TOML file
