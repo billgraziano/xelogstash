@@ -45,18 +45,39 @@ type BulkResponse struct {
 // NewClient creates a client given an http.Transport.  This is typically used for a proxy.
 func NewClient(addresses []string, proxy, username, password string) (*elasticsearch.Client, error) {
 
-	proxyURL, err := url.Parse(proxy)
-	if err != nil {
-		log.Fatal(err)
-	}
-	t := http.Transport{
-		Proxy:                 http.ProxyURL(proxyURL),
-		MaxIdleConnsPerHost:   10,
-		ResponseHeaderTimeout: time.Second,
-		DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS11,
-		},
+	var t http.Transport
+	println(proxy)
+	if proxy == "" {
+		t = http.Transport{
+			MaxIdleConnsPerHost:   10,
+			ResponseHeaderTimeout: time.Second,
+			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS11,
+			},
+		}
+	} else {
+
+		parsedURL, err := url.Parse(proxy)
+		if err != nil {
+			return nil, errors.Wrap(err, "url.parse")
+		}
+		proxyURL := http.ProxyURL(parsedURL)
+		// if err != nil {
+		// 	return nil, errors.Wrap(err, "http.proxyurl")
+		// }
+		if proxyURL == nil {
+			return nil, errors.New("proxyURL is nil")
+		}
+		t = http.Transport{
+			Proxy:                 proxyURL,
+			MaxIdleConnsPerHost:   10,
+			ResponseHeaderTimeout: time.Second,
+			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS11,
+			},
+		}
 	}
 
 	cfg := elasticsearch.Config{
