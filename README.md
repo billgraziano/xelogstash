@@ -49,8 +49,7 @@ You can set the following Source fields (or Default fields)
 * `start_at` and `stop_at` are used to limit the date range of returned events.  __Please be aware this will almost certainly lead to dropped or duplicated events.  It should only be used for testing.__  The date must be in "2018-01-01T13:14:15Z" or "2018-06-01T12:00:00-05:00" and must be enclosed in quotes in the TOML file.
 * `exclude_17830` is a boolean that will exclude 17830 errors.  I typically see these from packaged software and can't do much about them.
 * `log_bad_xml` is boolean.  This will write the last bad XML parse to a file. 
-* `include_dbghelpdll_msg` is a boolean.  Some versions of SQL Server emit a message like `Using 'dbghelp.dll' version '4.0.5'`.  
-These are now excluded by default.  This setting adds those back in.
+* `include_dbghelpdll_msg` is a boolean.  Some versions of SQL Server emit a message like `Using 'dbghelp.dll' version '4.0.5'`.  These are now excluded by default.  This setting adds those back in.
 
 
 ## <a name="json"></a>Controlling the JSON
@@ -71,24 +70,24 @@ payload_field_name = ""
   "@timestamp": "2018-05-08T01:23:45.691Z",
   "client_app_name": "xecap.exe",
   "client_hostname": "D30",
-  . . . (lots of JSON fields) . . .
+  ". . . lots of json fields...": "go here",
   "xe_severity_value": 6
 }
 ```
 
 ### Example 2
-All the event fields are nested inside and "event" field.
+All the event fields are nested inside an "mssql" field.
 
 ```json
-timestamp_field_name = "@timestamp"
-payload_field_name = "event"
+timestamp_field_name = "event_time"
+payload_field_name = "mssql"
 ----------------------
 {
-  "@timestamp": "2018-05-08T01:23:49.928Z",
-  "event": {
+  "event_time": "2018-05-08T01:23:49.928Z",
+  "mssql": {
     "client_app_name": "xecap.exe",
     "client_hostname": "D30",
-    . . . 
+    ". . . lots of json fields...": "go here",
     "xe_severity_value": 6
   }
 }
@@ -143,18 +142,18 @@ copies = [  "event.mssql_computer:global.host.name",
   "event": {
     "client_app_name": "xecap.exe",
     "client_hostname": "D30",
-    . . . 
+    
     "mssql_computer": "D30",
     "mssql_domain": "WORKGROUP",
     "mssql_server_name": "D30\\SQL2016",
     "mssql_version": "SQL Server 2016 RTM",
     "name": "login",
-    . . . 
+    
     "server_instance_name": "D30\\SQL2016",
     "server_principal_name": "graz",
     "timestamp": "2018-05-08T01:24:47.368Z",
     "xe_acct_app": "graz - xecap.exe",
-    . . . 
+    
     "xe_session_name": "Demo-Logins2",
     "xe_severity_keyword": "info",
     "xe_severity_value": 6
@@ -218,7 +217,7 @@ Based on a particular event, the application computes a number of calculated fie
 * `xe_severity_value`: 3, 5, or 6 for ERR, WARN, INFO based on the syslog values
 * `xe_severity_keyword`: "err", "warning", "info" based on the syslog values
 * `xe_description`: a text description of the event.  The format
-depends on the type of event and what fields are available.  My goal is that seeing the name of the server, the event type (name), and this field are enough to know what happened
+depends on the type of event and what fields are available.  My goal is that seeing the name of the server, the event type (`name` field), and this field are enough to know what happened
 * `xe_acct_app`: a combination of the server_principal_name and client_app_name in "acct - app" format.
 * `xe_acct_app_client`: a combination of the server_principal_name, client_app_name, and client_hostname in "acct - app (client)" format
 * `xe_session_name`: name of the extended event session for this event
