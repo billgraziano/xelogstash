@@ -50,8 +50,8 @@ func NewClient(addresses []string, proxy, username, password string) (*elasticse
 	if proxy == "" {
 		t = http.Transport{
 			MaxIdleConnsPerHost:   10,
-			ResponseHeaderTimeout: time.Second,
-			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
+			ResponseHeaderTimeout: 10 * time.Second,
+			DialContext:           (&net.Dialer{Timeout: 10 * time.Second}).DialContext,
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS11,
 			},
