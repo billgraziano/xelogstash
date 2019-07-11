@@ -47,6 +47,7 @@ You can set the following Source fields (or Default fields)
 * `adds`, `moves`, and `copies` are described in their own section below.
 * `strip_crlf` (boolean) will replace common newline patterns with a space. Some logstash configurations don't handle newlines in their JSON.  The downside is that it de-formats SQL and deadlock fields.
 * `start_at` and `stop_at` are used to limit the date range of returned events.  __Please be aware this will almost certainly lead to dropped or duplicated events.  It should only be used for testing.__  The date must be in "2018-01-01T13:14:15Z" or "2018-06-01T12:00:00-05:00" and must be enclosed in quotes in the TOML file.
+* `look_back` (duration string) will determine how far back to get events.  It's like a relative `start_at`.  `look_back` is a duration string of a decimal number with a unit suffix, such as "24h", "168h" (1 week), or "60m".  Valid time units are "h", "m", or "s".  If both `start_at` and `look_back` are set, it will use the most recent calculated date between the two.
 * `exclude_17830` is a boolean that will exclude 17830 errors.  I typically see these from packaged software and can't do much about them.
 * `log_bad_xml` is boolean.  This will write the last bad XML parse to a file. 
 * `include_dbghelpdll_msg` is a boolean.  Some versions of SQL Server emit a message like `Using 'dbghelp.dll' version '4.0.5'`.  These are now excluded by default.  This setting adds those back in.

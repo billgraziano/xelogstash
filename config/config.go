@@ -46,10 +46,22 @@ func Get(f string, version string) (config Config, err error) {
 		config.Defaults.StopAt = DefaultStopAt
 	}
 
-	config.setDefaults()
+	// Calculate the default lookback and use if more recent than StartAt
+	if config.Defaults.LookBackRaw != "" {
+		err = config.Defaults.processLookback()
+		if err != nil {
+			return config, errors.Wrap(err, "source.proceslookback")
+		}
+	}
+
 	err = config.Defaults.validate()
 	if err != nil {
-		return config, errors.Wrap(err, "validate")
+		return config, errors.Wrap(err, "config.defaults.validate")
+	}
+
+	err = config.setSourceDefaults()
+	if err != nil {
+		return config, errors.Wrap(err, "config.setsourcedefaults")
 	}
 
 	for _, s := range config.Sources {
@@ -63,6 +75,22 @@ func Get(f string, version string) (config Config, err error) {
 	}
 
 	return config, err
+}
+
+// processLookBack pushes the StartAt forward if needed based on look_back
+func (s *Source) processLookback() error {
+	if s.LookBackRaw == "" {
+		return nil
+	}
+	lb, err := time.ParseDuration(s.LookBackRaw)
+	if err != nil {
+		return errors.Wrapf(err, "invalid lookback: %s", s.LookBackRaw)
+	}
+	lookBackAbs := time.Now().Add(-1 * lb)
+	if lookBackAbs.After(s.StartAt) {
+		s.StartAt = lookBackAbs
+	}
+	return nil
 }
 
 func (s *Source) validate() error {
@@ -186,7 +214,7 @@ func buildmap(a []string, version string) (map[string]string, error) {
 	return m, err
 }
 
-func (c *Config) setDefaults() {
+func (c *Config) setSourceDefaults() error {
 
 	// Default AppLog.Timestamp to @timestamp if no value is entered
 	// if c.AppLog.TimestampField == "" {
@@ -212,7 +240,9 @@ func (c *Config) setDefaults() {
 	// Then apply the settings from source if it has a value
 	// Then replace the original source
 	for i, v := range c.Sources {
+		var err error
 		n := c.Defaults
+
 		if v.FQDN != "" {
 			n.FQDN = v.FQDN
 		}
@@ -251,6 +281,15 @@ func (c *Config) setDefaults() {
 			n.StartAt = v.StartAt
 		}
 
+		if v.LookBackRaw != "" {
+			n.LookBackRaw = v.LookBackRaw
+		}
+
+		err = n.processLookback()
+		if err != nil {
+			return errors.Wrapf(err, "invalid look_back: %s", v.LookBackRaw)
+		}
+
 		if !v.StopAt.IsZero() {
 			n.StopAt = v.StopAt
 		}
@@ -280,6 +319,7 @@ func (c *Config) setDefaults() {
 		}
 		c.Sources[i] = n
 	}
+	return nil
 }
 
 // merge takes base map (b) and adds the overrides to it

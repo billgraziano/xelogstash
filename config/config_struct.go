@@ -19,6 +19,8 @@ type Source struct {
 	StripCRLF      bool      `toml:"strip_crlf"`
 	StartAt        time.Time `toml:"start_at"`
 	StopAt         time.Time `toml:"stop_at"`
+	LookBackRaw    string    `toml:"look_back"`
+	lookback       time.Duration
 
 	Adds               map[string]string
 	Copies             map[string]string
