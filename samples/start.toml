@@ -5,9 +5,9 @@ samples = true # prints one of each type event to samples.xe.json after running
 
 
 [defaults]
-prefix = "TEST" # Please see the docs
 sessions = ["system_health"]
 rows = 100 
+look_back = "24h"
 timestamp_field_name = "@timestamp"
 agentjobs = "all" # process SQL Server agent job history
 excludedEvents = [
