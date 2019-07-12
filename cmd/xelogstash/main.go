@@ -12,7 +12,7 @@ import (
 	"github.com/billgraziano/xelogstash/log"
 )
 
-const version = "0.34"
+const version = "0.35"
 
 func main() {
 	err := runApp()

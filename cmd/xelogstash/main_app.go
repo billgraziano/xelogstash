@@ -61,6 +61,7 @@ func runApp() error {
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
+		log.Info(fmt.Sprintf("version: %s (%s)", version, sha1ver))
 		log.Error(errors.Wrap(err, "flags.Parse"))
 		return err
 	}

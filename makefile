@@ -4,6 +4,7 @@ TARGETDIR=.\deploy\xelogstash
 # @echo "test"
 sha1ver := $(shell git rev-parse HEAD)
 test := $(shell date /t)
+VERSIONFILE := .\cmd\xelogstash\version.go
 #buildTime := $(shell @echo %date%)
 #j=%date%
 
@@ -27,11 +28,20 @@ buildRace:
 copyFiles:
 	copy .\samples\*.toml $(TARGETDIR)
 	copy .\samples\*.batch $(TARGETDIR)
+	copy .\README.md $(TARGETDIR)
 
 clean:
 # 	del /Q embed_static.go
 # 	del /Q /S $(TARGETDIR)\config
 #	del /q $(TARGETDIR)\xelogstash.exe
+
+#gensrc:
+#	echo $(test)
+#	@echo package main > $(VERSIONFILE)
+#	@echo const ( >> $(VERSIONFILE)
+#	@echo 	sha1ver = "$(sha1ver)" >> $(VERSIONFILE)
+#	@echo ) >> $(VERSIONFILE)
+
 
 race: clean buildRace copyFiles
 
