@@ -12,7 +12,12 @@ import (
 	"github.com/billgraziano/xelogstash/log"
 )
 
-const version = "0.35"
+// Populated by github.com/ahmetb/govvv
+var (
+	GitSummary = "dev"
+	Version    = "dev"
+	BuildDate  = time.Now().Format(time.RFC3339)
+)
 
 func main() {
 	err := runApp()

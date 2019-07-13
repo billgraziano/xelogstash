@@ -32,8 +32,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var sha1ver string
-
 var opts struct {
 	TOMLFile string `long:"config" description:"Read configuration from this TOML file"`
 	Log      bool   `long:"log" description:"Also write to log file based on the EXE name"`
@@ -48,20 +46,11 @@ func runApp() error {
 	var err error
 
 	log.SetFlags(log.LstdFlags | log.LUTC)
-
-	// did we get a full SHA1?
-	if len(sha1ver) == 40 {
-		sha1ver = sha1ver[0:7]
-	}
-
-	if sha1ver == "" {
-		sha1ver = "dev"
-	}
+	log.Info(fmt.Sprintf("version: %s (%s) @ %s", Version, GitSummary, BuildDate))
 
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
-		log.Info(fmt.Sprintf("version: %s (%s)", version, sha1ver))
 		log.Error(errors.Wrap(err, "flags.Parse"))
 		return err
 	}
@@ -103,7 +92,7 @@ func runApp() error {
 	}
 
 	var settings config.Config
-	settings, err = config.Get(opts.TOMLFile, version)
+	settings, err = config.Get(opts.TOMLFile, Version)
 	if err != nil {
 		log.Error(errors.Wrap(err, "config.get"))
 		return err
@@ -123,9 +112,9 @@ func runApp() error {
 	}
 
 	var logMessage string
-	logMessage = fmt.Sprintf("app-start version: %s; workers %d; default rows: %d", version, settings.App.Workers, settings.Defaults.Rows)
-	if sha1ver != "" {
-		logMessage += fmt.Sprintf("; sha1: %s", sha1ver)
+	logMessage = fmt.Sprintf("app-start version: %s; workers %d; default rows: %d", Version, settings.App.Workers, settings.Defaults.Rows)
+	if GitSummary != "" {
+		logMessage += fmt.Sprintf(" (%s @ %s)", GitSummary, BuildDate)
 	}
 	log.Info(logMessage)
 	err = applog.Info(logMessage)
