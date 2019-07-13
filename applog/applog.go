@@ -36,13 +36,11 @@ func Initialize(c config.Config) (err error) {
 	defer mux.Unlock()
 
 	if cfg.AppLog.Logstash != "" {
-
 		ls, err = logstash.NewHost(cfg.AppLog.Logstash, 180)
 		if err != nil {
 			return errors.Wrap(err, "logstash.newhost")
 		}
 
-		//var netconn *net.TCPConn
 		_, err = ls.Connect()
 		if err != nil {
 			return errors.Wrap(err, "logstash-connect")

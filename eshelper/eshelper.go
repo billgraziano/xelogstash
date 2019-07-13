@@ -46,7 +46,6 @@ type BulkResponse struct {
 func NewClient(addresses []string, proxy, username, password string) (*elasticsearch.Client, error) {
 
 	var t http.Transport
-	println(proxy)
 	if proxy == "" {
 		t = http.Transport{
 			MaxIdleConnsPerHost:   10,

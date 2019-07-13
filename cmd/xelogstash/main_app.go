@@ -46,7 +46,7 @@ func runApp() error {
 	var err error
 
 	log.SetFlags(log.LstdFlags | log.LUTC)
-	log.Info(fmt.Sprintf("version: %s (%s) @ %s", Version, GitSummary, BuildDate))
+	log.Info(fmt.Sprintf("build: %s (git: %s) @ %s", Version, GitSummary, BuildDate))
 
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
@@ -78,8 +78,6 @@ func runApp() error {
 		log.SetOutput(multi)
 	}
 
-	log.Info("==================================================================")
-
 	// use default config file if one isn't specified
 	var fn string
 	if opts.TOMLFile == "" {
@@ -98,13 +96,10 @@ func runApp() error {
 		return err
 	}
 
-	// if config.App.Debug {
-	// 	log.SetLevel(log.DEBUG)
-	// }
-
 	if settings.App.Workers == 0 {
 		settings.App.Workers = runtime.NumCPU() * 4
 	}
+
 	err = applog.Initialize(settings)
 	if err != nil {
 		log.Error(errors.Wrap(err, "applog.init"))

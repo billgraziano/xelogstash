@@ -18,7 +18,7 @@ func processall(settings config.Config) (string, bool) {
 	start := time.Now()
 	cleanRun := true
 
-	msg := fmt.Sprintf("Processing %d sources...", len(settings.Sources))
+	msg := fmt.Sprintf("Processing %d source(s)...", len(settings.Sources))
 	log.Info(msg)
 	err := applog.Info(msg)
 	if err != nil {

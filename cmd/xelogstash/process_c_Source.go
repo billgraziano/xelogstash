@@ -22,8 +22,7 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 	}
 
 	if !source.StartAt.IsZero() || source.StopAt != config.DefaultStopAt {
-		//log.Info(fmt.Sprintf("[%d] Source: %s;  Start At: %v;  Stop At: %v", wid, source.FQDN, source.StartAt, source.StopAt))
-		logmsg += fmt.Sprintf(";  Start at: %v;  Stop at %v", source.StartAt, source.StopAt)
+		logmsg += fmt.Sprintf(";  Start at: %v;  Stop at %v", source.StartAt.Format(time.RFC3339), source.StopAt.Format(time.RFC3339))
 	}
 	log.Info(logmsg)
 
