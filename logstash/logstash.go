@@ -67,7 +67,7 @@ func NewHost(host string, timeout int) (*Logstash, error) {
 	return ls, nil
 }
 
-// SetTimeouts sets the timeout value
+// SetTimeouts sets the TCPConn timeout value from the LogStash object
 func (ls *Logstash) setTimeouts() {
 	deadline := time.Now().Add(time.Duration(ls.Timeout) * time.Second)
 	ls.Connection.SetDeadline(deadline)
@@ -78,17 +78,17 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 	var connection *net.TCPConn
 	addr, err := net.ResolveTCPAddr("tcp", ls.Host)
 	if err != nil {
-		return connection, err
+		return connection, errors.Wrap(err, "net.resolveicpaddr")
 	}
 	connection, err = net.DialTCP("tcp", nil, addr)
 	if err != nil {
-		return connection, err
+		return connection, errors.Wrap(err, "net.dialtcp")
 	}
 	if connection != nil {
 		ls.Connection = connection
 		ls.Connection.SetLinger(0)
 		ls.Connection.SetKeepAlive(true)
-		ls.Connection.SetKeepAlivePeriod(time.Duration(5) * time.Second)
+		ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
 		ls.setTimeouts()
 	}
 	if connection == nil && err == nil {

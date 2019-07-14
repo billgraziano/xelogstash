@@ -40,6 +40,7 @@ func writeStackDump() {
 	w, err := applog.GetLogFile("stackdump.log")
 	if err != nil {
 		log.Error(errors.Wrap(err, "applog.getlogfile"))
+		return
 	} else {
 		w.WriteString("*******************************************\r\n")
 		w.WriteString(fmt.Sprintf("* Timestamp: %s\r\n", time.Now().String()))
