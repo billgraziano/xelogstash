@@ -8,6 +8,7 @@ I use the one here: https://coderwall.com/p/wohavg/creating-a-simple-tcp-server-
 */
 
 import (
+	"context"
 	_ "expvar"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	singleinstance "github.com/allan-simon/go-singleinstance"
 	/* "github.com/billgraziano/go-elasticsearch/esapi" */
@@ -185,9 +187,26 @@ func runApp() error {
 	}
 	// globalConfig.Elastic.Print()
 
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: http.DefaultServeMux,
+	}
+
 	// Enables a web server on :8080 with basic metrics
 	if appConfig.HTTPMetrics {
-		go http.ListenAndServe(":8080", http.DefaultServeMux)
+		go func() {
+			log.Debug("HTTP metrics server starting...")
+			//http.ListenAndServe(":8080", http.DefaultServeMux)
+			err := httpServer.ListenAndServe()
+			if err == http.ErrServerClosed {
+				log.Debug("HTTP metrics server closed")
+				return
+			}
+			if err != nil {
+				log.Error(errors.Wrap(err, "http.listenandserve"))
+			}
+			log.Debug("HTTP metrics server closed fallthrough")
+		}()
 	}
 
 	message, cleanRun := processall(settings)
@@ -228,7 +247,7 @@ func runApp() error {
 		msg := errors.Wrap(err, "closelockfile").Error()
 		log.Error(msg)
 		applog.Error(msg)
-		return err
+		cleanRun = false
 	}
 
 	log.Debug("Removing lock file...")
@@ -237,7 +256,7 @@ func runApp() error {
 		msg := errors.Wrap(err, "removelockfile").Error()
 		log.Error(msg)
 		applog.Error(msg)
-		return err
+		cleanRun = false
 	}
 	log.Debug("Returned from removing lock file...")
 
@@ -245,6 +264,16 @@ func runApp() error {
 	err = cleanOldLogFiles(7)
 	if err != nil {
 		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
+	}
+
+	if appConfig.HTTPMetrics {
+		log.Debug("HTTP metrics server stopping...")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err := httpServer.Shutdown(ctx)
+		if err != nil {
+			log.Error(errors.Wrap(err, "http.shutdown"))
+		}
 	}
 
 	if !cleanRun {
