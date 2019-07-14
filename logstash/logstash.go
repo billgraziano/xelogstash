@@ -73,6 +73,14 @@ func (ls *Logstash) setTimeouts() {
 	ls.Connection.SetDeadline(deadline)
 }
 
+// Close the underlying TCP connection
+func (ls *Logstash) Close() error {
+	if ls.Connection != nil {
+		return ls.Connection.Close()
+	}
+	return nil
+}
+
 // Connect to the host
 func (ls *Logstash) Connect() (*net.TCPConn, error) {
 	var connection *net.TCPConn

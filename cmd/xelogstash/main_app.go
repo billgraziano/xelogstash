@@ -266,6 +266,11 @@ func runApp() error {
 		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
 	}
 
+	err = applog.Close()
+	if err != nil {
+		log.Error(errors.Wrap(err, "applog.close"))
+	}
+
 	if appConfig.HTTPMetrics {
 		log.Debug("HTTP metrics server stopping...")
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

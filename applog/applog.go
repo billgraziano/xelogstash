@@ -58,6 +58,19 @@ func Initialize(c config.Config) (err error) {
 	return nil
 }
 
+// Close any open TCP connections
+func Close() error {
+	if ls != nil {
+		if ls.Connection != nil {
+			err := ls.Close()
+			if err != nil {
+				return errors.Wrap(err, "ls.close")
+			}
+		}
+	}
+	return nil
+}
+
 // Error logs an error
 func Error(msg string) (err error) {
 	r := logstash.NewRecord()
