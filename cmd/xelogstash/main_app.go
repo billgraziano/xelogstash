@@ -197,13 +197,13 @@ func runApp() error {
 		go func() {
 			log.Debug("HTTP metrics server starting...")
 			//http.ListenAndServe(":8080", http.DefaultServeMux)
-			err := httpServer.ListenAndServe()
-			if err == http.ErrServerClosed {
+			serverErr := httpServer.ListenAndServe()
+			if serverErr == http.ErrServerClosed {
 				log.Debug("HTTP metrics server closed")
 				return
 			}
-			if err != nil {
-				log.Error(errors.Wrap(err, "http.listenandserve"))
+			if serverErr != nil {
+				log.Error(errors.Wrap(serverErr, "http.listenandserve"))
 			}
 			log.Debug("HTTP metrics server closed fallthrough")
 		}()
@@ -275,7 +275,7 @@ func runApp() error {
 		log.Debug("HTTP metrics server stopping...")
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		err := httpServer.Shutdown(ctx)
+		err = httpServer.Shutdown(ctx)
 		if err != nil {
 			log.Error(errors.Wrap(err, "http.shutdown"))
 		}
