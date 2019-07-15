@@ -275,6 +275,7 @@ func runApp() error {
 		log.Debug("HTTP metrics server stopping...")
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
+		httpServer.SetKeepAlivesEnabled(false)
 		err = httpServer.Shutdown(ctx)
 		if err != nil {
 			log.Error(errors.Wrap(err, "http.shutdown"))
