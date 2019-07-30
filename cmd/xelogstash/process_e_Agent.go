@@ -205,7 +205,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		if first && ls != nil {
 			netconn, err = ls.Connect()
 			if err != nil {
-				return result, errors.Wrap(err, "logstash-connect")
+				return result, errors.Wrap(err, "logstash.connect")
 			}
 			defer safeClose(netconn, &err)
 		}

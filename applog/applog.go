@@ -43,7 +43,7 @@ func Initialize(c config.Config) (err error) {
 
 		_, err = ls.Connect()
 		if err != nil {
-			return errors.Wrap(err, "logstash-connect")
+			return errors.Wrap(err, "logstash.connect")
 		}
 	}
 
