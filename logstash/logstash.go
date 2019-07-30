@@ -96,7 +96,7 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 		ls.Connection = connection
 		ls.Connection.SetLinger(0)
 		ls.Connection.SetKeepAlive(true)
-		ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
+		//ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
 		ls.setTimeouts()
 	}
 	if connection == nil && err == nil {
@@ -109,6 +109,7 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 func (ls *Logstash) Writeln(message string) error {
 	var err error
 	if ls.Connection == nil {
+//		println("writeln is connecting!?!")
 		_, err = ls.Connect()
 		if err != nil {
 			return errors.Wrap(err, "connect")
