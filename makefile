@@ -11,7 +11,7 @@ vet:
 
 buildEXE:
 #	go build -o "$(TARGETDIR)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash  
-	cd cmd\xelogstash && govvv build -a -o "..\..\$(TARGETDIR)\xelogstash.exe"
+	cd cmd\xelogstash && govvv build -print && govvv build -a -o "..\..\$(TARGETDIR)\xelogstash.exe"
 
 buildRace:
 #	go generate 
