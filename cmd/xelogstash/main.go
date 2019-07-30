@@ -41,12 +41,12 @@ func writeStackDump() {
 	if err != nil {
 		log.Error(errors.Wrap(err, "applog.getlogfile"))
 		return
-	} else {
-		w.WriteString("*******************************************\r\n")
-		w.WriteString(fmt.Sprintf("* Timestamp: %s\r\n", time.Now().String()))
-		w.WriteString("*******************************************\r\n")
-		pprof.Lookup("goroutine").WriteTo(w, 2)
 	}
+	w.WriteString("*******************************************\r\n")
+	w.WriteString(fmt.Sprintf("* Timestamp: %s\r\n", time.Now().String()))
+	w.WriteString("*******************************************\r\n")
+	pprof.Lookup("goroutine").WriteTo(w, 2)
+
 	err = w.Sync()
 	if err != nil {
 		log.Error(errors.Wrap(err, "w.sync"))
