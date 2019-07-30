@@ -44,8 +44,10 @@ func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 	}
 	var v string
 	switch info.ProductRelease {
-	case "15.0":
+	case "16.0":
 		v = "SQL Server vNext"
+	case "15.0":
+		v = "SQL Server 2019"
 	case "14.0":
 		v = "SQL Server 2017"
 	case "13.0":
@@ -78,30 +80,30 @@ func safeClose(c io.Closer, err *error) {
 	}
 }
 
-// writes a single message to logstash
-func writeToLogstash(addr *net.TCPAddr, message string) error {
-	var err error
+// // writes a single message to logstash
+// func writeToLogstash(addr *net.TCPAddr, message string) error {
+// 	var err error
 
-	c, err := net.DialTCP("tcp", nil, addr)
-	if err != nil {
-		return errors.Wrap(err, "net.DialTCP")
-	}
-	defer safeClose(c, &err)
+// 	c, err := net.DialTCP("tcp", nil, addr)
+// 	if err != nil {
+// 		return errors.Wrap(err, "net.DialTCP")
+// 	}
+// 	defer safeClose(c, &err)
 
-	//var msg []byte
-	// if opts.Test {
-	// 	msg = []byte("{}")
-	// } else {
-	// 	msg = []byte(message)
-	// }
-	msg := []byte(message)
+// 	//var msg []byte
+// 	// if opts.Test {
+// 	// 	msg = []byte("{}")
+// 	// } else {
+// 	// 	msg = []byte(message)
+// 	// }
+// 	msg := []byte(message)
 
-	_, err = c.Write(msg)
-	if err != nil {
-		return errors.Wrap(err, "conn.write")
-	}
-	return nil
-}
+// 	_, err = c.Write(msg)
+// 	if err != nil {
+// 		return errors.Wrap(err, "conn.write")
+// 	}
+// 	return nil
+// }
 
 // resolves a host name and port to an IP address and port
 func resolveIP(hostAndPort string) (addr *net.TCPAddr, err error) {
