@@ -241,25 +241,6 @@ func runApp() error {
 		}
 	}
 
-	log.Debug("Closing lock file...")
-	err = closeLockFile(lockfile)
-	if err != nil {
-		msg := errors.Wrap(err, "closelockfile").Error()
-		log.Error(msg)
-		applog.Error(msg)
-		cleanRun = false
-	}
-
-	log.Debug("Removing lock file...")
-	err = removeLockFile(lockFileName)
-	if err != nil {
-		msg := errors.Wrap(err, "removelockfile").Error()
-		log.Error(msg)
-		applog.Error(msg)
-		cleanRun = false
-	}
-	log.Debug("Returned from removing lock file...")
-
 	log.Debug("Cleaning old log files...")
 	err = cleanOldLogFiles(7)
 	if err != nil {
@@ -280,7 +261,28 @@ func runApp() error {
 		if err != nil {
 			log.Error(errors.Wrap(err, "http.shutdown"))
 		}
+		// give this time to close?
+		time.Sleep(1 * time.Second)
 	}
+
+	log.Debug("Closing lock file...")
+	err = closeLockFile(lockfile)
+	if err != nil {
+		msg := errors.Wrap(err, "closelockfile").Error()
+		log.Error(msg)
+		applog.Error(msg)
+		cleanRun = false
+	}
+
+	log.Debug("Removing lock file...")
+	err = removeLockFile(lockFileName)
+	if err != nil {
+		msg := errors.Wrap(err, "removelockfile").Error()
+		log.Error(msg)
+		applog.Error(msg)
+		cleanRun = false
+	}
+	log.Debug("Returned from removing lock file...")
 
 	if !cleanRun {
 		log.Error("*** ERROR ****")
