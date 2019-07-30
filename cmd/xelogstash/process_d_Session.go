@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"regexp"
 	"strings"
 
@@ -85,6 +84,7 @@ func processSession(
 		if err != nil {
 			return result, errors.Wrap(err, "logstash-new")
 		}
+		defer ls.Close()
 	}
 
 	// Setup the Elastic client
@@ -119,7 +119,6 @@ func processSession(
 	}
 	defer safeClose(rows, &err)
 
-	var netconn *net.TCPConn
 	first := true
 	gotRows := false
 	startAtHit := false
@@ -128,15 +127,6 @@ func processSession(
 
 	for rows.Next() {
 		readCount.Add(1)
-		if first && ls != nil {
-			netconn, err = ls.Connect()
-			if err != nil {
-				return result, errors.Wrap(err, "logstash.connect")
-			}
-			defer safeClose(netconn, &err)
-		}
-
-		//start := time.Now()
 
 		err = rows.Scan(&objectName, &eventData, &fileName, &fileOffset)
 		if err != nil {

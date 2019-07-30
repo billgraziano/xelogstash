@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -103,6 +102,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		if err != nil {
 			return result, errors.Wrap(err, "logstash-new")
 		}
+		// TODO ignore the error for now
+		defer ls.Close()
 	}
 
 	// Setup the Elastic client
@@ -192,8 +193,6 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		return result, errors.Wrap(err, "db.open")
 	}
 
-	var netconn *net.TCPConn
-	first := true
 	//gotRows := false
 	//var rowCount int
 	var instanceID int
@@ -202,13 +201,6 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 
 	for rows.Next() {
 		readCount.Add(1)
-		if first && ls != nil {
-			netconn, err = ls.Connect()
-			if err != nil {
-				return result, errors.Wrap(err, "logstash.connect")
-			}
-			defer safeClose(netconn, &err)
-		}
 
 		var tsutc string
 		var j jobResult
@@ -383,7 +375,6 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 			return result, errors.Wrap(err, "status.Save")
 		}
 
-		first = false
 		gotRows = true
 	}
 
