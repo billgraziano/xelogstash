@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -15,18 +14,20 @@ import (
 
 // FileSink writes events to a file
 type FileSink struct {
-	file     *os.File
-	id       string
-	fileName string
+	file           *os.File
+	id             string
+	fileName       string
+	Directory      string
+	RetentionHours int
 	// sync.RWMutex
 }
 
 // NewFileSink returns a new FileSink
-func NewFileSink() *FileSink {
+func NewFileSink(dir string, retain int) *FileSink {
 	//ext := time.Now().Format("20060102_15")
 	//fileName := fmt.Sprintf("xelogstash_events_%s.json", ext)
 	// time.Parse("20060102150405", dt+tm)
-	fs := FileSink{}
+	fs := FileSink{Directory: dir, RetentionHours: retain}
 	return &fs
 }
 
@@ -35,7 +36,7 @@ func (fs *FileSink) Name() string {
 	// fs.RLock()
 	// defer fs.RUnlock()
 	//return fmt.Sprintf("filesink: %s", fs.name)
-	return "filesink"
+	return fmt.Sprintf("filesink: %s (%d hours)", fs.Directory, fs.RetentionHours)
 }
 
 // Open opens the file
@@ -98,15 +99,17 @@ func makeFileName(id string) string {
 }
 
 func (fs *FileSink) open(id string) error {
+	var err error
 	fs.id = id
 	fileName := makeFileName(id)
-	executable, err := os.Executable()
-	if err != nil {
-		return errors.Wrap(err, "os.executable")
-	}
-	exeDir := filepath.Dir(executable)
+	// executable, err := os.Executable()
+	// if err != nil {
+	// 	return errors.Wrap(err, "os.executable")
+	// }
+	// exeDir := filepath.Dir(executable)
 
-	eventDir := filepath.Join(exeDir, "events")
+	// eventDir := filepath.Join(exeDir, "events")
+	eventDir := fs.Directory
 	if _, err = os.Stat(eventDir); os.IsNotExist(err) {
 		err = os.Mkdir(eventDir, 0644)
 	}
@@ -125,27 +128,14 @@ func (fs *FileSink) open(id string) error {
 
 // Clean up any old artifacts
 func (fs *FileSink) Clean() error {
-	// fs.Lock()
-	// defer fs.Unlock()
-
 	var err error
 
-	// tz := time.Now().Location()
-	// hours := int(days*24 + 1)
-	cutoff := 168 * time.Hour
-
-	exe, err := os.Executable()
-	if err != nil {
-		return errors.Wrap(err, "os.executable")
-	}
-	exe = filepath.Base(exe)
-	exe = strings.TrimSuffix(exe, path.Ext(exe))
-
-	files, err := ioutil.ReadDir(filepath.Join(".", "events"))
+	cutoff := time.Duration(fs.RetentionHours) * time.Hour
+	files, err := ioutil.ReadDir(fs.Directory)
 	if err != nil {
 		return errors.Wrap(err, "ioutil.readdir")
 	}
-	pattern := fmt.Sprintf("xelogstash_%s_d{8}_d{2}\\.json", fs.id)
+	pattern := fmt.Sprintf("xelogstash_%s_\\d{8}_\\d{2}\\.json", fs.id)
 	re := regexp.MustCompile(pattern)
 	now := time.Now()
 
@@ -153,14 +143,13 @@ func (fs *FileSink) Clean() error {
 		if fi.IsDir() {
 			continue
 		}
-
 		m := re.FindStringSubmatch(fi.Name())
 		if len(m) == 0 {
 			continue
 		}
 		diff := now.Sub(fi.ModTime())
 		if diff > cutoff {
-			err = os.Remove(fi.Name())
+			err = os.Remove(filepath.Join(fs.Directory, fi.Name()))
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("os.remove: %s", fi.Name()))
 			}

@@ -75,6 +75,12 @@ type ElasticConfig struct {
 	ProxyServer       string   `toml:"proxy_server"`
 }
 
+// FileSink configures a file sink
+type FileSink struct {
+	Directory   string `toml:"dir"`
+	RetainHours int    `toml:"retain_hours"`
+}
+
 // Config defines the configuration read from the TOML file
 type Config struct {
 	App      App
@@ -82,6 +88,8 @@ type Config struct {
 	Elastic  ElasticConfig `toml:"elastic"`
 	Defaults Source        `toml:"defaults"`
 	Sources  []Source      `toml:"source"`
+
+	FileSink *FileSink `toml:"filesink"`
 	MetaData toml.MetaData
 	//Sinks    []sink.Sinker
 }

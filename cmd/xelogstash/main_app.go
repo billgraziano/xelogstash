@@ -186,6 +186,10 @@ func runApp() error {
 		}
 	}
 	// globalConfig.Elastic.Print()
+	sinks := globalConfig.GetSinks()
+	for i := range sinks {
+		log.Info(fmt.Sprintf("Destination: %s", sinks[i].Name()))
+	}
 
 	httpServer := &http.Server{
 		Addr:    ":8080",

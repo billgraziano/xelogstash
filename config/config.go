@@ -80,6 +80,22 @@ func Get(f string, version string) (config Config, err error) {
 	// 	config.Sinks = make([]sink.Sinker, 0)
 	// }
 
+	// Sinks
+	if config.FileSink != nil {
+		if config.FileSink.RetainHours == 0 {
+			config.FileSink.RetainHours = 168 // 7 days
+		}
+
+		if config.FileSink.Directory == "" {
+			executable, err := os.Executable()
+			if err != nil {
+				return config, errors.Wrap(err, "os.executable")
+			}
+			exeDir := filepath.Dir(executable)
+			config.FileSink.Directory = filepath.Join(exeDir, "events")
+		}
+	}
+
 	return config, err
 }
 
@@ -88,8 +104,10 @@ func (c *Config) GetSinks() []sink.Sinker {
 	sinks := make([]sink.Sinker, 0)
 	// HACK - Manually add my sink here
 	// TODO - Read from the config file somewhere
-	fileSink := sink.NewFileSink()
-	sinks = append(sinks, fileSink)
+	if c.FileSink != nil {
+		fileSink := sink.NewFileSink(c.FileSink.Directory, c.FileSink.RetainHours)
+		sinks = append(sinks, fileSink)
+	}
 	return sinks
 }
 
