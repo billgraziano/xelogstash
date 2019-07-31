@@ -19,6 +19,7 @@
 *.state.0
 /xestate/*
 /deploy/
+/events/
 *.cmd
 *.log
 *.json

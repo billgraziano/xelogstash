@@ -116,6 +116,16 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		}
 	}
 
+	sinks := globalConfig.GetSinks()
+	for i := range sinks {
+		id := strings.Replace(info.Server, "\\", "_", -1)
+		err = sinks[i].Open(id)
+		if err != nil {
+			return result, errors.Wrapf(err, "filesink: %s", id)
+		}
+		defer sinks[i].Close()
+	}
+
 	var query string
 	top := 50000
 	if source.Rows > 0 {
@@ -359,6 +369,16 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 				return result, errors.Wrap(err, "writeelasticbuffer")
 			}
 
+			// Process all the destinations
+			for i := range sinks {
+				_, err := sinks[i].Write(rs)
+				if err != nil {
+					newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
+					log.Error(newError)
+					return result, newError
+				}
+			}
+
 			if appConfig.Summary {
 				summary.Add(j.Name, &rs)
 			}
@@ -379,6 +399,24 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 	}
 
 	if gotRows {
+		// Process all the destinations
+		var lastError error
+		for i := range sinks {
+			err = sinks[i].Flush()
+			if err != nil {
+				lastError = errors.Wrapf(err, "sink.flush: %s", sinks[i].Name())
+				log.Error(lastError)
+			}
+			err = sinks[i].Clean()
+			if err != nil {
+				lastError = errors.Wrapf(err, "sink.clean: %s", sinks[i].Name())
+				log.Error(lastError)
+			}
+		}
+		if lastError != nil {
+			return result, lastError
+		}
+
 		err = sf.Done(dummyFileName, int64(instanceID), status.StateSuccess)
 		if err != nil {
 			return result, errors.Wrap(err, "status.done")

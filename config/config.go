@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/billgraziano/xelogstash/sink"
+
 	"github.com/Showmax/go-fqdn"
 
 	"github.com/billgraziano/toml"
@@ -74,7 +76,21 @@ func Get(f string, version string) (config Config, err error) {
 		}
 	}
 
+	// if config.Sinks == nil {
+	// 	config.Sinks = make([]sink.Sinker, 0)
+	// }
+
 	return config, err
+}
+
+// GetSinks returns an array of sinks based on the config
+func (c *Config) GetSinks() []sink.Sinker {
+	sinks := make([]sink.Sinker, 0)
+	// HACK - Manually add my sink here
+	// TODO - Read from the config file somewhere
+	fileSink := sink.NewFileSink()
+	sinks = append(sinks, fileSink)
+	return sinks
 }
 
 // processLookBack pushes the StartAt forward if needed based on look_back

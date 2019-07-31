@@ -83,4 +83,5 @@ type Config struct {
 	Defaults Source        `toml:"defaults"`
 	Sources  []Source      `toml:"source"`
 	MetaData toml.MetaData
+	//Sinks    []sink.Sinker
 }

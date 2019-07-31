@@ -96,6 +96,17 @@ func processSession(
 		}
 	}
 
+	// Copy the sinks and open them
+	sinks := globalConfig.GetSinks()
+	for i := range sinks {
+		id := strings.Replace(info.Server, "\\", "_", -1)
+		err = sinks[i].Open(id)
+		if err != nil {
+			return result, errors.Wrapf(err, "filesink: %s", id)
+		}
+		defer sinks[i].Close()
+	}
+
 	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StateReset {
 		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
 	} else {
@@ -293,6 +304,16 @@ func processSession(
 			elasticBuffer.Write(espayload)
 		}
 
+		// Process all the destinations
+		for i := range sinks {
+			_, err := sinks[i].Write(rs)
+			if err != nil {
+				newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
+				log.Error(newError)
+				return result, newError
+			}
+		}
+
 		result.Rows++
 		totalCount.Add(1)
 		eventCount.Add(eventName, 1)
@@ -309,6 +330,25 @@ func processSession(
 	}
 
 	if gotRows /* && !source.Test */ {
+
+		// Process all the destinations
+		var lastError error
+		for i := range sinks {
+			err = sinks[i].Flush()
+			if err != nil {
+				lastError = errors.Wrapf(err, "sink.flush: %s", sinks[i].Name())
+				log.Error(lastError)
+			}
+			err = sinks[i].Clean()
+			if err != nil {
+				lastError = errors.Wrapf(err, "sink.clean: %s", sinks[i].Name())
+				log.Error(lastError)
+			}
+		}
+		if lastError != nil {
+			return result, lastError
+		}
+
 		err = sf.Save(lastFileName, lastFileOffset, status.StateSuccess)
 		if err != nil {
 			return result, errors.Wrap(err, "status.Save")

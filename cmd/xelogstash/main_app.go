@@ -247,6 +247,14 @@ func runApp() error {
 		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
 	}
 
+	// log.Debug("Cleaning old sink artifacts...")
+	// for i := range globalConfig.Sinks {
+	// 	err = globalConfig.Sinks[i].Clean()
+	// 	if err != nil {
+	// 		log.Error(errors.Wrapf(err, "sink.clean: %s", globalConfig.Sinks[i].Name()))
+	// 	}
+	// }
+
 	err = applog.Close()
 	if err != nil {
 		log.Error(errors.Wrap(err, "applog.close"))
