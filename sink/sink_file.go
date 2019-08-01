@@ -36,7 +36,7 @@ func (fs *FileSink) Name() string {
 	// fs.RLock()
 	// defer fs.RUnlock()
 	//return fmt.Sprintf("filesink: %s", fs.name)
-	return fmt.Sprintf("filesink: %s (%d hours)", fs.Directory, fs.RetentionHours)
+	return fmt.Sprintf("filesink: %s (retain: %d hours)", fs.Directory, fs.RetentionHours)
 }
 
 // Open opens the file
@@ -47,7 +47,7 @@ func (fs *FileSink) Open(id string) error {
 }
 
 // Write a message to the FileSink
-func (fs *FileSink) Write(msg string) (int, error) {
+func (fs *FileSink) Write(name, event string) (int, error) {
 	var err error
 	// fs.Lock()
 	// defer fs.Unlock()
@@ -55,15 +55,15 @@ func (fs *FileSink) Write(msg string) (int, error) {
 	if fs.file == nil {
 		return 0, errors.New("filesink: not open")
 	}
-	if !strings.HasSuffix(msg, "\n") {
-		msg = msg + "\n"
+	if !strings.HasSuffix(event, "\n") {
+		event = event + "\n"
 	}
 
-	n, err := fs.file.Write([]byte(msg))
+	n, err := fs.file.Write([]byte(event))
 	if err != nil {
 		return n, errors.Wrap(err, "fs.file.write")
 	}
-	return 0, nil
+	return n, nil
 }
 
 // Close the FileSink

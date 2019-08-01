@@ -116,7 +116,10 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		}
 	}
 
-	sinks := globalConfig.GetSinks()
+	sinks, err := globalConfig.GetSinks()
+	if err != nil {
+		return result, errors.Wrap(err, "globalconfig.getsinks")
+	}
 	for i := range sinks {
 		id := strings.Replace(info.Server, "\\", "_", -1)
 		err = sinks[i].Open(id)
@@ -371,7 +374,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 
 			// Process all the destinations
 			for i := range sinks {
-				_, err := sinks[i].Write(rs)
+				_, err := sinks[i].Write(j.Name, rs)
 				if err != nil {
 					newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
 					log.Error(newError)

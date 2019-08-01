@@ -80,7 +80,7 @@ func Get(f string, version string) (config Config, err error) {
 	// 	config.Sinks = make([]sink.Sinker, 0)
 	// }
 
-	// Sinks
+	// Set FileSink defaults
 	if config.FileSink != nil {
 		if config.FileSink.RetainHours == 0 {
 			config.FileSink.RetainHours = 168 // 7 days
@@ -100,15 +100,29 @@ func Get(f string, version string) (config Config, err error) {
 }
 
 // GetSinks returns an array of sinks based on the config
-func (c *Config) GetSinks() []sink.Sinker {
+func (c *Config) GetSinks() ([]sink.Sinker, error) {
 	sinks := make([]sink.Sinker, 0)
-	// HACK - Manually add my sink here
-	// TODO - Read from the config file somewhere
 	if c.FileSink != nil {
 		fileSink := sink.NewFileSink(c.FileSink.Directory, c.FileSink.RetainHours)
 		sinks = append(sinks, fileSink)
 	}
-	return sinks
+
+	// Add an ElasticSink
+	if len(c.Elastic.Addresses) > 0 && c.Elastic.Username != "" && c.Elastic.Password != "" {
+		es, err := sink.NewElasticSink(c.Elastic.Addresses, c.Elastic.ProxyServer, c.Elastic.Username, c.Elastic.Password)
+		if err != nil {
+			return sinks, errors.Wrap(err, "sink.newelasticsink")
+		}
+		es.DefaultIndex = c.Elastic.DefaultIndex
+		es.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, "")
+		if err != nil {
+			return sinks, errors.Wrap(err, "elastic.buildmap")
+		}
+		es.AutoCreateIndexes = c.Elastic.AutoCreateIndexes
+		sinks = append(sinks, es)
+	}
+
+	return sinks, nil
 }
 
 // processLookBack pushes the StartAt forward if needed based on look_back

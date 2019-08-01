@@ -16,15 +16,13 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	singleinstance "github.com/allan-simon/go-singleinstance"
 	/* "github.com/billgraziano/go-elasticsearch/esapi" */
-	elasticsearch "github.com/billgraziano/go-elasticsearch"
+
 	"github.com/billgraziano/xelogstash/applog"
 
-	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/summary"
 
@@ -154,39 +152,42 @@ func runApp() error {
 	globalConfig = settings
 
 	// If we're using elastic directly, do the index maintenance
-	if len(globalConfig.Elastic.Addresses) > 0 {
-		logMessage = fmt.Sprintf("elastic.addresses: %s", strings.Join(globalConfig.Elastic.Addresses, ", "))
-		log.Info(logMessage)
-		if globalConfig.Elastic.Username == "" || globalConfig.Elastic.Password == "" {
-			return errors.New("elastic search is missing the username or password")
-		}
+	// if len(globalConfig.Elastic.Addresses) > 0 {
+	// 	logMessage = fmt.Sprintf("elastic.addresses: %s", strings.Join(globalConfig.Elastic.Addresses, ", "))
+	// 	log.Info(logMessage)
+	// 	if globalConfig.Elastic.Username == "" || globalConfig.Elastic.Password == "" {
+	// 		return errors.New("elastic search is missing the username or password")
+	// 	}
 
-		// Set up the elastic indexes
-		if globalConfig.Elastic.AutoCreateIndexes {
-			esIndexes := make([]string, 0)
-			if globalConfig.Elastic.DefaultIndex != "" {
-				esIndexes = append(esIndexes, globalConfig.Elastic.DefaultIndex)
-			}
-			if globalConfig.Elastic.AppLogIndex != "" {
-				esIndexes = append(esIndexes, globalConfig.Elastic.AppLogIndex)
-			}
-			for _, ix := range globalConfig.Elastic.EventIndexMap {
-				esIndexes = append(esIndexes, ix)
-			}
+	// 	// Set up the elastic indexes
+	// 	// if globalConfig.Elastic.AutoCreateIndexes {
+	// 	// 	esIndexes := make([]string, 0)
+	// 	// 	if globalConfig.Elastic.DefaultIndex != "" {
+	// 	// 		esIndexes = append(esIndexes, globalConfig.Elastic.DefaultIndex)
+	// 	// 	}
+	// 	// 	if globalConfig.Elastic.AppLogIndex != "" {
+	// 	// 		esIndexes = append(esIndexes, globalConfig.Elastic.AppLogIndex)
+	// 	// 	}
+	// 	// 	for _, ix := range globalConfig.Elastic.EventIndexMap {
+	// 	// 		esIndexes = append(esIndexes, ix)
+	// 	// 	}
 
-			var esClient *elasticsearch.Client
-			esClient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
-			if err != nil {
-				return errors.Wrap(err, "eshelper.newclient")
-			}
-			err = eshelper.CreateIndexes(esClient, esIndexes)
-			if err != nil {
-				return errors.Wrap(err, "eshelper.createindexes")
-			}
-		}
-	}
+	// 	// 	var esClient *elasticsearch.Client
+	// 	// 	esClient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
+	// 	// 	if err != nil {
+	// 	// 		return errors.Wrap(err, "eshelper.newclient")
+	// 	// 	}
+	// 	// 	err = eshelper.CreateIndexes(esClient, esIndexes)
+	// 	// 	if err != nil {
+	// 	// 		return errors.Wrap(err, "eshelper.createindexes")
+	// 	// 	}
+	// 	// }
+	// }
 	// globalConfig.Elastic.Print()
-	sinks := globalConfig.GetSinks()
+	sinks, err := globalConfig.GetSinks()
+	if err != nil {
+		return errors.Wrap(err, "globalconfig.getsinks")
+	}
 	for i := range sinks {
 		log.Info(fmt.Sprintf("Destination: %s", sinks[i].Name()))
 	}
