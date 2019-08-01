@@ -31,7 +31,7 @@ func NewFileSink(dir string, retain int) *FileSink {
 	return &fs
 }
 
-// Name returns the name of the sync
+// Name returns the name of the sink
 func (fs *FileSink) Name() string {
 	// fs.RLock()
 	// defer fs.RUnlock()
