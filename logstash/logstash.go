@@ -109,7 +109,6 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 func (ls *Logstash) Writeln(message string) error {
 	var err error
 	if ls.Connection == nil {
-//		println("writeln is connecting!?!")
 		_, err = ls.Connect()
 		if err != nil {
 			return errors.Wrap(err, "connect")

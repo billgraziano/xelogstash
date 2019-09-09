@@ -374,7 +374,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 
 			// Process all the destinations
 			for i := range sinks {
-				_, err := sinks[i].Write(j.Name, rs)
+				_, err = sinks[i].Write(j.Name, rs)
 				if err != nil {
 					newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
 					log.Error(newError)

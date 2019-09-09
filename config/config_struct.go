@@ -81,15 +81,21 @@ type FileSink struct {
 	RetainHours int    `toml:"retain_hours"`
 }
 
+// Logstash configures a LogstashSink
+type Logstash struct {
+	Host string `toml:"host"`
+}
+
 // Config defines the configuration read from the TOML file
 type Config struct {
 	App      App
 	AppLog   AppLog
-	Elastic  ElasticConfig `toml:"elastic"`
-	Defaults Source        `toml:"defaults"`
-	Sources  []Source      `toml:"source"`
+	Defaults Source   `toml:"defaults"`
+	Sources  []Source `toml:"source"`
 
-	FileSink *FileSink `toml:"filesink"`
+	Elastic  ElasticConfig `toml:"elastic"`
+	FileSink *FileSink     `toml:"filesink"`
+	Logstash *Logstash     `toml:"logstash"`
 	MetaData toml.MetaData
 	//Sinks    []sink.Sinker
 }

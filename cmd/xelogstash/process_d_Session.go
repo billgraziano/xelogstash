@@ -183,7 +183,7 @@ func processSession(
 
 			// Flush all the sinks
 			for i := range sinks {
-				err := sinks[i].Flush()
+				err = sinks[i].Flush()
 				if err != nil {
 					newError := errors.Wrap(err, fmt.Sprintf("sink.flush: %s", sinks[i].Name()))
 					log.Error(newError)
@@ -315,7 +315,7 @@ func processSession(
 
 		// Process all the destinations
 		for i := range sinks {
-			_, err := sinks[i].Write(eventName, rs)
+			_, err = sinks[i].Write(eventName, rs)
 			if err != nil {
 				newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
 				log.Error(newError)

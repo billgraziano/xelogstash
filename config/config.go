@@ -87,7 +87,8 @@ func Get(f string, version string) (config Config, err error) {
 		}
 
 		if config.FileSink.Directory == "" {
-			executable, err := os.Executable()
+			var executable string
+			executable, err = os.Executable()
 			if err != nil {
 				return config, errors.Wrap(err, "os.executable")
 			}
@@ -102,6 +103,8 @@ func Get(f string, version string) (config Config, err error) {
 // GetSinks returns an array of sinks based on the config
 func (c *Config) GetSinks() ([]sink.Sinker, error) {
 	sinks := make([]sink.Sinker, 0)
+
+	// Add FileSink
 	if c.FileSink != nil {
 		fileSink := sink.NewFileSink(c.FileSink.Directory, c.FileSink.RetainHours)
 		sinks = append(sinks, fileSink)
@@ -120,6 +123,16 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 		}
 		es.AutoCreateIndexes = c.Elastic.AutoCreateIndexes
 		sinks = append(sinks, es)
+	}
+
+	// Add LogstashSink
+	if c.Logstash != nil {
+		ls := *c.Logstash
+		lss, err := sink.NewLogstashSink(ls.Host, 30)
+		if err != nil {
+			return sinks, errors.Wrap(err, "sink.newlogstashsink")
+		}
+		sinks = append(sinks, lss)
 	}
 
 	return sinks, nil
