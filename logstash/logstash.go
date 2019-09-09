@@ -227,7 +227,7 @@ func ProcessMods(json string, adds, copies, moves map[string]string) (string, er
 		}
 		json, err = sjson.Set(json, dst, doubleSlashes(r.Value()))
 		if err != nil {
-			return json, errors.Wrapf(err, "sjson.set: %s %v", dst, r.Value)
+			return json, errors.Wrapf(err, "sjson.set: %s %v", dst, r.Value())
 		}
 		json, err = sjson.Delete(json, src)
 		if err != nil {
