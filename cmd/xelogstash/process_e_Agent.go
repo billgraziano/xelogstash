@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/billgraziano/go-elasticsearch"
 	"github.com/billgraziano/mssqlodbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/eshelper"
@@ -16,6 +15,7 @@ import (
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/summary"
+	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/pkg/errors"
 )
 

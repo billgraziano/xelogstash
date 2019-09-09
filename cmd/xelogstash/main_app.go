@@ -19,7 +19,6 @@ import (
 	"time"
 
 	singleinstance "github.com/allan-simon/go-singleinstance"
-	/* "github.com/billgraziano/go-elasticsearch/esapi" */
 
 	"github.com/billgraziano/xelogstash/applog"
 

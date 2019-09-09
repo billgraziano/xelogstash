@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/billgraziano/go-elasticsearch"
+	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/pkg/errors"
 )

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/billgraziano/go-elasticsearch"
+	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/billgraziano/xelogstash/log"

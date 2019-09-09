@@ -1,12 +1,5 @@
 package eshelper
 
-/*
-
-"github.com/elastic/go-elasticsearch"
-	"github.com/elastic/go-elasticsearch/esapi"
-	"github.com/elastic/go-elasticsearch/estransport"
-
-*/
 import (
 	"bytes"
 	"crypto/tls"
@@ -16,9 +9,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/billgraziano/go-elasticsearch"
-	"github.com/billgraziano/go-elasticsearch/esapi"
 	"github.com/billgraziano/xelogstash/log"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/pkg/errors"
 )
 
