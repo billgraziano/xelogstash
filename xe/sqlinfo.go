@@ -18,6 +18,7 @@ type SQLInfo struct {
 	ProductLevel   string
 	ProductRelease string
 	Version        string
+	ProductVersion string
 
 	Fields    map[FieldTypeKey]string
 	Actions   map[string]string
@@ -86,9 +87,10 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 		,CAST(SERVERPROPERTY('MachineName') as nvarchar(128)) AS [Computer]
 		,CAST(COALESCE(SERVERPROPERTY('ProductLevel'), '') as nvarchar(128)) AS ProductLevel
 		,COALESCE(CAST(SERVERPROPERTY('ProductMajorVersion') as NVARCHAR(128))  + '.' + CAST(SERVERPROPERTY('ProductMinorVersion') as NVARCHAR(128)),'') AS ProductRelease
+		,COALESCE(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)), '') as [ProductVersion];
 	`
 	row := db.QueryRow(query)
-	err = row.Scan(&info.Server, &info.Domain, &info.Computer, &info.ProductLevel, &info.ProductRelease)
+	err = row.Scan(&info.Server, &info.Domain, &info.Computer, &info.ProductLevel, &info.ProductRelease, &info.ProductVersion)
 	if err != nil {
 		return info, errors.Wrap(err, "scan")
 	}

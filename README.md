@@ -215,6 +215,7 @@ Based on a particular event, the application computes a number of calculated fie
 * `mssql_computer`: This is the result of SERVERPROPERTY('MachineName') on the source computer.
 * `mssql_server_name`: This is the result of @@SERVERNAME on the source computer
 * `mssql_version`: Is something like "SQL Server 2016 SP1" composed of various server property attributes.  
+* `mssql_product_version`: is SERVERPROPERTY('ProductVersion') which is *major.minor.build.revision* (example: 13.0.5366.1)
 * `xe_severity_value`: 3, 5, or 6 for ERR, WARN, INFO based on the syslog values
 * `xe_severity_keyword`: "err", "warning", "info" based on the syslog values
 * `xe_description`: a text description of the event.  The format

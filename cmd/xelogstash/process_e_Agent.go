@@ -294,6 +294,7 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		base.Set("mssql_computer", info.Computer)
 		base.Set("mssql_server_name", info.Server)
 		base.Set("mssql_version", info.Version)
+		base.Set("mssql_product_version", info.ProductVersion)
 
 		base.SetIfEmpty("server_instance_name", info.Server)
 

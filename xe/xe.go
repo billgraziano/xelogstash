@@ -224,6 +224,7 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	event.Set("mssql_computer", i.Computer)
 	event.Set("mssql_server_name", i.Server)
 	event.Set("mssql_version", i.Version)
+	event.Set("mssql_product_version", i.ProductVersion)
 
 	// enrich data
 	event.SetIfEmpty("server_instance_name", i.Server)
