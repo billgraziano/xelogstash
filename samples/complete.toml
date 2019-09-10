@@ -1,6 +1,23 @@
+
+# [filesink]
+# retain_hours = 1 
+
+# [logstash]
+# host = "localhost:8888"
+
+# [elastic]
+# addresses = ["https://host.domain.com:1234"]
+# username = "dev-user"
+# password = "horsebatterysomethingsomething"
+# default_index = "dev-sql"
+# auto_create_indexes = true
+
+# event_index_map = [
+#     "login:dev-sql"
+# ]
+
 [app]
 workers = 4 # max number of concurrent workers.  Defaults to the number of cores
-# logstash = "D30:8888"
 summary = true # prints a summary of events to stdout after running
 samples = true # prints one of each type event to samples.xe.json after running
 
@@ -45,7 +62,7 @@ moves = [ ]
 fqdn = "localhost"
 
 [[ source ]]
-fqdn = "remote.domain.loc"
+fqdn = "host.domain.com"
 #
 # Can repeat any field in the defaults for each source
 # These fields overwrite defaults

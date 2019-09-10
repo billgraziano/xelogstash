@@ -1,6 +1,7 @@
 # XELogstash
 `xelogstash.exe` is a command-line application to pull SQL Server Extended Events and SQL Server Agent job results and push them to Logstash.   It supports SQL Server 2012 and higher.  It is untested against SQL Server 2008 (R2).
 
+1. [Breaking Changes](#breaking-changes)
 1. [Getting started](#getting-started)
 2. [Sources and Defaults](#sources)
 2. [Controlling JSON](#json)
@@ -8,7 +9,11 @@
 2. [Prefixes and keeping your place](#prefixes)
 2. [Application Settings](#app-settings)
 3. [Derived Fields](#derived-fields)
+3. [Sinks](#sinks)
 4. [Other Notes](#notes)
+
+## <a name="getting-started"></a>Breaking Changes
+* 0.40 - The TOML configuration to write to logstash has moved.  It was formerly under `app.logstash`.  Now it is configured in the `logstash` section.  See [Sinks](#sinks) below.
 
 ## <a name="getting-started"></a>Getting Started
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
@@ -18,10 +23,18 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
 4. From a command-prompt, type "`xelogstash.exe /config start.toml`".  (This doesn't send anything to logstash yet)
 
-This should generate a `samples.xe.json`, `samples.applog.json`, and a "status" folder in the same directory.  The "samples.xe.json" file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.
+This should generate a `samples.xe.json`, `samples.applog.json`, and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.
+
+### Writing events to a file
+In `start.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server XE session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).
 
 ### Sending to Logstash
-To send events to Logstash, specify the `logstash` value under `[app]` in the TOML file.  It should be in `host:port` format.  After that you can run the executable with the same parameters. 
+To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
+
+````
+[logstash]
+host = "localhost:8888"
+````
 
 ### Command Line Options 
 There are three command line options.  Running `xelogstash /?` will display the help for the options.
@@ -226,6 +239,53 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_file_name`: name of the XE file for this event
 * `xe_file_offset`: file offset where we found this event
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from @@SERVERNAME of the source server.
+
+## <a name="sinks"></a>Sinks
+xelogstash can write to multiple targets called "sinks".  It can write to files, to logstash, or directly to Elastic Search.  It can write to all three sinks at the same time if they are all specified.  They are written serially so the performanc isn't that great.
+
+### File Sink
+This is configured with a `filesink` section:
+
+````
+[filesink]
+retain_hours = 1 
+````
+The files are named for the server, instance, session name, date, and hour and are written to an `events` directory with a `.json` extension.  The files are rotated every hour.  Any files older than  `retain_hours` are removed.
+
+These files should be imported into Logstash or Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  This is probably the simplest way to import.
+
+### Logstash Sink
+This is configured with a `logstash` section:
+
+````
+[logstash]
+host = "localhost:8888"
+````
+
+This writes the events directly to the specified logstash server.
+
+### Elastic Sink
+This is configured using the `elastic` section. This is the most complicated to configure.
+
+````
+[elastic]
+addresses = ["https://host.domain.com:1234"]
+username = "dev-user"
+password = "horsebatterysomethingsomething"
+
+auto_create_indexes = true
+default_index = "dev-sql"
+
+event_index_map = [
+    "login:dev-login"
+]
+````
+
+* `addressess` specifies one or more addresses for the Elastic servers.
+* `username` and `password` provide authentication.
+* `auto_create_indexes` controls whether the application tries to create indexes.  It creates default indexes.
+* `default_index` is the index where events will be written unless overridden by the event index map.
+* `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
 
 ## <a name="notes"></a>Other Notes
 1. I've had issues with the SQL Server Agent job ending but not stopping the executable when I manually stop the job.  The application now sets a lock file so that a second instance will exit with an error.   The lock file name is based on the TOML file name (`TOML_file_name.lock`).  Find the first instance in Task Manager and kill it.  I usually only see this if I stop it in the middle of a run or Logstash is behaving oddly.
