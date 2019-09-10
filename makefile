@@ -3,7 +3,7 @@ sha1ver := $(shell git rev-parse HEAD)
 #test := $(shell date /t)
 # VERSIONFILE := .\cmd\xelogstash\version.go
 
-all: vet clean buildEXE copyFiles
+all: vet test clean buildEXE copyFiles
 
 vet:
 	go vet -all .\cmd\xelogstash
@@ -15,6 +15,8 @@ buildEXE:
 	go build -o "$(TARGETDIR)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$(sha1ver)" ".\cmd\xelogstash"
 # #	cd cmd\xelogstash && govvv build -print && govvv build -a -o "..\..\$(TARGETDIR)\xelogstash.exe"
 
+test:
+	go test .\cmd\xelogstash .\applog .\config .\eshelper .\log .\logstash .\seq .\sink .\summary .\xe
 # buildRace:
 # #	go generate 
 # 	go build -a -o "$(TARGETDIR)\xelogstash.exe" -race -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash 
