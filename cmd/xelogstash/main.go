@@ -13,10 +13,17 @@ import (
 )
 
 // Populated by github.com/ahmetb/govvv
+// var (
+// 	GitSummary = "dev"
+// 	Version    = "dev"
+// 	BuildDate  = time.Now().Format(time.RFC3339)
+// )
+
 var (
-	GitSummary = "dev"
-	Version    = "dev"
-	BuildDate  = time.Now().Format(time.RFC3339)
+	sha1ver   = "dev"
+	buildTime string
+	// Version of the build
+	Version = "0.40"
 )
 
 func main() {

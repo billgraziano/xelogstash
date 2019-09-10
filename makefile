@@ -1,6 +1,6 @@
 TARGETDIR=.\deploy\xelogstash
 sha1ver := $(shell git rev-parse HEAD)
-#test := $(shell date /t)
+dt := $(shell date /t)
 # VERSIONFILE := .\cmd\xelogstash\version.go
 
 all: vet test clean buildEXE copyFiles
@@ -10,6 +10,7 @@ vet:
 	go vet -all .\applog .\config .\log .\logstash .\seq .\status .\summary .\xe
 
 buildEXE:
+	echo "$(dt)"
 # 	go build -o "$(TARGETDIR)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash  
 	@echo "Building $(TARGETDIR)\xelogstash.exe ..."
 	go build -o "$(TARGETDIR)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$(sha1ver)" ".\cmd\xelogstash"
