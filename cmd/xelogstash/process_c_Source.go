@@ -65,6 +65,11 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 			// _ = applog.Warn(textMessage)
 			// else
 			continue
+		} else if errors.Cause(err) == xe.ErrNoFileTarget && source.Sessions[i] == "system_health" {
+			// no file target on system_health is a warning (#36)
+			textMessage = fmt.Sprintf("[%d] Domain: %s - FQDN: %s - %s - %s : %s\r\n", wid, info.Domain, source.FQDN, status.ClassXE, source.Sessions[i], err.Error())
+			log.Info(textMessage)
+			_ = applog.Info(textMessage)
 		} else if err != nil {
 			textMessage = fmt.Sprintf("[%d] *** ERROR: Domain: %s - FQDN: %s - %s - %s : %s\r\n", wid, info.Domain, source.FQDN, status.ClassXE, source.Sessions[i], err.Error())
 			cleanRun = false

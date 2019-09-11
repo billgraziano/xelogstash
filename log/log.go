@@ -432,7 +432,7 @@ func Info(v ...interface{}) {
 	}
 }
 
-// Error only logs if DEBUG or higher is set
+// Error only logs if ERROR or higher is set
 func Error(v ...interface{}) {
 	if std.lvl >= ERROR {
 		lvl := make([]interface{}, 1)

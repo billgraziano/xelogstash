@@ -23,7 +23,7 @@ var (
 	sha1ver   = "dev"
 	buildTime string
 	// Version of the build
-	Version = "0.40"
+	Version = "0.41"
 )
 
 func main() {

@@ -14,10 +14,14 @@ type SQLInfo struct {
 	Server   string
 	Domain   string
 	Computer string
-	// FQDN           string
-	ProductLevel   string
+
+	// ProductLevel holds "SP1"
+	ProductLevel string
+	// ProductRelease holds "13.0"
 	ProductRelease string
-	Version        string
+	// Version holds "SQL Server 2013"
+	Version string
+	// ProductVersion holds "13.0.5101.9"
 	ProductVersion string
 
 	Fields    map[FieldTypeKey]string
@@ -97,7 +101,7 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 	var v string
 	switch info.ProductRelease {
 	case "15.0":
-		v = "SQL Server vNext"
+		v = "SQL Server 2019"
 	case "14.0":
 		v = "SQL Server 2017"
 	case "13.0":
