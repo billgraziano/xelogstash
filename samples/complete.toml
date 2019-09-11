@@ -43,7 +43,6 @@ agentjobs = "all" # process SQL Server agent job history
 excludedEvents = [
     "connectivity_ring_buffer_recorded",
     "memory_broker_ring_buffer_recorded",
-    "sp_server_diagnostics_component_result",
     "scheduler_monitor_system_health_ring_buffer_recorded",
     "security_error_ring_buffer_recorded"
     ]

@@ -292,6 +292,17 @@ func (e *Event) getSeverity() logstash.Severity {
 		return logstash.Warning
 	}
 
+	if name == "sp_server_diagnostics_component_result" {
+		switch state := e.GetString("state"); state {
+		case "WARNING":
+			return logstash.Warning
+		case "ERROR":
+			return logstash.Error
+		default:
+			return logstash.Info
+		}
+	}
+
 	return logstash.Info
 }
 
@@ -425,6 +436,8 @@ func (e *Event) getDescription() string {
 		return fmt.Sprintf("%s: %s", e.GetString("database_name"), e.GetString("state_change_desc"))
 	case "sql_exit_invoked":
 		return e.GetString("shutdown_option")
+	case "sp_server_diagnostics_component_result":
+		return fmt.Sprintf("(%s:%s) %s", e.GetString("component"), e.GetString("state"), e.GetString("data"))
 	}
 
 	return ""
