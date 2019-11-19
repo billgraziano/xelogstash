@@ -75,12 +75,12 @@ func PrintSummary() {
 
 	sort.SliceStable(results, func(i, j int) bool { return results[j].Count < results[i].Count })
 
-	fmt.Printf("-------------------------------------------------------------------------------\r\n")
-	fmt.Printf("| %-35s| %11s | %6s | %6s | %6s |\r\n", "EVENT", "COUNT", "SIZE", "AVG", "MAX")
-	fmt.Printf("-------------------------------------------------------------------------------\r\n")
+	fmt.Printf("------------------------------------------------------------------------------------\r\n")
+	fmt.Printf("| %-40s| %11s | %6s | %6s | %6s |\r\n", "EVENT", "COUNT", "SIZE", "AVG", "MAX")
+	fmt.Printf("------------------------------------------------------------------------------------\r\n")
 	for _, v := range results {
 		//fmt.Println(v.Event, v.Count, v.Size)
-		fmt.Printf("| %-35s| %11s | %6s | %6s | %6s |\r\n",
+		fmt.Printf("| %-40s| %11s | %6s | %6s | %6s |\r\n",
 			v.Event,
 			humanize.Comma(v.Count),
 			humanize.Bytes(uint64(v.Size)),
@@ -89,16 +89,16 @@ func PrintSummary() {
 		)
 	}
 
-	fmt.Printf("-------------------------------------------------------------------------------\r\n")
+	fmt.Printf("------------------------------------------------------------------------------------\r\n")
 
-	fmt.Printf("| %-35s| %11s | %6s | %6s | %6s |\r\n",
+	fmt.Printf("| %-40s| %11s | %6s | %6s | %6s |\r\n",
 		"TOTAL",
 		humanize.Comma(totals.Count),
 		humanize.Bytes(uint64(totals.Size)),
 		humanize.Bytes(uint64(totals.Size/totals.Count)),
 		humanize.Bytes(uint64(totals.Max)),
 	)
-	fmt.Printf("-------------------------------------------------------------------------------\r\n")
+	fmt.Printf("------------------------------------------------------------------------------------\r\n")
 }
 
 // PrintSamples outputs a sample of each type of samples.txt
