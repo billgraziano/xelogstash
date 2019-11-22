@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -10,6 +11,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 )
+
+// https://gist.github.com/glinton/f5232c82fe6bf245199d9f2c64f863e1
 
 // This utility was primarily written to test against logz.io
 // They require @timestap and a field named "message"
@@ -51,13 +54,21 @@ func main() {
 		log.Fatal("ioutil.readfile:", err)
 	}
 
+	log.Info(fmt.Sprintf("file bytes: %d", len(f)))
+	// hashval := md5.Sum(f)
+	// log.Info(fmt.Sprintf("md5 hash: %x", hashval[:4]))
+
 	fs := string(f)
 	// strip \r\n
 	re := regexp.MustCompile(`\r?\n`)
 	fs = re.ReplaceAllString(fs, " ")
-	log.Info(fs)
+	//log.Info(fs)
 	err = ls.Writeln(fs)
 	if err != nil {
 		log.Fatal("ls.writeln:", err)
+	}
+	err = ls.Close()
+	if err != nil {
+		log.Fatal("ls.close", err)
 	}
 }

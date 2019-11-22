@@ -48,7 +48,7 @@ excludedEvents = [
     ]
 
 adds = [    "global.collector:$(EXE)", # $(VAR) must be upper case.  the resulting value is lower case.
-            "global.collector.version:$(VERSION)"
+            "global.collector.version:$(VERSION)",
             "global.logtype:sqlxe" 
             ]
 copies = [  "mssql.timestasmp:newtimestamp",

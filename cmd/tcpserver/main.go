@@ -23,6 +23,7 @@ func handleConn(c net.Conn, number int, maxPrint int) {
 	for {
 		msg, err := rw.ReadString('\n')
 		msgNum++
+		log.Printf("conn #%d: msgNum: %d\r\n", number, msgNum)
 		switch {
 		case err == io.EOF:
 			log.Println("Reached EOF - close this connection.\n   ---")
@@ -30,7 +31,7 @@ func handleConn(c net.Conn, number int, maxPrint int) {
 		case err != nil:
 			//log.Println(c.)
 			if op, ok := err.(*net.OpError); ok {
-				log.Printf("connection closed (*net.OpError: %s)\r\n", op.Op)
+				log.Printf("connection closed (*net.OpError: %s)\r\n", op.Error())
 				return
 			}
 			log.Println("Error reading command:", err)
