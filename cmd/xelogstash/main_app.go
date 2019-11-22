@@ -118,24 +118,25 @@ func runApp() error {
 	}
 
 	// Log the logstash setting
-	if settings.App.Logstash == "" {
-		logMessage = "app.logstash is empty.  Not logging SQL Server events to logstash."
-	} else {
-		logMessage = fmt.Sprintf("app.logstash: %s", settings.App.Logstash)
-	}
-	log.Info(logMessage)
-	err = applog.Info(logMessage)
-	if err != nil {
-		log.Error("applog.info:", err)
-	}
+	// if settings.App.Logstash == "" {
+	// 	logMessage = "app.logstash is empty.  Not logging SQL Server events to logstash."
+	// } else {
+	// 	logMessage = fmt.Sprintf("app.logstash: %s", settings.App.Logstash)
+	// }
+	// log.Info(logMessage)
+	// err = applog.Info(logMessage)
+	// if err != nil {
+	// 	log.Error("applog.info:", err)
+	// }
 
 	// Report the app logstash
 	if settings.AppLog.Logstash == "" {
 		logMessage = "applog.logstash is empty.  Not logging application events to logstash."
+		log.Debug(logMessage)
 	} else {
 		logMessage = fmt.Sprintf("applog.logstash: %s", settings.AppLog.Logstash)
+		log.Info(logMessage)
 	}
-	log.Info(logMessage)
 
 	// check the lock file
 	lockFileName := opts.TOMLFile + ".lock"
@@ -207,7 +208,7 @@ func runApp() error {
 				return
 			}
 			if serverErr != nil {
-				log.Error(errors.Wrap(serverErr, "http.listenandserve"))
+				log.Error(errors.Wrap(errors.Wrap(serverErr, "http.listenandserve"), "appconfig.httpmetrics"))
 			}
 			log.Debug("HTTP metrics server closed fallthrough")
 		}()

@@ -21,8 +21,12 @@ func processSource(wid int, source config.Source) (sourceResult Result, err erro
 		logmsg += ";  Excluding 17830 errors"
 	}
 
-	if !source.StartAt.IsZero() || source.StopAt != config.DefaultStopAt {
-		logmsg += fmt.Sprintf(";  Start at: %v;  Stop at %v", source.StartAt.Format(time.RFC3339), source.StopAt.Format(time.RFC3339))
+	if !source.StartAt.IsZero() {
+		logmsg += fmt.Sprintf(";  Events after: %v", source.StartAt.Format(time.RFC3339))
+	}
+
+	if source.StopAt != config.DefaultStopAt {
+		logmsg += fmt.Sprintf("; Events before: %v", source.StopAt.Format(time.RFC3339))
 	}
 	log.Info(logmsg)
 
