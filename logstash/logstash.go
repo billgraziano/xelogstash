@@ -17,6 +17,9 @@ import (
 // Severity is the severity for a record
 type Severity int
 
+// use to trace writing bytes in DEV build
+var trace bool = false
+
 const (
 	// Error event
 	Error Severity = 3
@@ -94,10 +97,10 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 	}
 	if connection != nil {
 		ls.Connection = connection
-		ls.Connection.SetLinger(0)
+		//ls.Connection.SetLinger(0)
 		ls.Connection.SetKeepAlive(true)
 		//ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
-		ls.setTimeouts()
+		//ls.setTimeouts()
 	}
 	if connection == nil && err == nil {
 		return connection, errors.New("conn & err can't both be nil")
@@ -107,6 +110,7 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 
 // Writeln send a message to the host
 func (ls *Logstash) Writeln(message string) error {
+
 	var err error
 	if ls.Connection == nil {
 		_, err = ls.Connect()
@@ -116,9 +120,24 @@ func (ls *Logstash) Writeln(message string) error {
 	}
 
 	message = fmt.Sprintf("%s\n", message)
+	messageBytes := []byte(message)
+	if trace {
+		fmt.Println(fmt.Sprintf("ls.writeln.bytes-to-send: %d", len(messageBytes)))
+	}
 
-	_, err = ls.Connection.Write([]byte(message))
+	var n int
+	ls.setTimeouts()
+	n, err = ls.Connection.Write(messageBytes)
+	if trace {
+		fmt.Println(fmt.Sprintf("ls.connection.write.bytes-sent: %d", n))
+	}
+	if n != len(messageBytes) {
+		fmt.Printf("send bytes mismatch: wanted: %d; sent: %d\r\n", len(messageBytes), n)
+	}
 	if err != nil {
+		if trace {
+			fmt.Println(fmt.Sprintf("ls.connection.write.err: %s", err.Error()))
+		}
 		neterr, ok := err.(net.Error)
 		if ok && neterr.Timeout() {
 			ls.Connection.Close()
@@ -132,12 +151,17 @@ func (ls *Logstash) Writeln(message string) error {
 			return errors.Wrap(err, "write")
 		}
 
-		// Successful write! Let's extend the timeoul.
+		// Successful write! Let's extend the timeout.
+		if trace {
+			fmt.Println("ls.connection.write: success-inside")
+		}
 		ls.setTimeouts()
 		return nil
 	}
-
-	return err
+	if trace {
+		fmt.Println("ls.connection.write: fall-through")
+	}
+	return nil
 }
 
 // Record holds the parent struct of what we will send to logstash
