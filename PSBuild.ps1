@@ -33,6 +33,7 @@ if ($LastExitCode -ne 0) {
 
 Write-Output "Copying Files..."
 Copy-Item -Path ".\samples\*.toml"          -Destination $target
+Copy-Item -Path ".\samples\*.sql"           -Destination $target
 Copy-Item -Path ".\samples\minimum.batch"   -Destination $target
 Copy-Item -Path ".\README.md"               -Destination $target
 
