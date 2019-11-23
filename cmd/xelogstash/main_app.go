@@ -46,7 +46,7 @@ func runApp() error {
 
 	log.SetFlags(log.LstdFlags | log.LUTC)
 	// log.Info(fmt.Sprintf("build: %s (git: %s) @ %s", Version, GitSummary, BuildDate))
-	log.Info(fmt.Sprintf("build: %s (git: %s) @ %s", Version, sha1ver, buildTime))
+	log.Info(fmt.Sprintf("build: %s @ %s", sha1ver, buildTime))
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
@@ -89,7 +89,7 @@ func runApp() error {
 	}
 
 	var settings config.Config
-	settings, err = config.Get(opts.TOMLFile, Version)
+	settings, err = config.Get(opts.TOMLFile, sha1ver)
 	if err != nil {
 		log.Error(errors.Wrap(err, "config.get"))
 		return err
@@ -106,7 +106,7 @@ func runApp() error {
 	}
 
 	var logMessage string
-	logMessage = fmt.Sprintf("app-start version: %s; workers %d; default rows: %d", Version, settings.App.Workers, settings.Defaults.Rows)
+	logMessage = fmt.Sprintf("app-start: workers %d; default rows: %d", settings.App.Workers, settings.Defaults.Rows)
 	// if GitSummary != "" {
 	// 	logMessage += fmt.Sprintf(" (%s @ %s)", GitSummary, BuildDate)
 	// }

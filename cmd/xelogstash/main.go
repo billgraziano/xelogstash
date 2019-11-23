@@ -12,18 +12,9 @@ import (
 	"github.com/billgraziano/xelogstash/log"
 )
 
-// Populated by github.com/ahmetb/govvv
-// var (
-// 	GitSummary = "dev"
-// 	Version    = "dev"
-// 	BuildDate  = time.Now().Format(time.RFC3339)
-// )
-
 var (
 	sha1ver   = "dev"
 	buildTime string
-	// Version of the build
-	Version = "0.41"
 )
 
 func main() {
