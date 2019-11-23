@@ -6,6 +6,20 @@ import (
 	"github.com/billgraziano/toml"
 )
 
+// Config defines the configuration read from the TOML file
+type Config struct {
+	App      App
+	AppLog   AppLog
+	Defaults Source   `toml:"defaults"`
+	Sources  []Source `toml:"source"`
+
+	Elastic  ElasticConfig `toml:"elastic"`
+	FileSink *FileSink     `toml:"filesink"`
+	Logstash *Logstash     `toml:"logstash"`
+	MetaData toml.MetaData
+	//Sinks    []sink.Sinker
+}
+
 // Source defines a source of extended event information
 type Source struct {
 	FQDN           string
@@ -84,18 +98,4 @@ type FileSink struct {
 // Logstash configures a LogstashSink
 type Logstash struct {
 	Host string `toml:"host"`
-}
-
-// Config defines the configuration read from the TOML file
-type Config struct {
-	App      App
-	AppLog   AppLog
-	Defaults Source   `toml:"defaults"`
-	Sources  []Source `toml:"source"`
-
-	Elastic  ElasticConfig `toml:"elastic"`
-	FileSink *FileSink     `toml:"filesink"`
-	Logstash *Logstash     `toml:"logstash"`
-	MetaData toml.MetaData
-	//Sinks    []sink.Sinker
 }
