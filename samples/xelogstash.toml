@@ -14,6 +14,7 @@ look_back = "168h" # one week
 rows = 10   # 20000 is a good value.  Lots of events but doesn't block too long.  0 or omitted processes all the rows
 timestamp_field_name = "@timestamp"
 payload_field_name = "mssql" # all the XE events are under this field
+exclude_17830 = true
 excludedEvents = [
     "connectivity_ring_buffer_recorded",
     "memory_broker_ring_buffer_recorded",

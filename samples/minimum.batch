@@ -1,12 +1,13 @@
 @ECHO OFF
 REM
 REM Rename this with a .CMD extension
-REN
+REM
 REM Includes error handling so that the EXE 
 REM failing returns an error to SQL Server Agent
 REM
 REM Assumes the EXE resides in C:\xelogstash
 
+SET ERR=0
 C:
 CD \xelogstash
 xelogstash.exe  /log
@@ -15,6 +16,5 @@ IF ERRORLEVEL 1 SET ERR=1
 IF %ERR%==1 ECHO *** CMD File: The EXE set an error level ***
 IF %ERR%==1 EXIT /b 1
 
-:Done
 
 

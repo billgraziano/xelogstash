@@ -96,7 +96,7 @@ func runApp() error {
 	}
 
 	if settings.App.Workers == 0 {
-		settings.App.Workers = runtime.NumCPU() * 4
+		settings.App.Workers = runtime.NumCPU()
 	}
 
 	err = applog.Initialize(settings)
@@ -106,10 +106,7 @@ func runApp() error {
 	}
 
 	var logMessage string
-	logMessage = fmt.Sprintf("app-start: workers %d; default rows: %d", settings.App.Workers, settings.Defaults.Rows)
-	// if GitSummary != "" {
-	// 	logMessage += fmt.Sprintf(" (%s @ %s)", GitSummary, BuildDate)
-	// }
+	logMessage = fmt.Sprintf("app-start: version: %s; workers %d; default rows: %d", sha1ver, settings.App.Workers, settings.Defaults.Rows)
 	log.Info(logMessage)
 	err = applog.Info(logMessage)
 	if err != nil {
@@ -130,10 +127,7 @@ func runApp() error {
 	// }
 
 	// Report the app logstash
-	if settings.AppLog.Logstash == "" {
-		logMessage = "applog.logstash is empty.  Not logging application events to logstash."
-		log.Debug(logMessage)
-	} else {
+	if settings.AppLog.Logstash != "" {
 		logMessage = fmt.Sprintf("applog.logstash: %s", settings.AppLog.Logstash)
 		log.Info(logMessage)
 	}

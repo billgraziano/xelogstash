@@ -129,42 +129,13 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 		defer sinks[i].Close()
 	}
 
+	// TODO if source.Rows is very small, it will never get
+	// as far as the lookback date
+	// If we don't have a previous value (lastInstanceID),
+	//   select them all, and break when we have enough
 	var query string
-	top := 50000
-	if source.Rows > 0 {
-		top = source.Rows
-	}
-	//topClause := fmt.Sprintf(" TOP (%d) ", top)
-	// query = "SELECT " + topClause
-	// query += `
-	// 			CASE
-	// 			WHEN H.step_id = 0 THEN 'agent_job'
-	// 			ELSE 'agent_job_step'
-	// 		END AS [name]
-	// 		,H.instance_id
-	// 		,H.job_id
-	// 		,H.step_id
-	// 		,H.step_name
-	// 		,J.[name] AS [job_name]
-	// 		,H.[message] as [msg]
-	// 		,H.[run_status]
-	// 		,H.[run_duration]
-	// 		,convert( datetime,
-	// 			SUBSTRING(CAST(run_date AS VARCHAR(8)),1,4) + '-' +
-	// 			SUBSTRING(CAST(run_date AS VARCHAR(8)),5,2) + '-'+
-	// 			SUBSTRING(CAST(run_date AS VARCHAR(8)),7,2) + ' ' +
-	// 			convert(varchar, run_time/10000)+':'+
-	// 			convert(varchar, run_time%10000/100)+':'+
-	// 			convert(varchar, run_time%100)+'.000' ) AS [Timestamp]
-	// 	FROM	[msdb].[dbo].[sysjobhistory] H
-	// 	JOIN	[msdb].[dbo].[sysjobs] J on J.[job_id] = H.[job_id]
-	// 	WHERE	1=1
-	// 	-- AND  H.[run_status] NOT IN (2, 4) -- Don't want retry or in progress
-	// 	AND		H.[instance_id] > ?
-	// 	ORDER BY H.[instance_id] ASC;
-	// `
 
-	query = fmt.Sprintf(`
+	cte := `
 		; WITH CTE AS (
 			SELECT 
 				CASE 
@@ -184,8 +155,8 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 					SUBSTRING(CAST(run_date AS VARCHAR(8)),5,2) + '-'+ 
 					SUBSTRING(CAST(run_date AS VARCHAR(8)),7,2) + ' ' +
 					convert(varchar, run_time/10000)+':'+
-					convert(varchar, run_time%%10000/100)+':'+
-					convert(varchar, run_time%%100)+'.000' ) AS [timestamp_local]
+					convert(varchar, run_time%10000/100)+':'+
+					convert(varchar, run_time%100)+'.000' ) AS [timestamp_local]
 				FROM	[msdb].[dbo].[sysjobhistory] H WITH(NOLOCK)
 				JOIN	[msdb].[dbo].[sysjobs] J WITH(NOLOCK) on J.[job_id] = H.[job_id]
 				WHERE	1=1
@@ -193,26 +164,34 @@ func processAgentJobs(wid int, source config.Source) (result Result, err error) 
 				--AND		H.[instance_id] > ?
 				--ORDER BY H.[instance_id] ASC
 		)
-		SELECT TOP (%d)  *
+		`
+
+	query = cte + `
+		
+		SELECT *
 			, CONVERT(VARCHAR(30), CAST(DATEADD(mi, -1 * DATEDIFF(MINUTE, GETUTCDATE(), GETDATE()), timestamp_local) AS DATETIMEOFFSET), 127) AS timestamp_utc
 		FROM CTE
 		WHERE [instance_id] > ?
 		ORDER BY [instance_id]
 		
-		`, top)
+		`
 
 	rows, err := db.Query(query, lastInstanceID)
 	if err != nil {
 		return result, errors.Wrap(err, "db.open")
 	}
 
-	//gotRows := false
-	//var rowCount int
 	var instanceID int
 	var gotRows bool
 	var startAtHit bool
 
 	for rows.Next() {
+
+		// do we have enough rows
+		if source.Rows > 0 && result.Rows >= source.Rows {
+			break
+		}
+
 		readCount.Add(1)
 
 		var tsutc string

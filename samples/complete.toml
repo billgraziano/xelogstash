@@ -10,7 +10,6 @@
 # username = "dev-user"
 # password = "horsebatterysomethingsomething"
 # default_index = "dev-sql"
-# auto_create_indexes = true
 
 # event_index_map = [
 #     "login:dev-sql"
@@ -20,12 +19,6 @@
 workers = 4 # max number of concurrent workers.  Defaults to the number of cores
 summary = true # prints a summary of events to stdout after running
 samples = true # prints one of each type event to samples.xe.json after running
-
-[applog]
-# logstash = "D30:8888"
-timestamp_field_name = "@timestamp"
-payload_field_name = "event" # all app fields will be nested under this field.  Optional.
-samples = true # prints the JSON application logging messaegs to samples.applog.json
 
 adds = [    "global.host:$(HOST)",  # $(VAR) must be upper case.  the resulting value is lower case.
             "global.app:$(EXE)" 
@@ -69,6 +62,11 @@ fqdn = "host.domain.com"
 #
 
 
+[applog]
+# logstash = "D30:8888"
+timestamp_field_name = "@timestamp"
+payload_field_name = "event" # all app fields will be nested under this field.  Optional.
+samples = true # prints the JSON application logging messaegs to samples.applog.json
 
 
 
