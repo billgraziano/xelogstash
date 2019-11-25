@@ -3,6 +3,9 @@
 # [logstash]
 # host = "localhost:8888"
 
+# [filesink]
+# retain_hours = 1 
+
 [app]
 # workers = 1 # max number of concurrent workers.  Defaults to the number of cores
 summary = true # prints a summary of events to stdout after running

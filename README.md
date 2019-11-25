@@ -21,17 +21,17 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 1. Extract the ZIP contents to a directory.  We'll be starting with "start.toml".
 2. If you have a local SQL Server installed, no changes are necessary.
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
-4. From a command-prompt, type "`xelogstash.exe /config start.toml`".  (This doesn't send anything to logstash yet)
+4. From a command-prompt, type "`xelogstash.exe`".  (This doesn't send anything to logstash yet)
 
 This should generate a `samples.xe.json`, `samples.applog.json`, and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.
 
 ### Writing events to a file
-In `start.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server XE session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).
+In `xelogstash.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server XE session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).
 
 ### Sending to Logstash
 To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
 
-````
+````toml
 [logstash]
 host = "localhost:8888"
 ````
@@ -51,7 +51,6 @@ The `[defaults]` section applies to all sources (but can be overridden by the so
 
 You can set the following Source fields (or Default fields)
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
-* `prefix` is the prefix for the status file (see below).  NOTE: This is being removed.  Don't use it for new sources.
 * `sessions` is a list of sessions to process.
 * `ignore_sessions` says to not process any sessions for this source.  This is mainly useful if you have a list of default sessions but some old SQL Server 2008 boxes that you want to ignore the sessions completely so you can just get the failed agent jobs.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
@@ -117,7 +116,7 @@ Note: For these values, any Source overwrites the Default at _the individual key
 * `copies` are "src:dest" that will copy the value at _src_ to _dest_
 * `moves` are "src:dest" that will move the value from _src_ to _dest_
 
-Further, the keys can be nested using a dotted notation.  For example, setting a key at "global.host.name" will nest the value three levels deep.
+Further, the keys can be nested using a dotted notation.  For example, setting a key at `global.host.name` will nest the value three levels deep.
 
 Consider the following settings:
 
@@ -203,16 +202,17 @@ This controls the overall application.  All these fields are optional.
 * `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send events to logstash.
 * `samples` set to true will save a JSON file with one of each event type that was processed.  This is very helpful for testing your JSON format.
 * `summary` set to true will print a nice summary of the output including how many of each type of event were processed.
-* `workers` controls how many concurrent workers will process the sources.  It defaults to 4 * the number of cores in the computer.  A given worker will process all the sessions for a source before moving on to the next source.  The application doesn't use much CPU.  It spends lots of time waiting on data to return from sources.
+* `workers` controls how many concurrent workers will process the sources.  It defaults to the number of cores in the computer.  A given worker will process all the sessions for a source before moving on to the next source.  The application doesn't use much CPU.  It spends lots of time waiting on data to return from sources.
 * `http_metrics` enables a local web server that can provide diagnostic information.  This defaults to false.  It exposes the following two URLs:
   * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars]) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
-  * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the GO PPROF web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.  
+  * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the [GO PPROF](https://golang.org/pkg/net/http/pprof/) web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.  
   * IE is horrible for viewing these.  I've found that using PowerShell and running `Invoke-RestMethod "http://localhost:8080/debug/vars"` works well to view that URL
 
 
 
 ### `[applog]` section
-This section control how XELogstash writes its own logging events.
+This section control how XELogstash writes its own logging events.  *Note: I don't use this as much anymore.  But it is still required.  The only required field is `timestamp_field_name`.*
+
 * `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send logging events to logstash.  This should probably be the same as the `logstash` above but doesn't have to be.
 * `samples` set to true will save a JSON file with every logging event written to it.  This is very helpful for testing your JSON format.
 * `timestamp_field_name` defines the JSON field that will store the timestamp of the event.  This should be "@timestamp" unless you've been told to use a different value.  This field is required.
@@ -222,7 +222,7 @@ This section control how XELogstash writes its own logging events.
 
 
 ## <a name="derived-fields"></a>Derived Fields
-Based on a particular event, the application computes a number of calculated fields and adds those to the event.  Most of them have an "xe_" prefix to separate them.  It also returns a few SQL Server level settigns with an "mssql_" prfix.
+Based on a particular event, the application computes a number of calculated fields and adds those to the event.  Most of them have an "xe_" prefix to separate them.  It also returns a few SQL Server level settings with an "mssql_" prfix.
 
 * `mssql_domain`: This is the result of DEFAULT_DOMAIN() run on the source server
 * `mssql_computer`: This is the result of SERVERPROPERTY('MachineName') on the source computer.
@@ -246,7 +246,7 @@ xelogstash can write to multiple targets called "sinks".  It can write to files,
 ### File Sink
 This is configured with a `filesink` section:
 
-````
+````toml
 [filesink]
 retain_hours = 1 
 ````
@@ -257,17 +257,17 @@ These files should be imported into Logstash or Elastic Search using [FileBeat](
 ### Logstash Sink
 This is configured with a `logstash` section:
 
-````
+```toml
 [logstash]
 host = "localhost:8888"
-````
+```
 
 This writes the events directly to the specified logstash server.
 
 ### Elastic Sink
 This is configured using the `elastic` section. This is the most complicated to configure.
 
-````
+```toml
 [elastic]
 addresses = ["https://host.domain.com:1234"]
 username = "dev-user"
