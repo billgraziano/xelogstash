@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -58,9 +59,16 @@ func ProcessMods(json string, adds, copies, moves map[string]string) (string, er
 
 	// Adds
 	for k, v := range adds {
-		i := getValue(v)
 		if gjson.Get(json, k).Exists() {
 			return json, errors.Wrapf(err, "can't overwrite key: %s", k)
+		}
+
+		// Check for $(NOW) and overwrite value
+		var i interface{}
+		if v == "$(NOW)" {
+			i = time.Now()
+		} else {
+			i = getValue(v)
 		}
 		json, err = sjson.Set(json, k, i)
 		if err != nil {
