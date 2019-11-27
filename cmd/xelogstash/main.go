@@ -14,6 +14,7 @@ import (
 
 var (
 	sha1ver   = "dev"
+	version   = "dev"
 	buildTime string
 )
 

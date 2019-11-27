@@ -183,6 +183,7 @@ The values that are added can be strings, integers, floats, booleans, or dates. 
 The adds, moves, and copies also support a few "replacement" values.  
 
 * `$(VERSION)` is the version of xelogstash.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
+* `$(GITDESCRIBE)` is Git Describe from the build.
 * `$(EXENAMEPATH)` is the full path and name of the executable
 * `$(EXENAME)` is the name of the executable
 * `$(PID)` is the Process ID of xelogstash.exe

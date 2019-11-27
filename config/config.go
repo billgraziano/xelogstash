@@ -28,7 +28,7 @@ const (
 var DefaultStopAt = time.Date(9999, time.December, 31, 0, 0, 0, 0, time.UTC)
 
 // Get the configuration from a configuration file
-func Get(f string, version string) (config Config, err error) {
+func Get(f, version, sha1ver string) (config Config, err error) {
 	md, err := toml.DecodeFile(f, &config)
 	if err != nil {
 		return config, errors.Wrap(err, "toml.decode")
@@ -39,7 +39,7 @@ func Get(f string, version string) (config Config, err error) {
 		return config, fmt.Errorf("applog.timestamp_field_name is required.  Suggest \"@timestamp\"")
 	}
 
-	err = config.decodekv(version)
+	err = config.decodekv(version, sha1ver)
 	if err != nil {
 		return config, errors.Wrap(err, "decodekv")
 	}
@@ -117,7 +117,7 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 			return sinks, errors.Wrap(err, "sink.newelasticsink")
 		}
 		es.DefaultIndex = c.Elastic.DefaultIndex
-		es.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, "")
+		es.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, "", "")
 		if err != nil {
 			return sinks, errors.Wrap(err, "elastic.buildmap")
 		}
@@ -189,45 +189,45 @@ func (c *Config) setLowerCase() {
 
 }
 
-func (c *Config) decodekv(version string) error {
+func (c *Config) decodekv(version, sha1ver string) error {
 	var err error
-	c.Defaults.Adds, err = buildmap(c.Defaults.RawAdds, version)
+	c.Defaults.Adds, err = buildmap(c.Defaults.RawAdds, version, sha1ver)
 	if err != nil {
 		return errors.Wrap(err, "default-adds")
 	}
-	if c.Defaults.Copies, err = buildmap(c.Defaults.RawCopies, version); err != nil {
+	if c.Defaults.Copies, err = buildmap(c.Defaults.RawCopies, version, sha1ver); err != nil {
 		return errors.Wrap(err, "default-copies")
 	}
-	if c.Defaults.Moves, err = buildmap(c.Defaults.RawMoves, version); err != nil {
+	if c.Defaults.Moves, err = buildmap(c.Defaults.RawMoves, version, sha1ver); err != nil {
 		return errors.Wrap(err, "default-renames")
 	}
 
 	for i := range c.Sources {
-		if c.Sources[i].Adds, err = buildmap(c.Sources[i].RawAdds, version); err != nil {
+		if c.Sources[i].Adds, err = buildmap(c.Sources[i].RawAdds, version, sha1ver); err != nil {
 			return errors.Wrap(err, "source-adds")
 		}
-		if c.Sources[i].Copies, err = buildmap(c.Sources[i].RawCopies, version); err != nil {
+		if c.Sources[i].Copies, err = buildmap(c.Sources[i].RawCopies, version, sha1ver); err != nil {
 			return errors.Wrap(err, "source-copies")
 		}
-		if c.Sources[i].Moves, err = buildmap(c.Sources[i].RawMoves, version); err != nil {
+		if c.Sources[i].Moves, err = buildmap(c.Sources[i].RawMoves, version, sha1ver); err != nil {
 			return errors.Wrap(err, "source-renames")
 		}
 	}
 
 	// Process the app settings
-	if c.AppLog.Adds, err = buildmap(c.AppLog.RawAdds, version); err != nil {
+	if c.AppLog.Adds, err = buildmap(c.AppLog.RawAdds, version, sha1ver); err != nil {
 		return errors.Wrap(err, "buildmap.adds")
 	}
 
-	if c.AppLog.Copies, err = buildmap(c.AppLog.RawCopies, version); err != nil {
+	if c.AppLog.Copies, err = buildmap(c.AppLog.RawCopies, version, sha1ver); err != nil {
 		return errors.Wrap(err, "buildmap.copies")
 	}
 
-	if c.AppLog.Moves, err = buildmap(c.AppLog.RawMoves, version); err != nil {
+	if c.AppLog.Moves, err = buildmap(c.AppLog.RawMoves, version, sha1ver); err != nil {
 		return errors.Wrap(err, "buildmap.moves")
 	}
 
-	c.Elastic.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, version)
+	c.Elastic.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, version, sha1ver)
 	if err != nil {
 		return errors.Wrap(err, "buildmap.elastic.eventindexmap")
 	}
@@ -243,7 +243,7 @@ func (c *Config) decodekv(version string) error {
 	return err
 }
 
-func buildmap(a []string, version string) (map[string]string, error) {
+func buildmap(a []string, version, sha1ver string) (map[string]string, error) {
 	m := make(map[string]string)
 	var err error
 
@@ -267,6 +267,7 @@ func buildmap(a []string, version string) (map[string]string, error) {
 		value = strings.Replace(value, "$(EXENAME)", strings.ToLower(exeName), -1)
 		value = strings.Replace(value, "$(PID)", strconv.Itoa(os.Getpid()), -1)
 		value = strings.Replace(value, "$(VERSION)", version, -1)
+		value = strings.Replace(value, "$(GITDESCRIBE)", sha1ver, -1)
 		value = strings.Replace(value, "$(HOST)", strings.ToLower(fqdn.Get()), -1)
 
 		m[kv[0]] = value

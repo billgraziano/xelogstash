@@ -1,13 +1,22 @@
+Param (
+    [string]$version = "dev"
+)
 $ErrorActionPreference = "Stop"
+
 Write-Output "Running PSBuild.ps1..."
+Write-Output "" 
 $target=".\deploy\xelogstash"
-Write-Output "Target: $target"
+Write-Output "Target:  $target"
 
-$now = Get-Date -UFormat "%Y-%m-%d_%T"
-# $sha1 = (git rev-parse HEAD).Trim()
+Write-Output "Version: $($version)"
+
+# $now = Get-Date -UFormat "%Y-%m-%d_%T_%Z"
+$now = Get-Date -Format "o"
 $sha1 = (git describe --tags --dirty --always).Trim()
-Write-Output "Git: $sha1"
+Write-Output "Git:     $sha1"
+Write-Output "Build:   $now"
 
+Write-Output "" 
 Write-Output "Running go vet..."
 go vet -all .\cmd\xelogstash
 if ($LastExitCode -ne 0) {
@@ -26,7 +35,7 @@ if ($LastExitCode -ne 0) {
 }
 
 Write-Output "Building..."
-go build -o "$($target)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now" ".\cmd\xelogstash"
+go build -o "$($target)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\xelogstash"
 if ($LastExitCode -ne 0) {
     exit
 }
