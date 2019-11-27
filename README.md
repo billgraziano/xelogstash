@@ -188,6 +188,7 @@ The adds, moves, and copies also support a few "replacement" values.
 * `$(EXENAME)` is the name of the executable
 * `$(PID)` is the Process ID of xelogstash.exe
 * `$(HOST)` is the computer where xelogstash.exe is running
+* `$(NOW)` is the time that xelogstash.exe wrote this value to a sink
 
 See the section below on derived fields for a description of the "mssql_" and "xe_" fields
 
