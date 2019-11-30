@@ -23,13 +23,13 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
-go vet -all .\applog .\config .\log .\logstash .\seq .\status .\summary .\xe
+go vet -all .\applog .\config .\log .\logstash .\seq .\status .\summary .\xe .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
 
 Write-Output "Running go test..."
-go test .\cmd\xelogstash .\config .\seq .\xe
+go test .\cmd\xelogstash .\config .\seq .\xe .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }

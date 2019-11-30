@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/billgraziano/xelogstash/applog"
-	"github.com/pkg/errors"
-
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/log"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/dustin/go-humanize/english"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func processall(settings config.Config) (string, bool) {

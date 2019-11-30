@@ -6,12 +6,12 @@ import (
 
 	"github.com/billgraziano/xelogstash/applog"
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/dustin/go-humanize/english"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func processSource(wid int, source config.Source) (sourceResult Result, err error) {

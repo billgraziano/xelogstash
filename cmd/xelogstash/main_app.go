@@ -11,24 +11,21 @@ import (
 	"context"
 	_ "expvar"
 	"fmt"
-	"io"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 	"runtime"
 	"time"
 
-	singleinstance "github.com/allan-simon/go-singleinstance"
-
-	"github.com/billgraziano/xelogstash/applog"
-
-	"github.com/billgraziano/xelogstash/log"
-	"github.com/billgraziano/xelogstash/summary"
-
 	_ "github.com/alexbrainman/odbc"
+	singleinstance "github.com/allan-simon/go-singleinstance"
+	"github.com/billgraziano/xelogstash/applog"
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/rotator"
+	"github.com/billgraziano/xelogstash/summary"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var opts struct {
@@ -44,9 +41,6 @@ func runApp() error {
 
 	var err error
 
-	log.SetFlags(log.LstdFlags | log.LUTC)
-	// log.Info(fmt.Sprintf("build: %s (git: %s) @ %s", Version, GitSummary, BuildDate))
-	log.Info(fmt.Sprintf("version: %s (%s @ %s)", version, sha1ver, buildTime))
 	var parser = flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err = parser.Parse()
 	if err != nil {
@@ -55,28 +49,31 @@ func runApp() error {
 	}
 
 	if opts.Debug {
-		log.SetLevel(log.DEBUG)
+		log.SetLevel(log.DebugLevel)
 	}
 
 	// Log to file
 	if opts.Log {
-		var logfilename string
-		logfilename, err = getLogFileName()
-		if err != nil {
-			log.Error("getLogFileName", err)
-		}
+		logger := rotator.New("log", "xelogstash", "log")
 
-		var lf *os.File
-		lf, err = os.OpenFile(logfilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		log.SetOutput(logger)
+		log.SetFormatter(&formatter{
+			fields: logrus.Fields{
+				"version":     version,
+				"version_git": sha1ver,
+			},
+			lf: &log.JSONFormatter{},
+		})
+		log.Debug(fmt.Sprintf("log retention: %s", logger.Retention.String()))
+		err = logger.Start()
 		if err != nil {
-			log.Error("failed to open log file")
-			return err
+			log.Error(err)
+			return errors.Wrap(err, "rotator.start")
 		}
-
-		multi := io.MultiWriter(os.Stdout, lf)
-		log.SetOutput(multi)
+		defer logger.Close()
 	}
 
+	log.Info(fmt.Sprintf("version: %s (%s @ %s)", version, sha1ver, buildTime))
 	// use default config file if one isn't specified
 	var fn string
 	if opts.TOMLFile == "" {
@@ -114,18 +111,6 @@ func runApp() error {
 		return err
 	}
 
-	// Log the logstash setting
-	// if settings.App.Logstash == "" {
-	// 	logMessage = "app.logstash is empty.  Not logging SQL Server events to logstash."
-	// } else {
-	// 	logMessage = fmt.Sprintf("app.logstash: %s", settings.App.Logstash)
-	// }
-	// log.Info(logMessage)
-	// err = applog.Info(logMessage)
-	// if err != nil {
-	// 	log.Error("applog.info:", err)
-	// }
-
 	// Report the app logstash
 	if settings.AppLog.Logstash != "" {
 		logMessage = fmt.Sprintf("applog.logstash: %s", settings.AppLog.Logstash)
@@ -145,39 +130,6 @@ func runApp() error {
 	appConfig = settings.App
 	globalConfig = settings
 
-	// If we're using elastic directly, do the index maintenance
-	// if len(globalConfig.Elastic.Addresses) > 0 {
-	// 	logMessage = fmt.Sprintf("elastic.addresses: %s", strings.Join(globalConfig.Elastic.Addresses, ", "))
-	// 	log.Info(logMessage)
-	// 	if globalConfig.Elastic.Username == "" || globalConfig.Elastic.Password == "" {
-	// 		return errors.New("elastic search is missing the username or password")
-	// 	}
-
-	// 	// Set up the elastic indexes
-	// 	// if globalConfig.Elastic.AutoCreateIndexes {
-	// 	// 	esIndexes := make([]string, 0)
-	// 	// 	if globalConfig.Elastic.DefaultIndex != "" {
-	// 	// 		esIndexes = append(esIndexes, globalConfig.Elastic.DefaultIndex)
-	// 	// 	}
-	// 	// 	if globalConfig.Elastic.AppLogIndex != "" {
-	// 	// 		esIndexes = append(esIndexes, globalConfig.Elastic.AppLogIndex)
-	// 	// 	}
-	// 	// 	for _, ix := range globalConfig.Elastic.EventIndexMap {
-	// 	// 		esIndexes = append(esIndexes, ix)
-	// 	// 	}
-
-	// 	// 	var esClient *elasticsearch.Client
-	// 	// 	esClient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
-	// 	// 	if err != nil {
-	// 	// 		return errors.Wrap(err, "eshelper.newclient")
-	// 	// 	}
-	// 	// 	err = eshelper.CreateIndexes(esClient, esIndexes)
-	// 	// 	if err != nil {
-	// 	// 		return errors.Wrap(err, "eshelper.createindexes")
-	// 	// 	}
-	// 	// }
-	// }
-	// globalConfig.Elastic.Print()
 	sinks, err := globalConfig.GetSinks()
 	if err != nil {
 		return errors.Wrap(err, "globalconfig.getsinks")
@@ -246,14 +198,6 @@ func runApp() error {
 		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
 	}
 
-	// log.Debug("Cleaning old sink artifacts...")
-	// for i := range globalConfig.Sinks {
-	// 	err = globalConfig.Sinks[i].Clean()
-	// 	if err != nil {
-	// 		log.Error(errors.Wrapf(err, "sink.clean: %s", globalConfig.Sinks[i].Name()))
-	// 	}
-	// }
-
 	err = applog.Close()
 	if err != nil {
 		log.Error(errors.Wrap(err, "applog.close"))
@@ -297,4 +241,18 @@ func runApp() error {
 	}
 
 	return nil
+}
+
+// used for logrus custom fields
+type formatter struct {
+	fields log.Fields
+	lf     log.Formatter
+}
+
+// Format satisfies the logrus.Formatter interface.
+func (f *formatter) Format(e *log.Entry) ([]byte, error) {
+	for k, v := range f.fields {
+		e.Data[k] = v
+	}
+	return f.lf.Format(e)
 }
