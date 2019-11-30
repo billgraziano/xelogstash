@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/billgraziano/xelogstash/sink"
 
 	"github.com/Showmax/go-fqdn"
@@ -92,9 +93,21 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 			exeDir := filepath.Dir(executable)
 			config.FileSink.Directory = filepath.Join(exeDir, "events")
 		}
+
+		rot := rotator.New(config.FileSink.Directory, "sqlevents", "json")
+		rot.Retention = time.Duration(config.FileSink.RetainHours) * time.Hour
+		rot.Hourly = true
+		config.rot = rot
 	}
 
 	return config, err
+}
+
+func (c *Config) CloseRotator() error {
+	if c.rot == nil {
+		return nil
+	}
+	return c.rot.Close()
 }
 
 // GetSinks returns an array of sinks based on the config
@@ -103,8 +116,9 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 
 	// Add FileSink
 	if c.FileSink != nil {
-		fileSink := sink.NewFileSink(c.FileSink.Directory, c.FileSink.RetainHours)
-		sinks = append(sinks, fileSink)
+		//fileSink := sink.NewFileSink(c.FileSink.Directory, c.FileSink.RetainHours)
+		of := sink.NewOneFile(c.rot)
+		sinks = append(sinks, of)
 	}
 
 	// Add an ElasticSink

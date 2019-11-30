@@ -222,4 +222,14 @@ func (r *Rotator) close() error {
 	return err
 }
 
+func (r *Rotator) Sync() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.file != nil {
+		return r.file.Sync()
+	}
+	return nil
+}
+
 var _ io.WriteCloser = (*Rotator)(nil)

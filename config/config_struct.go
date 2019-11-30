@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/toml"
+	"github.com/billgraziano/xelogstash/pkg/rotator"
 )
 
 // Config defines the configuration read from the TOML file
@@ -17,6 +18,8 @@ type Config struct {
 	FileSink *FileSink     `toml:"filesink"`
 	Logstash *Logstash     `toml:"logstash"`
 	MetaData toml.MetaData
+
+	rot *rotator.Rotator
 	//Sinks    []sink.Sinker
 }
 

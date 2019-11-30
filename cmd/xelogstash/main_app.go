@@ -63,7 +63,7 @@ func runApp() error {
 			},
 			lf: &log.JSONFormatter{},
 		})
-		log.Debug(fmt.Sprintf("log retention: %s", logger.Retention.String()))
+		log.Debug(fmt.Sprintf("app log retention: %s", logger.Retention.String()))
 		err = logger.Start()
 		if err != nil {
 			log.Error(err)
@@ -145,6 +145,13 @@ func runApp() error {
 	message, cleanRun := processall(settings)
 	log.Info(message)
 
+	// close the onefile if we had one
+	log.Debug("closing rotator...")
+	err = globalConfig.CloseRotator()
+	if err != nil {
+		log.Error(errors.Wrap(err, "closerotator"))
+	}
+
 	if settings.App.Summary {
 		log.Debug("Printing summary...")
 		summary.PrintSummary()
@@ -158,11 +165,11 @@ func runApp() error {
 		}
 	}
 
-	log.Debug("Cleaning old log files...")
-	err = cleanOldLogFiles(7)
-	if err != nil {
-		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
-	}
+	// log.Debug("Cleaning old log files...")
+	// err = cleanOldLogFiles(7)
+	// if err != nil {
+	// 	log.Error(errors.Wrap(err, "cleanOldLogFiles"))
+	// }
 
 	if appConfig.HTTPMetrics {
 		log.Debug("HTTP metrics server stopping...")
