@@ -13,6 +13,7 @@
 4. [Other Notes](#notes)
 
 ## <a name="getting-started"></a>Breaking Changes
+* post-0.44 - The application log files are written to the `log` subdirectory in JSON format.   These should be processed with FileBeat.
 * 0.40 - The TOML configuration to write to logstash has moved.  It was formerly under `app.logstash`.  Now it is configured in the `logstash` section.  See [Sinks](#sinks) below.
 
 ## <a name="getting-started"></a>Getting Started
@@ -23,7 +24,9 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
 4. From a command-prompt, type "`xelogstash.exe`".  (This doesn't send anything to logstash yet)
 
-This should generate a `samples.xe.json`, `samples.applog.json`, and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.
+This should generate a `samples.xe.json`, `samples.applog.json`, and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
+
+> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions or delete the directory and allow the service account to recreate it.
 
 ### Writing events to a file
 In `xelogstash.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server XE session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).
@@ -39,9 +42,9 @@ host = "localhost:8888"
 ### Command Line Options 
 There are three command line options.  Running `xelogstash /?` will display the help for the options.
 
-- `/config filename` tries to load the TOML file from _filename_. If this isn't specified, `xelogstash.toml` is used.
-- `/log` logs the output to a log file in addition to standard out.  The log file is named `xelogstash_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
-- `/debug` enables some additional debugging output.  
+- `/config filename` - Tries to load the TOML file from _filename_. If this isn't specified, `xelogstash.toml` is used.
+- `/log` - Captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `xelogstash_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
+- `/debug` - Enables additional debugging output.
 
 
 ## <a name="sources"></a>Sources and Defaults

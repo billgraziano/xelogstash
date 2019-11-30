@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/summary"
 	"github.com/billgraziano/xelogstash/xe"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func processSession(
