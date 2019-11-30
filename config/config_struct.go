@@ -9,7 +9,7 @@ import (
 // Config defines the configuration read from the TOML file
 type Config struct {
 	App      App
-	AppLog   AppLog
+	AppLog   *AppLog
 	Defaults Source   `toml:"defaults"`
 	Sources  []Source `toml:"source"`
 

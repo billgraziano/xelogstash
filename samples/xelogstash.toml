@@ -28,7 +28,4 @@ excludedEvents = [
 [[source]]
 fqdn = "localhost"
 
-# This section is needed but doesn't do anything if the host isn't present
-# This will be removed when logging is refactored
-[applog]
-timestamp_field_name = "@timestamp"
+

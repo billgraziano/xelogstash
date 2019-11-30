@@ -5,11 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/billgraziano/xelogstash/applog"
 	"github.com/billgraziano/xelogstash/config"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/dustin/go-humanize/english"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,10 +17,6 @@ func processall(settings config.Config) (string, bool) {
 
 	msg := fmt.Sprintf("Processing %d source(s)...", len(settings.Sources))
 	log.Info(msg)
-	err := applog.Info(msg)
-	if err != nil {
-		log.Error(errors.Wrap(err, "applog.info"))
-	}
 
 	// how big to make channels
 	maxSessions := len(settings.Defaults.Sessions)

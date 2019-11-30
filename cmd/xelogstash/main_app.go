@@ -18,7 +18,6 @@ import (
 
 	_ "github.com/alexbrainman/odbc"
 	singleinstance "github.com/allan-simon/go-singleinstance"
-	"github.com/billgraziano/xelogstash/applog"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/billgraziano/xelogstash/summary"
@@ -74,6 +73,7 @@ func runApp() error {
 	}
 
 	log.Info(fmt.Sprintf("version: %s (%s @ %s)", version, sha1ver, buildTime))
+
 	// use default config file if one isn't specified
 	var fn string
 	if opts.TOMLFile == "" {
@@ -96,26 +96,9 @@ func runApp() error {
 		settings.App.Workers = runtime.NumCPU()
 	}
 
-	err = applog.Initialize(settings)
-	if err != nil {
-		log.Error(errors.Wrap(err, "applog.init"))
-		return err
-	}
-
 	var logMessage string
 	logMessage = fmt.Sprintf("app-start: workers %d; default rows: %d", settings.App.Workers, settings.Defaults.Rows)
 	log.Info(logMessage)
-	err = applog.Info(logMessage)
-	if err != nil {
-		log.Error("applog to logstash failed:", err)
-		return err
-	}
-
-	// Report the app logstash
-	if settings.AppLog.Logstash != "" {
-		logMessage = fmt.Sprintf("applog.logstash: %s", settings.AppLog.Logstash)
-		log.Info(logMessage)
-	}
 
 	// check the lock file
 	lockFileName := opts.TOMLFile + ".lock"
@@ -123,7 +106,6 @@ func runApp() error {
 	if err != nil {
 		msg := fmt.Sprintf("instance running: lock file: %s", lockFileName)
 		log.Error(msg)
-		applog.Error(msg)
 		return err
 	}
 
@@ -162,14 +144,6 @@ func runApp() error {
 
 	message, cleanRun := processall(settings)
 	log.Info(message)
-	if cleanRun {
-		err = applog.Info(message)
-	} else {
-		err = applog.Error(message)
-	}
-	if err != nil {
-		log.Error("applog to logstash failed:", err)
-	}
 
 	if settings.App.Summary {
 		log.Debug("Printing summary...")
@@ -184,23 +158,10 @@ func runApp() error {
 		}
 	}
 
-	if settings.AppLog.Samples {
-		log.Debug("Printing app log samples...")
-		err = applog.PrintSamples()
-		if err != nil {
-			log.Error(errors.Wrap(err, "applog.samples"))
-		}
-	}
-
 	log.Debug("Cleaning old log files...")
 	err = cleanOldLogFiles(7)
 	if err != nil {
 		log.Error(errors.Wrap(err, "cleanOldLogFiles"))
-	}
-
-	err = applog.Close()
-	if err != nil {
-		log.Error(errors.Wrap(err, "applog.close"))
 	}
 
 	if appConfig.HTTPMetrics {
@@ -221,7 +182,6 @@ func runApp() error {
 	if err != nil {
 		msg := errors.Wrap(err, "closelockfile").Error()
 		log.Error(msg)
-		applog.Error(msg)
 		cleanRun = false
 	}
 
@@ -230,7 +190,6 @@ func runApp() error {
 	if err != nil {
 		msg := errors.Wrap(err, "removelockfile").Error()
 		log.Error(msg)
-		applog.Error(msg)
 		cleanRun = false
 	}
 	log.Debug("Returned from removing lock file...")

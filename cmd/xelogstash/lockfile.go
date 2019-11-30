@@ -4,7 +4,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/billgraziano/xelogstash/applog"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/pkg/errors"
 )
@@ -18,7 +17,6 @@ func closeLockFile(f *os.File) error {
 		if err != nil {
 			msg := errors.Wrap(err, "os.close").Error()
 			log.Error(msg)
-			applog.Error(msg)
 		}
 		ch <- true
 	}()
@@ -41,7 +39,6 @@ func removeLockFile(fn string) error {
 		if err != nil {
 			msg := errors.Wrap(err, "os.remove").Error()
 			log.Error(msg)
-			applog.Error(msg)
 		}
 		ch <- true
 	}()

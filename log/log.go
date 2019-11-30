@@ -121,14 +121,6 @@ func (l *Logger) SetOutput(w io.Writer) {
 
 var std = New(os.Stdout, "", LstdFlags)
 
-// var (
-// 	// Logstash server to send to
-// 	Logstash string
-// 	// Config is the AppLog config for sending
-// 	Config config.AppLog
-// 	// Exec ID
-// )
-
 // Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
 func itoa(buf *[]byte, i int, wid int) {
 	// Assemble decimal in reverse order.

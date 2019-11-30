@@ -13,6 +13,7 @@
 4. [Other Notes](#notes)
 
 ## <a name="getting-started"></a>Breaking Changes
+* post-0.44 - The AppLog section has been removed.  Please remove this from your TOML files.  All application log files are now written to JSON.
 * post-0.44 - The application log files are written to the `log` subdirectory in JSON format.   These should be processed with FileBeat.
 * 0.40 - The TOML configuration to write to logstash has moved.  It was formerly under `app.logstash`.  Now it is configured in the `logstash` section.  See [Sinks](#sinks) below.
 
@@ -24,7 +25,7 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
 4. From a command-prompt, type "`xelogstash.exe`".  (This doesn't send anything to logstash yet)
 
-This should generate a `samples.xe.json`, `samples.applog.json`, and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
+This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
 
 > NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions or delete the directory and allow the service account to recreate it.
 
@@ -69,7 +70,7 @@ You can set the following Source fields (or Default fields)
 
 
 ## <a name="json"></a>Controlling the JSON
-The two fields `timestamp_field_name` and `payload_field_name` are available in the Source, Default, and AppLog sections.  The following examples best illustrate how they work.
+The two fields `timestamp_field_name` and `payload_field_name` are available in the Source and Default sections.  The following examples best illustrate how they work.
 
 ### Example 1
 All the event fields are at the root level.
@@ -201,7 +202,7 @@ See the section below on derived fields for a description of the "mssql_" and "x
 The application keeps track how far it has read into the extended event file target using a state file.  This file holds the file name and offset of each read for that session.  The file is named `Domain_ServerName_Session.state`.  There is also a ".0" file that is used while the application is running.  You can tell the application to start all over by deleting the state file.  The "ServerName" above is populated by `@@SERVERNAME` from the instance.
 
 ## <a name="app-settings"></a>Application Settings
-These are the fields you can set in the `[app]` and `[applog]` section of the configuration file.
+These are the fields you can set in the `[app]` section of the configuration file.
 ### `[app]` section
 This controls the overall application.  All these fields are optional.
 * `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send events to logstash.
@@ -216,13 +217,7 @@ This controls the overall application.  All these fields are optional.
 
 
 ### `[applog]` section
-This section control how XELogstash writes its own logging events.  *Note: I don't use this as much anymore.  But it is still required.  The only required field is `timestamp_field_name`.*
-
-* `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send logging events to logstash.  This should probably be the same as the `logstash` above but doesn't have to be.
-* `samples` set to true will save a JSON file with every logging event written to it.  This is very helpful for testing your JSON format.
-* `timestamp_field_name` defines the JSON field that will store the timestamp of the event.  This should be "@timestamp" unless you've been told to use a different value.  This field is required.
-* `payload_field_name` defines the parent field for all the logging fields.  This lets you nest all your fields under a parent field.  In production, we use "event" for this.  If you don't set a value, all application logging events are set at the root level.
-* `adds`, `moves` and `copies` are described above.
+Note: This section was removed post 0.44.
 
 
 

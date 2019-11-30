@@ -30,8 +30,10 @@ moves = [ ]
 sessions = ["system_health", "AlwaysOn_health"]
 look_back = "168h" # one week
 rows = 20000 # Process batches of 20000 at a time.  a good compromise.  0 or omitted processes all the rows
+
 timestamp_field_name = "@timestamp"
 payload_field_name = "mssql" # all the XE events are under this field
+
 agentjobs = "all" # (all|failed|none) - process SQL Server agent job history
 excludedEvents = [
     "connectivity_ring_buffer_recorded",
@@ -60,14 +62,6 @@ fqdn = "host.domain.com"
 # These fields overwrite defaults
 # Except that adds, copies, and moves are merged
 #
-
-
-[applog]
-# logstash = "D30:8888"
-timestamp_field_name = "@timestamp"
-payload_field_name = "event" # all app fields will be nested under this field.  Optional.
-samples = true # prints the JSON application logging messaegs to samples.applog.json
-
 
 
 

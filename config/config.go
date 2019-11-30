@@ -35,9 +35,6 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 	}
 
 	config.MetaData = md
-	if config.AppLog.TimestampField == "" {
-		return config, fmt.Errorf("applog.timestamp_field_name is required.  Suggest \"@timestamp\"")
-	}
 
 	err = config.decodekv(version, sha1ver)
 	if err != nil {
@@ -214,19 +211,6 @@ func (c *Config) decodekv(version, sha1ver string) error {
 		}
 	}
 
-	// Process the app settings
-	if c.AppLog.Adds, err = buildmap(c.AppLog.RawAdds, version, sha1ver); err != nil {
-		return errors.Wrap(err, "buildmap.adds")
-	}
-
-	if c.AppLog.Copies, err = buildmap(c.AppLog.RawCopies, version, sha1ver); err != nil {
-		return errors.Wrap(err, "buildmap.copies")
-	}
-
-	if c.AppLog.Moves, err = buildmap(c.AppLog.RawMoves, version, sha1ver); err != nil {
-		return errors.Wrap(err, "buildmap.moves")
-	}
-
 	c.Elastic.EventIndexMap, err = buildmap(c.Elastic.RawEventMap, version, sha1ver)
 	if err != nil {
 		return errors.Wrap(err, "buildmap.elastic.eventindexmap")
@@ -277,26 +261,6 @@ func buildmap(a []string, version, sha1ver string) (map[string]string, error) {
 }
 
 func (c *Config) setSourceDefaults() error {
-
-	// Default AppLog.Timestamp to @timestamp if no value is entered
-	// if c.AppLog.TimestampField == "" {
-	// 	//if !c.MetaData.IsDefined("applog", "timestamp_field_name") {
-	// 	c.AppLog.TimestampField = "@timestamp"
-	// 	//}
-	// }
-
-	// // Default to @timestamp if no value entered
-	// if c.Defaults.TimestampField == "" {
-	// 	//if !c.MetaData.IsDefined("defaults", "timestamp_field_name") {
-	// 	c.Defaults.TimestampField = "@timestamp"
-	// 	//}
-	// }
-
-	// if c.Defaults.PayloadField == "" {
-	// 	if !c.MetaData.IsDefined("defaults", "payload_field_name") {
-	// 		c.Defaults.PayloadField = "mssql"
-	// 	}
-	// }
 
 	// Start with the defaults
 	// Then apply the settings from source if it has a value
@@ -419,7 +383,6 @@ func (e *ElasticConfig) Print() {
 		fmt.Printf("-- address[%d]: %s\r\n", i, v)
 	}
 	fmt.Println("-- username:", e.Username)
-	fmt.Println("-- applog_index:", e.AppLogIndex)
 	fmt.Println("-- default_index:", e.DefaultIndex)
 	for k, v := range e.EventIndexMap {
 		fmt.Printf("-- event: %s -> %s\r\n", k, v)

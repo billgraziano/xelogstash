@@ -7,7 +7,7 @@ all: vet test clean buildEXE copyFiles
 
 vet:
 	go vet -all .\cmd\xelogstash
-	go vet -all .\applog .\config .\log .\logstash .\seq .\status .\summary .\xe
+	go vet -all .\config .\log .\logstash .\seq .\status .\summary .\xe
 
 buildEXE:
 	echo "$(dt)"
@@ -17,7 +17,7 @@ buildEXE:
 # #	cd cmd\xelogstash && govvv build -print && govvv build -a -o "..\..\$(TARGETDIR)\xelogstash.exe"
 
 test:
-	go test .\cmd\xelogstash .\applog .\config .\eshelper .\log .\logstash .\seq .\sink .\summary .\xe
+	go test .\cmd\xelogstash .\config .\eshelper .\log .\logstash .\seq .\sink .\summary .\xe
 # buildRace:
 # #	go generate 
 # 	go build -a -o "$(TARGETDIR)\xelogstash.exe" -race -ldflags "-X main.sha1ver=$(sha1ver)" .\cmd\xelogstash 
