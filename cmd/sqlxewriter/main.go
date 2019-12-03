@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/billgraziano/xelogstash/app"
 	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/kardianos/service"
 	"github.com/shiena/ansicolor"
@@ -23,7 +24,7 @@ func main() {
 
 	svcFlag := flag.String("service", "", "Control the system service (install|uninstall)")
 	debug := flag.Bool("debug", false, "Enable debug logging")
-	filelog := flag.Bool("log", false, "force logging to JSON file")
+	filelog := flag.Bool("log", false, "Force logging to JSON file")
 	flag.Parse()
 
 	if !service.Interactive() || *filelog {
@@ -33,7 +34,15 @@ func main() {
 		}
 		dir = filepath.Join(dir, "log")
 		rot := rotator.New(dir, "sqlxewriter", "log")
-		log.SetFormatter(&log.JSONFormatter{})
+		defer rot.Close()
+
+		log.SetFormatter(&formatter{
+			fields: log.Fields{
+				"version":     version,
+				"version_git": sha1ver,
+			},
+			lf: &log.JSONFormatter{},
+		})
 		log.SetOutput(rot)
 	} else {
 		// force colors on for TextFormatter
@@ -57,7 +66,12 @@ func main() {
 		Description: "SQL Server XE Writer Service",
 	}
 
-	prg := &Program{SHA1: sha1ver, Debug: *debug}
+	prg := &app.Program{SHA1: sha1ver, Debug: *debug}
+	prg.PollInterval = 60
+	prg.ExtraDelay = 0
+	if *debug {
+		prg.Debug = true
+	}
 	svc, err := service.New(prg, svcConfig)
 	if err != nil {
 		log.Fatal(err)
@@ -77,4 +91,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// used for logrus custom fields
+type formatter struct {
+	fields log.Fields
+	lf     log.Formatter
+}
+
+// Format satisfies the logrus.Formatter interface.
+func (f *formatter) Format(e *log.Entry) ([]byte, error) {
+	for k, v := range f.fields {
+		e.Data[k] = v
+	}
+	return f.lf.Format(e)
 }
