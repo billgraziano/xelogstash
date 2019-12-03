@@ -19,12 +19,14 @@ require (
 	github.com/fatih/structs v0.0.0-20180123065059-ebf56d35bba7
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/jessevdk/go-flags v0.0.0-20180331124232-1c38ed7ad0cc
+	github.com/kardianos/service v1.0.0
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/profile v1.2.1
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 // indirect
 	github.com/satori/go.uuid v0.0.0-20180103174451-36e9d2ebbde5
+	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
