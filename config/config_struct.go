@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/toml"
-	"github.com/billgraziano/xelogstash/pkg/rotator"
+	"github.com/billgraziano/xelogstash/sink"
 )
 
 // Config defines the configuration read from the TOML file
@@ -19,7 +19,7 @@ type Config struct {
 	Logstash *Logstash     `toml:"logstash"`
 	MetaData toml.MetaData
 
-	rot *rotator.Rotator
+	rot *sink.Rotator
 	//Sinks    []sink.Sinker
 }
 
@@ -56,8 +56,9 @@ type Source struct {
 type App struct {
 	Workers  int
 	Logstash string
-	Samples  bool // Print sample JSON to stdout
-	Summary  bool // Print a summary to stdout
+	Samples  bool   // Print sample JSON to stdout
+	Summary  bool   // Print a summary to stdout
+	LogLevel string `toml:"log_level"` // trace|debug|info|...
 
 	// Enables a web server on :8080 with basic metrics
 	HTTPMetrics bool `toml:"http_metrics"`

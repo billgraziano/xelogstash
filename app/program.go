@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net/http"
+	_ "net/http/pprof"
 	"sync"
 	"time"
 
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/pkg/rotator"
+	"github.com/billgraziano/xelogstash/sink"
 	"github.com/kardianos/service"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -19,7 +21,7 @@ type Program struct {
 	SHA1    string
 	Version string
 
-	Debug bool
+	//Debug bool
 
 	wg      sync.WaitGroup
 	cancel  context.CancelFunc
@@ -33,8 +35,9 @@ type Program struct {
 	// This will probably be removed.
 	ExtraDelay int
 
-	logRotator   *rotator.Rotator
-	eventRotator *rotator.Rotator
+	// If we're writing to a file sink, which is an event rotator,
+	// this has a pointer to it so we can close it at the very end
+	eventRotator *sink.Rotator
 }
 
 // Start the service
@@ -47,6 +50,9 @@ func (p *Program) Start(svc service.Service) error {
 		log.Debug("running under service manager")
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	p.cancel = cancel
+
 	// Read the config file
 	var settings config.Config
 	settings, err = config.Get("sqlxewriter.toml", p.Version, p.SHA1)
@@ -55,14 +61,22 @@ func (p *Program) Start(svc service.Service) error {
 		return err
 	}
 
+	if settings.App.LogLevel != "" {
+		lvl, err := log.ParseLevel(settings.App.LogLevel)
+		if err != nil {
+			log.Error(errors.Wrap(err, "error parsing log level"))
+		} else {
+			log.Infof("log level: %v", lvl)
+			log.SetLevel(lvl)
+		}
+	}
+
 	msg := fmt.Sprintf("poll interval: %ds", p.PollInterval)
 	if p.ExtraDelay > 0 {
 		msg += fmt.Sprintf("; extra delay: %ds", p.ExtraDelay)
 	}
 
 	log.Info(msg)
-	ctx, cancel := context.WithCancel(context.Background())
-	p.cancel = cancel
 
 	p.targets = len(settings.Sources)
 	// p.targets = 120
@@ -75,9 +89,13 @@ func (p *Program) Start(svc service.Service) error {
 	for i := range sinks {
 		log.Info(fmt.Sprintf("destination: %s", sinks[i].Name()))
 	}
+	p.eventRotator = settings.GetRotator()
 
 	// TODO Enable the http server
 	// TODO Enable the PPROF server
+	go func() {
+		log.Info(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// launch the polling go routines
 	for i := 0; i < p.targets; i++ {
@@ -109,13 +127,13 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
 	for {
 		// run at time zero
-		log.Debugf("[%d] Executing at %v (#%d)...", id, time.Now(), counter)
+		log.Debugf("[%d] polling at %v (#%d)...", id, time.Now(), counter)
 		select {
 		case <-ticker.C:
 			counter++
 			continue
 		case <-ctx.Done():
-			log.Debugf("[%d] ctx.done at %v...pausing...", id, time.Now())
+			log.Debugf("[%d] ctx.pause at %v...", id, time.Now())
 			ticker.Stop()
 
 			// simulate a slow stop
@@ -130,11 +148,19 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
 // Stop handles a stop request
 func (p *Program) Stop(s service.Service) error {
+	var err error
 	log.Info("app.program.stop")
 	p.cancel()
 	p.wg.Wait()
 
-	// TODO close the events rotator if it exists
+	if p.eventRotator != nil {
+		log.Trace("closing event rotator...")
+		err = p.eventRotator.Close()
+		if err != nil {
+			log.Error(errors.Wrap(err, "p.eventrotator.close"))
+		}
+	}
+
 	log.Info("app.program.stop...done")
 	return nil
 }

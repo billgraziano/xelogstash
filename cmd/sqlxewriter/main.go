@@ -2,11 +2,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 
 	"github.com/billgraziano/xelogstash/app"
-	"github.com/billgraziano/xelogstash/pkg/rotator"
+	"github.com/billgraziano/xelogstash/sink"
 	"github.com/kardianos/service"
 	"github.com/shiena/ansicolor"
 
@@ -22,8 +25,10 @@ var (
 func main() {
 	var err error
 
+	// TODO get a flags package that allows / options too
 	svcFlag := flag.String("service", "", "Control the system service (install|uninstall)")
 	debug := flag.Bool("debug", false, "Enable debug logging")
+	trace := flag.Bool("trace", false, "Enable trace logging")
 	filelog := flag.Bool("log", false, "Force logging to JSON file")
 	flag.Parse()
 
@@ -33,15 +38,26 @@ func main() {
 			log.Fatal(err)
 		}
 		dir = filepath.Join(dir, "log")
-		rot := rotator.New(dir, "sqlxewriter", "log")
+		rot := sink.NewRotator(dir, "sqlxewriter", "log")
+
+		// I'm not sure about handling and error here
+		// https://www.joeshaw.org/dont-defer-close-on-writable-files/
 		defer rot.Close()
+
+		log.SetReportCaller(true)
 
 		log.SetFormatter(&formatter{
 			fields: log.Fields{
 				"version":     version,
 				"version_git": sha1ver,
+				"application": filepath.Base(os.Args[0]),
 			},
-			lf: &log.JSONFormatter{},
+			lf: &log.JSONFormatter{
+				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+					filename := path.Base(f.File)
+					return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
+				},
+			},
 		})
 		log.SetOutput(rot)
 	} else {
@@ -57,7 +73,12 @@ func main() {
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)
-		log.Debug("debug logging enabled")
+		log.Debug("log level: debug")
+	}
+
+	if *trace {
+		log.SetLevel(log.TraceLevel)
+		log.Trace("log level: trace")
 	}
 
 	svcConfig := &service.Config{
@@ -66,12 +87,15 @@ func main() {
 		Description: "SQL Server XE Writer Service",
 	}
 
-	prg := &app.Program{SHA1: sha1ver, Debug: *debug}
-	prg.PollInterval = 60
-	prg.ExtraDelay = 0
-	if *debug {
-		prg.Debug = true
+	prg := &app.Program{
+		SHA1: sha1ver,
+		//Debug:        *debug,
+		PollInterval: 10,
+		ExtraDelay:   2,
 	}
+	// if *debug {
+	// 	prg.Debug = true
+	// }
 	svc, err := service.New(prg, svcConfig)
 	if err != nil {
 		log.Fatal(err)

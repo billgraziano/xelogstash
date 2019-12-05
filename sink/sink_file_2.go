@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/pkg/errors"
 )
 
 // OneFile writes events to a file.  This is just a wrapper for the Rotator.
 type OneFile struct {
-	r *rotator.Rotator
+	r *Rotator
 }
 
 // NewOneFile returns a OneFile
-func NewOneFile(rot *rotator.Rotator) *OneFile {
+func NewOneFile(rot *Rotator) *OneFile {
 	return &OneFile{r: rot}
 }
 

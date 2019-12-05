@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/billgraziano/xelogstash/sink"
 
 	"github.com/Showmax/go-fqdn"
@@ -94,7 +93,7 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 			config.FileSink.Directory = filepath.Join(exeDir, "events")
 		}
 
-		rot := rotator.New(config.FileSink.Directory, "sqlevents", "json")
+		rot := sink.NewRotator(config.FileSink.Directory, "sqlevents", "json")
 		rot.Retention = time.Duration(config.FileSink.RetainHours) * time.Hour
 		rot.Hourly = true
 		config.rot = rot
@@ -108,6 +107,10 @@ func (c *Config) CloseRotator() error {
 		return nil
 	}
 	return c.rot.Close()
+}
+
+func (c *Config) GetRotator() *sink.Rotator {
+	return c.rot
 }
 
 // GetSinks returns an array of sinks based on the config

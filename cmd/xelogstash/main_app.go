@@ -19,7 +19,7 @@ import (
 	_ "github.com/alexbrainman/odbc"
 	singleinstance "github.com/allan-simon/go-singleinstance"
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/pkg/rotator"
+	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/summary"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
@@ -53,7 +53,7 @@ func runApp() error {
 
 	// Log to file
 	if opts.Log {
-		logger := rotator.New("log", "xelogstash", "log")
+		logger := sink.NewRotator("log", "xelogstash", "log")
 
 		log.SetOutput(logger)
 		log.SetFormatter(&formatter{
