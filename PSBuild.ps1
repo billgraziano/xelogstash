@@ -23,19 +23,30 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
-go vet -all .\config .\log .\logstash .\seq .\status .\summary .\xe .\sink
+go vet -all .\cmd\sqlxewriter
+if ($LastExitCode -ne 0) {
+    exit
+}
+
+go vet -all .\config .\log .\logstash .\seq .\status .\summary .\xe .\sink .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
 
 Write-Output "Running go test..."
-go test .\cmd\xelogstash .\config .\seq .\xe .\sink
+go test .\cmd\xelogstash .\config .\seq .\xe .\sink .\status .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
 
-Write-Output "Building..."
+Write-Output "Building xelogstash..."
 go build -o "$($target)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\xelogstash"
+if ($LastExitCode -ne 0) {
+    exit
+}
+
+Write-Output "Building sqlxewriter..."
+go build -o "$($target)\sqlxewriter.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\sqlxewriter"
 if ($LastExitCode -ne 0) {
     exit
 }

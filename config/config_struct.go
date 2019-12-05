@@ -18,6 +18,7 @@ type Config struct {
 	FileSink *FileSink     `toml:"filesink"`
 	Logstash *Logstash     `toml:"logstash"`
 	MetaData toml.MetaData
+	FileName string
 
 	rot *sink.Rotator
 	//Sinks    []sink.Sinker

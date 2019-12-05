@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/format"
 	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
@@ -58,7 +60,7 @@ func ProcessSource(wid int, source config.Source, sinks []sink.Sinker) (sourceRe
 		sourceResult.Instance = result.Instance
 		sourceResult.Rows += result.Rows
 
-		txtDuration := fmt.Sprintf(" (%s)", roundDuration(runtime, time.Second))
+		txtDuration := fmt.Sprintf(" (%s)", format.RoundDuration(runtime, time.Second))
 		if runtime.Seconds() < 10 {
 			txtDuration = ""
 		}

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/mssqlodbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
@@ -77,10 +78,10 @@ func processAgentJobs(wid int, source config.Source, sinks []sink.Sinker) (resul
 	}
 
 	// do the dupe check based on the actual instance since that's what is stored
-	err = status.CheckDupe(info.Domain, result.Instance, status.ClassAgentJobs, result.Session)
-	if err != nil {
-		return result, errors.Wrap(err, "dupe.check")
-	}
+	// err = status.CheckDupe(info.Domain, result.Instance, status.ClassAgentJobs, result.Session)
+	// if err != nil {
+	// 	return result, errors.Wrap(err, "dupe.check")
+	// }
 
 	//appStart := time.Now()
 

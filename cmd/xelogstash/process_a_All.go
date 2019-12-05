@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/format"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/dustin/go-humanize/english"
 	log "github.com/sirupsen/logrus"
@@ -75,7 +76,7 @@ func processall(settings config.Config) (string, bool) {
 			humanize.Comma(int64(rows)),
 			english.PluralWord(rows, "event", ""),
 			humanize.Comma(int64(rowsPerSecond)),
-			roundDuration(runtime, time.Second))
+			format.RoundDuration(runtime, time.Second))
 	} else {
 		textMessage = fmt.Sprintf("Processed %s %s", humanize.Comma(int64(rows)), english.PluralWord(rows, "event", ""))
 	}

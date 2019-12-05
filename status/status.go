@@ -24,6 +24,7 @@ import (
 // }
 
 var sources map[string]bool
+var instances map[string]bool
 var mux sync.Mutex
 
 //ErrDup indicates a duplicate was found
@@ -31,6 +32,7 @@ var ErrDup = errors.New("duplicate domain-instance-class-id")
 
 func init() {
 	sources = make(map[string]bool)
+	instances = make(map[string]bool)
 	//mux = sync.Mutex
 }
 
@@ -77,6 +79,23 @@ func CheckDupe(domain, instance, class, id string) error {
 
 	sources[fileName] = true
 
+	return nil
+}
+
+// CheckDupeInstance checks to see if this instance has already been seen
+func CheckDupeInstance(domain, instance string) error {
+	if domain == "" || instance == "" {
+		return fmt.Errorf("invalid value: domain: %s; instance: %s;", domain, instance)
+	}
+	key := domain + ":" + instance
+	mux.Lock()
+	defer mux.Unlock()
+
+	_, found := instances[key]
+	if found {
+		return ErrDup
+	}
+	instances[key] = true
 	return nil
 }
 

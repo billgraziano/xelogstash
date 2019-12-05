@@ -29,6 +29,7 @@ var DefaultStopAt = time.Date(9999, time.December, 31, 0, 0, 0, 0, time.UTC)
 
 // Get the configuration from a configuration file
 func Get(f, version, sha1ver string) (config Config, err error) {
+	config.FileName = f
 	md, err := toml.DecodeFile(f, &config)
 	if err != nil {
 		return config, errors.Wrap(err, "toml.decode")

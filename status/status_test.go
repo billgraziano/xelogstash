@@ -1,6 +1,10 @@
 package status
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestCheckDupe(t *testing.T) {
 	var err error
@@ -12,6 +16,17 @@ func TestCheckDupe(t *testing.T) {
 	if err == nil {
 		t.Error("It should exist")
 	}
+}
+
+func TestDupInstance(t *testing.T) {
+	assert := assert.New(t)
+	var err error
+	err = CheckDupeInstance("WORK", "TEST\\GO")
+	assert.NoError(err)
+	err = CheckDupeInstance("WORK2", "TEST\\GO")
+	assert.NoError(err)
+	err = CheckDupeInstance("WORK2", "TEST\\GO")
+	assert.Error(err)
 }
 
 func TestCaseSensitive(t *testing.T) {

@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -54,12 +56,11 @@ func (p *Program) Start(svc service.Service) error {
 	p.cancel = cancel
 
 	// Read the config file
-	var settings config.Config
-	settings, err = config.Get("sqlxewriter.toml", p.Version, p.SHA1)
+	settings, err := p.getConfig()
 	if err != nil {
-		log.Error(errors.Wrap(err, "config.get"))
-		return err
+		return errors.Wrap(err, "p.getconfig")
 	}
+	log.Infof("config file: %s", settings.FileName)
 
 	if settings.App.LogLevel != "" {
 		lvl, err := log.ParseLevel(settings.App.LogLevel)
@@ -92,7 +93,7 @@ func (p *Program) Start(svc service.Service) error {
 	p.eventRotator = settings.GetRotator()
 
 	// TODO Enable the http server
-	// TODO Enable the PPROF server
+	// Enable the PPROF server
 	go func() {
 		log.Info(http.ListenAndServe("localhost:6060", nil))
 	}()
@@ -107,11 +108,25 @@ func (p *Program) Start(svc service.Service) error {
 
 func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
+	p.wg.Add(1)
+	defer p.wg.Done()
+
 	counter := 1
 	log.Infof("[%d] goroutine launched %v", id, service.Platform())
 
-	p.wg.Add(1)
-	defer p.wg.Done()
+	// get the source
+	if id >= len(cfg.Sources) {
+		log.Errorf("poll exiting: id: %d len(sources): %d", id, len(cfg.Sources))
+		return
+	}
+	src := cfg.Sources[id]
+
+	// get the sinks
+	sinks, err := cfg.GetSinks()
+	if err != nil {
+		log.Error(errors.Wrap(err, "poll exiting: cfg.getsinks"))
+		return
+	}
 
 	// sleep to spread out the launch (ms)
 	delay := p.PollInterval * 1000 * id / p.targets
@@ -128,6 +143,11 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	for {
 		// run at time zero
 		log.Debugf("[%d] polling at %v (#%d)...", id, time.Now(), counter)
+		result, err := ProcessSource(id, src, sinks)
+		if err != nil {
+			log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+		}
+
 		select {
 		case <-ticker.C:
 			counter++
@@ -163,4 +183,31 @@ func (p *Program) Stop(s service.Service) error {
 
 	log.Info("app.program.stop...done")
 	return nil
+}
+
+func (p *Program) getConfig() (config.Config, error) {
+	var c config.Config
+	var err error
+
+	// get the dir of the EXE
+	exe, err := os.Executable()
+	if err != nil {
+		return c, errors.Wrap(err, "os.executable")
+	}
+	exePath := filepath.Dir(exe)
+
+	configFiles := []string{"sqlxewriter.toml", "xelogstash.toml"}
+	for _, s := range configFiles {
+		fqfile := filepath.Join(exePath, s)
+		_, err := os.Stat(fqfile)
+		if os.IsNotExist(err) {
+			continue
+		}
+		c, err = config.Get(fqfile, p.Version, p.SHA1)
+		if err != nil {
+			return c, errors.Wrap(err, fmt.Sprintf("config.get (%s)", s))
+		}
+		return c, nil
+	}
+	return c, errors.New("missing sqlxewriter.toml or xelogstash.toml")
 }
