@@ -11,6 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/billgraziano/xelogstash/status"
+
+	"github.com/billgraziano/xelogstash/xe"
+
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/sink"
 	"github.com/kardianos/service"
@@ -98,6 +102,27 @@ func (p *Program) Start(svc service.Service) error {
 		log.Info(http.ListenAndServe("localhost:6060", nil))
 	}()
 
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: http.DefaultServeMux,
+	}
+
+	if settings.App.HTTPMetrics {
+		go func() {
+			log.Debug("HTTP metrics server starting...")
+			//http.ListenAndServe(":8080", http.DefaultServeMux)
+			serverErr := httpServer.ListenAndServe()
+			if serverErr == http.ErrServerClosed {
+				log.Debug("HTTP metrics server closed")
+				return
+			}
+			if serverErr != nil {
+				log.Error(errors.Wrap(errors.Wrap(serverErr, "http.listenandserve"), "appconfig.httpmetrics"))
+			}
+			log.Debug("HTTP metrics server closed fallthrough")
+		}()
+	}
+
 	// launch the polling go routines
 	for i := 0; i < p.targets; i++ {
 		go p.run(ctx, i, settings)
@@ -138,8 +163,27 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		break
 	}
 
-	ticker := time.NewTicker(time.Duration(p.PollInterval) * time.Second)
+	// do a for loop to poll the server name
+	// check for duplicates, if OK, pop out of the loop
 
+	// then check if we've cancelled
+	// if we've cancelled, then exit out
+	/*
+
+				select {
+		case: ctx.Done()
+		default:
+			break
+		}
+
+	*/
+	// ok is false if duplicate or context times out
+	ok := p.checkdupes(ctx, src)
+	if !ok {
+		return
+	}
+
+	ticker := time.NewTicker(time.Duration(p.PollInterval) * time.Second)
 	for {
 		// run at time zero
 		log.Debugf("[%d] polling at %v (#%d)...", id, time.Now(), counter)
@@ -183,6 +227,38 @@ func (p *Program) Stop(s service.Service) error {
 
 	log.Info("app.program.stop...done")
 	return nil
+}
+
+func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
+	// try to connect in a loop until we do
+	ticker := time.NewTicker(time.Duration(p.PollInterval) * time.Second)
+
+	for {
+		// TODO need a version of this with context
+		info, err := xe.GetSQLInfo(src.FQDN)
+		if err != nil {
+			// if there was an error the server could be down
+			// or entered incorrectly
+			// we just keep logging the error
+			log.Error(err, fmt.Sprintf("fqdn: %s", src.FQDN))
+		} else { // we connected and got info
+			err = status.CheckDupeInstance(info.Domain, info.Server)
+			if err == nil {
+				return true // no dupe
+			}
+			log.Error(errors.Wrap(err, fmt.Sprintf("duplicate: domain: %s; server: %s", info.Domain, info.Server)))
+			return false
+		}
+
+		// we just keep checking every minute in case the server was down
+		select {
+		case <-ticker.C:
+			continue
+		case <-ctx.Done():
+			ticker.Stop()
+			return false
+		}
+	}
 }
 
 func (p *Program) getConfig() (config.Config, error) {

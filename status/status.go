@@ -29,6 +29,7 @@ var mux sync.Mutex
 
 //ErrDup indicates a duplicate was found
 var ErrDup = errors.New("duplicate domain-instance-class-id")
+var ErrDupInstance = errors.New("duplicate domain-instance")
 
 func init() {
 	sources = make(map[string]bool)
@@ -93,7 +94,7 @@ func CheckDupeInstance(domain, instance string) error {
 
 	_, found := instances[key]
 	if found {
-		return ErrDup
+		return ErrDupInstance
 	}
 	instances[key] = true
 	return nil
