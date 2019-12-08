@@ -89,13 +89,10 @@ func main() {
 
 	prg := &app.Program{
 		SHA1: sha1ver,
-		//Debug:        *debug,
-		PollInterval: 10,
-		ExtraDelay:   0,
+		//PollInterval: 60,
+		ExtraDelay: 0,
 	}
-	// if *debug {
-	// 	prg.Debug = true
-	// }
+
 	svc, err := service.New(prg, svcConfig)
 	if err != nil {
 		log.Fatal(err)

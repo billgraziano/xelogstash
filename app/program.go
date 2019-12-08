@@ -50,7 +50,7 @@ func (p *Program) Start(svc service.Service) error {
 		}
 	}
 
-	msg := fmt.Sprintf("poll interval: %ds", p.PollInterval)
+	msg := fmt.Sprintf("default poll interval: %ds", settings.Defaults.PollSeconds)
 	if p.ExtraDelay > 0 {
 		msg += fmt.Sprintf("; extra delay: %ds", p.ExtraDelay)
 	}
@@ -119,7 +119,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	defer p.wg.Done()
 
 	counter := 1
-	log.Infof("[%d] goroutine launched %v", id, service.Platform())
+	log.Tracef("[%d] poll routine launched: %v", id, service.Platform())
 
 	// get the source
 	if id >= len(cfg.Sources) {
@@ -128,15 +128,11 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	}
 	src := cfg.Sources[id]
 
-	// get the sinks
-	// sinks, err := cfg.GetSinks()
-	// if err != nil {
-	// 	log.Error(errors.Wrap(err, "poll exiting: cfg.getsinks"))
-	// 	return
-	// }
-
 	// sleep to spread out the launch (ms)
-	delay := p.PollInterval * 1000 * id / p.targets
+	delay := cfg.Defaults.PollSeconds * 1000 * id / p.targets
+	if delay == 0 {
+		delay = id
+	}
 
 	select {
 	case <-ctx.Done():
@@ -145,30 +141,19 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		break
 	}
 
-	// do a for loop to poll the server name
-	// check for duplicates, if OK, pop out of the loop
+	logmsg := fmt.Sprintf("polling: %s; interval: %ds", src.FQDN, src.PollSeconds)
+	log.Info(logmsg)
 
-	// then check if we've cancelled
-	// if we've cancelled, then exit out
-	/*
-
-				select {
-		case: ctx.Done()
-		default:
-			break
-		}
-
-	*/
 	// ok is false if duplicate or context times out
 	ok := p.checkdupes(ctx, src)
 	if !ok {
 		return
 	}
 
-	ticker := time.NewTicker(time.Duration(p.PollInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(src.PollSeconds) * time.Second)
 	for {
 		// run at time zero
-		log.Debugf("[%d] polling at %v (#%d)...", id, time.Now(), counter)
+		log.Debugf("[%d] polling (#%d)...", id, counter)
 		result, err := p.ProcessSource(ctx, id, src)
 		if err != nil {
 			log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
@@ -179,14 +164,14 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 			counter++
 			continue
 		case <-ctx.Done():
-			log.Debugf("[%d] ctx.pause at %v...", id, time.Now())
+			//log.Debugf("[%d] ctx.pause at %v...", id, time.Now())
 			ticker.Stop()
 
 			// simulate a slow stop
 			if p.ExtraDelay > 0 {
 				<-time.After(time.Millisecond * time.Duration(rand.Intn(p.ExtraDelay*1000)))
 			}
-			log.Debugf("[%d] ctx.done at %v...done", id, time.Now())
+			log.Debugf("[%d] ctx.done", id)
 			return
 		}
 	}
@@ -198,14 +183,6 @@ func (p *Program) Stop(s service.Service) error {
 	log.Info("app.program.stop")
 	p.Cancel()
 	p.wg.Wait()
-
-	// if p.eventRotator != nil {
-	// 	log.Trace("closing event rotator...")
-	// 	err = p.eventRotator.Close()
-	// 	if err != nil {
-	// 		log.Error(errors.Wrap(err, "p.eventrotator.close"))
-	// 	}
-	// }
 
 	log.Trace("closing sinks...")
 	for i := range p.Sinks {
@@ -222,7 +199,7 @@ func (p *Program) Stop(s service.Service) error {
 
 func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 	// try to connect in a loop until we do
-	ticker := time.NewTicker(time.Duration(p.PollInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(src.PollSeconds) * time.Second)
 
 	for {
 		// TODO need a version of this with context

@@ -39,6 +39,7 @@ type Source struct {
 	StopAt         time.Time `toml:"stop_at"`
 	LookBackRaw    string    `toml:"look_back"`
 	lookback       time.Duration
+	PollSeconds    int `toml:"poll_seconds"`
 
 	Adds               map[string]string
 	Copies             map[string]string

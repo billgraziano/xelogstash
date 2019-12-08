@@ -46,6 +46,10 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 		config.Defaults.StopAt = DefaultStopAt
 	}
 
+	if config.Defaults.PollSeconds == 0 {
+		config.Defaults.PollSeconds = 60
+	}
+
 	// Calculate the default lookback and use if more recent than StartAt
 	if config.Defaults.LookBackRaw != "" {
 		err = config.Defaults.processLookback()
@@ -321,6 +325,10 @@ func (c *Config) setSourceDefaults() error {
 			n.Rows = v.Rows
 		}
 
+		if v.PollSeconds > 0 {
+			n.PollSeconds = v.PollSeconds
+		}
+
 		if !v.StartAt.IsZero() {
 			n.StartAt = v.StartAt
 		}
@@ -361,6 +369,7 @@ func (c *Config) setSourceDefaults() error {
 			n.Moves = merge(n.Moves, v.Moves)
 			// n.Renames = v.Renames
 		}
+
 		c.Sources[i] = n
 	}
 	return nil

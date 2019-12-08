@@ -18,7 +18,7 @@ type Program struct {
 	targets int
 
 	// Interval that we poll servers in seconds
-	PollInterval int
+	// PollInterval int
 
 	// ExtraDelay that is added to for testing
 	// the stop function (in seconds)
