@@ -8,43 +8,17 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
+	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
-
 	"github.com/billgraziano/xelogstash/xe"
 
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/sink"
 	"github.com/kardianos/service"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
-// Program is used to launch the servcie
-type Program struct {
-	SHA1    string
-	Version string
-
-	//Debug bool
-
-	wg      sync.WaitGroup
-	cancel  context.CancelFunc
-	targets int
-
-	// Interval that we poll servers in seconds
-	PollInterval int
-
-	// ExtraDelay that is added to for testing
-	// the stop function (in seconds)
-	// This will probably be removed.
-	ExtraDelay int
-
-	// If we're writing to a file sink, which is an event rotator,
-	// this has a pointer to it so we can close it at the very end
-	eventRotator *sink.Rotator
-}
 
 // Start the service
 func (p *Program) Start(svc service.Service) error {
@@ -57,7 +31,7 @@ func (p *Program) Start(svc service.Service) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	p.cancel = cancel
+	p.Cancel = cancel
 
 	// Read the config file
 	settings, err := p.getConfig()
@@ -91,10 +65,18 @@ func (p *Program) Start(svc service.Service) error {
 	if err != nil {
 		return errors.Wrap(err, "globalconfig.getsinks")
 	}
+	p.Sinks = make([]*sink.Sinker, 0)
 	for i := range sinks {
-		log.Info(fmt.Sprintf("destination: %s", sinks[i].Name()))
+		p.Sinks = append(p.Sinks, &sinks[i])
 	}
-	p.eventRotator = settings.GetRotator()
+	for i := range p.Sinks {
+		ptr := *p.Sinks[i]
+		log.Info(fmt.Sprintf("sink: %s", ptr.Name()))
+		err = ptr.Open("id")
+		if err != nil {
+			return errors.Wrap(err, "ptr.open")
+		}
+	}
 
 	// TODO Enable the http server
 	// Enable the PPROF server
@@ -147,11 +129,11 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	src := cfg.Sources[id]
 
 	// get the sinks
-	sinks, err := cfg.GetSinks()
-	if err != nil {
-		log.Error(errors.Wrap(err, "poll exiting: cfg.getsinks"))
-		return
-	}
+	// sinks, err := cfg.GetSinks()
+	// if err != nil {
+	// 	log.Error(errors.Wrap(err, "poll exiting: cfg.getsinks"))
+	// 	return
+	// }
 
 	// sleep to spread out the launch (ms)
 	delay := p.PollInterval * 1000 * id / p.targets
@@ -187,7 +169,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	for {
 		// run at time zero
 		log.Debugf("[%d] polling at %v (#%d)...", id, time.Now(), counter)
-		result, err := ProcessSource(id, src, sinks)
+		result, err := p.ProcessSource(ctx, id, src)
 		if err != nil {
 			log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
 		}
@@ -214,14 +196,23 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 func (p *Program) Stop(s service.Service) error {
 	var err error
 	log.Info("app.program.stop")
-	p.cancel()
+	p.Cancel()
 	p.wg.Wait()
 
-	if p.eventRotator != nil {
-		log.Trace("closing event rotator...")
-		err = p.eventRotator.Close()
+	// if p.eventRotator != nil {
+	// 	log.Trace("closing event rotator...")
+	// 	err = p.eventRotator.Close()
+	// 	if err != nil {
+	// 		log.Error(errors.Wrap(err, "p.eventrotator.close"))
+	// 	}
+	// }
+
+	log.Trace("closing sinks...")
+	for i := range p.Sinks {
+		snk := *p.Sinks[i]
+		err = snk.Close()
 		if err != nil {
-			log.Error(errors.Wrap(err, "p.eventrotator.close"))
+			log.Error(errors.Wrap(err, fmt.Sprintf("close: sink: %s", snk.Name())))
 		}
 	}
 
@@ -240,13 +231,13 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 			// if there was an error the server could be down
 			// or entered incorrectly
 			// we just keep logging the error
-			log.Error(err, fmt.Sprintf("fqdn: %s", src.FQDN))
+			log.Error(err, fmt.Sprintf("uneachable: fqdn: %s", src.FQDN))
 		} else { // we connected and got info
 			err = status.CheckDupeInstance(info.Domain, info.Server)
 			if err == nil {
 				return true // no dupe
 			}
-			log.Error(errors.Wrap(err, fmt.Sprintf("duplicate: domain: %s; server: %s", info.Domain, info.Server)))
+			log.Error(errors.Wrap(err, fmt.Sprintf("skipping duplicate: fqdn: %s; domain: %s; server: %s", src.FQDN, info.Domain, info.Server)))
 			return false
 		}
 

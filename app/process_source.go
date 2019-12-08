@@ -1,13 +1,13 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/pkg/format"
-	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
 	humanize "github.com/dustin/go-humanize"
@@ -17,7 +17,7 @@ import (
 )
 
 // ProcessSource handles the sessions and jobs for an instance
-func ProcessSource(wid int, source config.Source, sinks []sink.Sinker) (sourceResult Result, err error) {
+func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Source) (sourceResult Result, err error) {
 
 	logmsg := fmt.Sprintf("[%d] Source: %s;  Sessions: %d", wid, source.FQDN, len(source.Sessions))
 	if source.Exclude17830 {
@@ -49,7 +49,7 @@ func ProcessSource(wid int, source config.Source, sinks []sink.Sinker) (sourceRe
 		start := time.Now()
 
 		var result Result
-		result, err = processSession(wid, info, source, sinks, i)
+		result, err = p.processSession(ctx, wid, info, source, i)
 		runtime := time.Since(start)
 		totalSeconds := runtime.Seconds()
 
@@ -103,7 +103,7 @@ func ProcessSource(wid int, source config.Source, sinks []sink.Sinker) (sourceRe
 		start := time.Now()
 
 		var result Result
-		result, err = processAgentJobs(wid, source, sinks)
+		result, err = p.processAgentJobs(ctx, wid, source)
 		runtime := time.Since(start)
 		totalSeconds := runtime.Seconds()
 		// TODO - based on the error, generate a message

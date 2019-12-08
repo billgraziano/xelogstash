@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -9,18 +10,17 @@ import (
 	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
-	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
-func processSession(
+func (p *Program) processSession(
+	ctx context.Context,
 	wid int,
 	info xe.SQLInfo,
 	source config.Source,
-	sinks []sink.Sinker,
 	sessionid int) (result Result, err error) {
 
 	result.Session = source.Sessions[sessionid]
@@ -99,14 +99,14 @@ func processSession(
 	// if err != nil {
 	// 	return result, errors.Wrap(err, "globalconfig.getsinks")
 	// }
-	for i := range sinks {
-		id := strings.Replace(info.Server, "\\", "_", -1)
-		err = sinks[i].Open(id)
-		if err != nil {
-			return result, errors.Wrapf(err, "sink: %s", id)
-		}
-		defer sinks[i].Close()
-	}
+	// for i := range p.Sinks {
+	// 	id := strings.Replace(info.Server, "\\", "_", -1)
+	// 	err = sinks[i].Open(id)
+	// 	if err != nil {
+	// 		return result, errors.Wrapf(err, "sink: %s", id)
+	// 	}
+	// 	defer sinks[i].Close()
+	// }
 
 	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StateReset {
 		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
@@ -184,10 +184,11 @@ func processSession(
 			// }
 
 			// Flush all the sinks
-			for i := range sinks {
-				err = sinks[i].Flush()
+			for i := range p.Sinks {
+				snk := *p.Sinks[i]
+				snk.Flush()
 				if err != nil {
-					newError := errors.Wrap(err, fmt.Sprintf("sink.flush: %s", sinks[i].Name()))
+					newError := errors.Wrap(err, fmt.Sprintf("sink.flush: %s", snk.Name()))
 					log.Error(newError)
 					return result, newError
 				}
@@ -316,10 +317,11 @@ func processSession(
 		// }
 
 		// Process all the destinations
-		for i := range sinks {
-			_, err = sinks[i].Write(eventName, rs)
+		for i := range p.Sinks {
+			snk := *p.Sinks[i]
+			_, err = snk.Write(eventName, rs)
 			if err != nil {
-				newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
+				newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", snk.Name()))
 				log.Error(newError)
 				return result, newError
 			}
@@ -344,15 +346,16 @@ func processSession(
 
 		// Process all the destinations
 		var lastError error
-		for i := range sinks {
-			err = sinks[i].Flush()
+		for i := range p.Sinks {
+			snk := *p.Sinks[i]
+			err = snk.Flush()
 			if err != nil {
-				lastError = errors.Wrapf(err, "sink.flush: %s", sinks[i].Name())
+				lastError = errors.Wrapf(err, "sink.flush: %s", snk.Name())
 				log.Error(lastError)
 			}
-			err = sinks[i].Clean()
+			err = snk.Clean()
 			if err != nil {
-				lastError = errors.Wrapf(err, "sink.clean: %s", sinks[i].Name())
+				lastError = errors.Wrapf(err, "sink.clean: %s", snk.Name())
 				log.Error(lastError)
 			}
 		}

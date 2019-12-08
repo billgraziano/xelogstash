@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 	"github.com/billgraziano/mssqlodbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
-	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -37,7 +37,7 @@ type jobResult struct {
 	Domain         string `json:"mssql_domain"`
 }
 
-func processAgentJobs(wid int, source config.Source, sinks []sink.Sinker) (result Result, err error) {
+func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.Source) (result Result, err error) {
 
 	result.Session = "agent_jobs"
 	result.Instance = source.FQDN // this will be reset later
@@ -118,14 +118,14 @@ func processAgentJobs(wid int, source config.Source, sinks []sink.Sinker) (resul
 	// if err != nil {
 	// 	return result, errors.Wrap(err, "globalconfig.getsinks")
 	// }
-	for i := range sinks {
-		id := strings.Replace(info.Server, "\\", "_", -1)
-		err = sinks[i].Open(id)
-		if err != nil {
-			return result, errors.Wrapf(err, "sink: %s", id)
-		}
-		defer sinks[i].Close()
-	}
+	// for i := range sinks {
+	// 	id := strings.Replace(info.Server, "\\", "_", -1)
+	// 	err = sinks[i].Open(id)
+	// 	if err != nil {
+	// 		return result, errors.Wrapf(err, "sink: %s", id)
+	// 	}
+	// 	defer sinks[i].Close()
+	// }
 
 	// TODO if source.Rows is very small, it will never get
 	// as far as the lookback date
@@ -351,10 +351,11 @@ func processAgentJobs(wid int, source config.Source, sinks []sink.Sinker) (resul
 			// }
 
 			// Process all the destinations
-			for i := range sinks {
-				_, err = sinks[i].Write(j.Name, rs)
+			for i := range p.Sinks {
+				snk := *p.Sinks[i]
+				_, err = snk.Write(j.Name, rs)
 				if err != nil {
-					newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", sinks[i].Name()))
+					newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", snk.Name()))
 					log.Error(newError)
 					return result, newError
 				}
@@ -382,15 +383,16 @@ func processAgentJobs(wid int, source config.Source, sinks []sink.Sinker) (resul
 	if gotRows {
 		// Process all the destinations
 		var lastError error
-		for i := range sinks {
-			err = sinks[i].Flush()
+		for i := range p.Sinks {
+			snk := *p.Sinks[i]
+			err = snk.Flush()
 			if err != nil {
-				lastError = errors.Wrapf(err, "sink.flush: %s", sinks[i].Name())
+				lastError = errors.Wrapf(err, "sink.flush: %s", snk.Name())
 				log.Error(lastError)
 			}
-			err = sinks[i].Clean()
+			err = snk.Clean()
 			if err != nil {
-				lastError = errors.Wrapf(err, "sink.clean: %s", sinks[i].Name())
+				lastError = errors.Wrapf(err, "sink.clean: %s", snk.Name())
 				log.Error(lastError)
 			}
 		}

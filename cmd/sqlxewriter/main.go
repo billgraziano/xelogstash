@@ -91,7 +91,7 @@ func main() {
 		SHA1: sha1ver,
 		//Debug:        *debug,
 		PollInterval: 10,
-		ExtraDelay:   2,
+		ExtraDelay:   0,
 	}
 	// if *debug {
 	// 	prg.Debug = true
