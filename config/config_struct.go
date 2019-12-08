@@ -56,11 +56,12 @@ type Source struct {
 
 // App defines the application configuration
 type App struct {
-	Workers  int
-	Logstash string
-	Samples  bool   // Print sample JSON to stdout
-	Summary  bool   // Print a summary to stdout
-	LogLevel string `toml:"log_level"` // trace|debug|info|...
+	Workers        int
+	Logstash       string
+	Samples        bool   // Print sample JSON to stdout
+	Summary        bool   // Print a summary to stdout
+	LogLevel       string `toml:"log_level"`       // trace|debug|info|...
+	StrictSessions bool   `toml:"strict_sessions"` // true - log session errors
 
 	// Enables a web server on :8080 with basic metrics
 	HTTPMetrics bool `toml:"http_metrics"`

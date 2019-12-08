@@ -156,7 +156,13 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		log.Debugf("[%d] polling (#%d)...", id, counter)
 		result, err := p.ProcessSource(ctx, id, src)
 		if err != nil {
-			log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+			if errors.Cause(err) == xe.ErrNotFound || errors.Cause(err) == xe.ErrNoFileTarget {
+				if cfg.App.StrictSessions {
+					log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+				}
+			} else {
+				log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+			}
 		}
 
 		select {
