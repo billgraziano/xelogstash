@@ -94,39 +94,6 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 		return result, errors.Wrap(err, "status.getoffset")
 	}
 
-	// var ls *logstash.Logstash
-	// if appConfig.Logstash != "" {
-	// 	ls, err = logstash.NewHost(appConfig.Logstash, 180)
-	// 	if err != nil {
-	// 		return result, errors.Wrap(err, "logstash-new")
-	// 	}
-	// 	// TODO ignore the error for now
-	// 	defer ls.Close()
-	// }
-
-	// Setup the Elastic client
-	// var elasticBuffer bytes.Buffer
-	// var esclient *elasticsearch.Client
-	// if len(globalConfig.Elastic.Addresses) > 0 && globalConfig.Elastic.Username != "" && globalConfig.Elastic.Password != "" {
-	// 	esclient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
-	// 	if err != nil {
-	// 		return result, errors.Wrap(err, "eshelper.NewClient")
-	// 	}
-	// }
-
-	// sinks, err := globalConfig.GetSinks()
-	// if err != nil {
-	// 	return result, errors.Wrap(err, "globalconfig.getsinks")
-	// }
-	// for i := range sinks {
-	// 	id := strings.Replace(info.Server, "\\", "_", -1)
-	// 	err = sinks[i].Open(id)
-	// 	if err != nil {
-	// 		return result, errors.Wrapf(err, "sink: %s", id)
-	// 	}
-	// 	defer sinks[i].Close()
-	// }
-
 	// TODO if source.Rows is very small, it will never get
 	// as far as the lookback date
 	// If we don't have a previous value (lastInstanceID),
@@ -178,6 +145,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 	if err != nil {
 		return result, errors.Wrap(err, "db.open")
 	}
+	defer safeClose(rows, &err)
 
 	var instanceID int
 	var gotRows bool
@@ -187,6 +155,11 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 
 		// do we have enough rows
 		if source.Rows > 0 && result.Rows >= source.Rows {
+			break
+		}
+
+		// do we have a cancel?
+		if ctx.Err() != nil {
 			break
 		}
 
@@ -318,37 +291,6 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 			if err != nil {
 				return result, errors.Wrap(err, "logstash.processmods")
 			}
-
-			// TODO if test, write {}
-			// if ls != nil {
-			// 	err = ls.Writeln(rs)
-			// 	if err != nil {
-			// 		log.Error("")
-			// 		log.Error(fmt.Sprintf("%s\r\n", rs))
-			// 		log.Error("")
-			// 		return result, errors.Wrap(err, "logstash-writeln")
-			// 	}
-			// }
-
-			// // Write one entry to the buffer
-			// if esclient != nil {
-			// 	var esIndex string
-			// 	var ok bool
-			// 	esIndex, ok = globalConfig.Elastic.EventIndexMap[j.Name]
-			// 	if !ok {
-			// 		esIndex = globalConfig.Elastic.DefaultIndex
-			// 	}
-			// 	meta := []byte(fmt.Sprintf(`{ "index" : { "_index" : "%s" } }%s`, esIndex, "\n"))
-			// 	espayload := []byte(rs + "\n")
-			// 	elasticBuffer.Grow(len(meta) + len(espayload))
-			// 	elasticBuffer.Write(meta)
-			// 	elasticBuffer.Write(espayload)
-			// }
-
-			// err = eshelper.WriteElasticBuffer(esclient, &elasticBuffer)
-			// if err != nil {
-			// 	return result, errors.Wrap(err, "writeelasticbuffer")
-			// }
 
 			// Process all the destinations
 			for i := range p.Sinks {

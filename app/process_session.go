@@ -76,37 +76,6 @@ func (p *Program) processSession(
 	}
 
 	var query string
-	// var ls *logstash.Logstash
-	// if appConfig.Logstash != "" {
-	// 	ls, err = logstash.NewHost(appConfig.Logstash, 180)
-	// 	if err != nil {
-	// 		return result, errors.Wrap(err, "logstash-new")
-	// 	}
-	// 	defer ls.Close()
-	// }
-
-	// Setup the Elastic client
-	// var esclient *elasticsearch.Client
-	// if len(globalConfig.Elastic.Addresses) > 0 && globalConfig.Elastic.Username != "" && globalConfig.Elastic.Password != "" {
-	// 	esclient, err = eshelper.NewClient(globalConfig.Elastic.Addresses, globalConfig.Elastic.ProxyServer, globalConfig.Elastic.Username, globalConfig.Elastic.Password)
-	// 	if err != nil {
-	// 		return result, errors.Wrap(err, "eshelper.NewClient")
-	// 	}
-	// }
-
-	// Copy the sinks and open them
-	// sinks, err := globalConfig.GetSinks()
-	// if err != nil {
-	// 	return result, errors.Wrap(err, "globalconfig.getsinks")
-	// }
-	// for i := range p.Sinks {
-	// 	id := strings.Replace(info.Server, "\\", "_", -1)
-	// 	err = sinks[i].Open(id)
-	// 	if err != nil {
-	// 		return result, errors.Wrapf(err, "sink: %s", id)
-	// 	}
-	// 	defer sinks[i].Close()
-	// }
 
 	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StateReset {
 		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
@@ -177,11 +146,17 @@ func (p *Program) processSession(
 				break
 			}
 
-			// Write the elastic buffer & reset
-			// err = eshelper.WriteElasticBuffer(esclient, &elasticBuffer)
-			// if err != nil {
-			// 	return result, errors.Wrap(err, "writeelasticbuffer")
-			// }
+			// do we have a cancel?
+			breakNow := false
+			select {
+			case <-ctx.Done():
+				breakNow = true
+			default:
+			}
+
+			if breakNow {
+				break
+			}
 
 			// Flush all the sinks
 			for i := range p.Sinks {
@@ -290,31 +265,6 @@ func (p *Program) processSession(
 		if source.StripCRLF {
 			rs = newlineRegex.ReplaceAllString(rs, " ")
 		}
-
-		// if ls != nil {
-		// 	err = ls.Writeln(rs)
-		// 	if err != nil {
-		// 		log.Error("")
-		// 		log.Error(fmt.Sprintf("%s", rs))
-		// 		log.Error("")
-		// 		return result, errors.Wrap(err, "logstash-writeln")
-		// 	}
-		// }
-
-		// Write one entry to the buffer
-		// if esclient != nil {
-		// 	var esIndex string
-		// 	var ok bool
-		// 	esIndex, ok = globalConfig.Elastic.EventIndexMap[eventName]
-		// 	if !ok {
-		// 		esIndex = globalConfig.Elastic.DefaultIndex
-		// 	}
-		// 	meta := []byte(fmt.Sprintf(`{ "index" : { "_index" : "%s" } }%s`, esIndex, "\n"))
-		// 	espayload := []byte(rs + "\n")
-		// 	elasticBuffer.Grow(len(meta) + len(espayload))
-		// 	elasticBuffer.Write(meta)
-		// 	elasticBuffer.Write(espayload)
-		// }
 
 		// Process all the destinations
 		for i := range p.Sinks {

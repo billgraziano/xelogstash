@@ -45,6 +45,9 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 
 	cleanRun := true
 	for i := range source.Sessions {
+		if ctx.Err() != nil {
+			break
+		}
 		log.Debug(fmt.Sprintf("[%d] Starting session: %s on  %s", wid, source.Sessions[i], source.FQDN))
 		start := time.Now()
 
@@ -96,6 +99,10 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 			}
 			log.Info(textMessage)
 		}
+	}
+
+	if ctx.Err() != nil {
+		return sourceResult, nil
 	}
 
 	// Process Agent Jobs
