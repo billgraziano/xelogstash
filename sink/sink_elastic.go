@@ -109,8 +109,8 @@ func (es *ElasticSink) Open(ignored string) error {
 
 // Write the event to Elastic
 func (es *ElasticSink) Write(name, event string) (int, error) {
-	// es.mu.Lock()
-	// defer es.mu.Unlock()
+	es.mu.RLock()
+	defer es.mu.RUnlock()
 
 	var esIndex string
 	var ok bool
