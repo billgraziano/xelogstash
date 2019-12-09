@@ -44,7 +44,7 @@ func main() {
 		// https://www.joeshaw.org/dont-defer-close-on-writable-files/
 		defer rot.Close()
 
-		log.SetReportCaller(true)
+		//log.SetReportCaller(true)
 
 		log.SetFormatter(&formatter{
 			fields: log.Fields{
@@ -52,6 +52,7 @@ func main() {
 				"version_git": sha1ver,
 				"application": filepath.Base(os.Args[0]),
 			},
+			//lf: &log.JSONFormatter{},
 			lf: &log.JSONFormatter{
 				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 					filename := path.Base(f.File)

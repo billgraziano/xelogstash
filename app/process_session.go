@@ -147,14 +147,7 @@ func (p *Program) processSession(
 			}
 
 			// do we have a cancel?
-			breakNow := false
-			select {
-			case <-ctx.Done():
-				breakNow = true
-			default:
-			}
-
-			if breakNow {
+			if ctx.Err() != nil {
 				break
 			}
 
