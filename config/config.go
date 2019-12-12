@@ -50,6 +50,9 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 		config.Defaults.PollSeconds = 60
 	}
 
+	if config.App.HTTPMetricsPort == 0 {
+		config.App.HTTPMetricsPort = 8080
+	}
 	// Calculate the default lookback and use if more recent than StartAt
 	if config.Defaults.LookBackRaw != "" {
 		err = config.Defaults.processLookback()

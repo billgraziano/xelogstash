@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
+	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
 	"github.com/pkg/errors"
@@ -108,6 +110,7 @@ func (p *Program) processSession(
 
 	for rows.Next() {
 		readCount.Add(1)
+		expvar.Get("app:eventsRead").(metric.Metric).Add(1)
 
 		err = rows.Scan(&objectName, &eventData, &fileName, &fileOffset)
 		if err != nil {
@@ -195,13 +198,13 @@ func (p *Program) processSession(
 		eventTime := event.Timestamp()
 		if eventTime.Before(source.StartAt) {
 			if !startAtHit {
-				log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Start At' skipped at least one event", wid, info.Server, session.Name))
+				log.Info(fmt.Sprintf("[%d] Source: %s (%s);  'Start At' skipped at least one event", wid, info.Server, session.Name))
 				startAtHit = true
 			}
 			continue
 		}
 		if eventTime.After(source.StopAt) {
-			log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Stop At' stopped processing", wid, info.Server, session.Name))
+			log.Info(fmt.Sprintf("[%d] Source: %s (%s);  'Stop At' stopped processing", wid, info.Server, session.Name))
 			break
 		}
 
@@ -272,6 +275,7 @@ func (p *Program) processSession(
 
 		result.Rows++
 		totalCount.Add(1)
+		expvar.Get("app:eventsWritten").(metric.Metric).Add(1)
 		eventCount.Add(eventName, 1)
 		serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), result.Session)
 		serverCount.Add(serverKey, 1)

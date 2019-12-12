@@ -44,8 +44,10 @@ func main() {
 		// https://www.joeshaw.org/dont-defer-close-on-writable-files/
 		defer rot.Close()
 
+		// include the calling method as a field
 		//log.SetReportCaller(true)
 
+		// https://github.com/sirupsen/logrus/blob/master/example_custom_caller_test.go
 		log.SetFormatter(&formatter{
 			fields: log.Fields{
 				"version":     version,
@@ -58,6 +60,9 @@ func main() {
 					filename := path.Base(f.File)
 					return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
 				},
+				// FieldMap: log.FieldMap{
+				// 	log.FieldKeyTime: "@timestamp",
+				// },
 			},
 		})
 		log.SetOutput(rot)
@@ -84,8 +89,8 @@ func main() {
 
 	svcConfig := &service.Config{
 		Name:        "sqlxewriter",
-		DisplayName: "SQL Server XE Writer Service",
-		Description: "SQL Server XE Writer Service",
+		DisplayName: "SQL Server XE Writer",
+		Description: "SQL Server Extended Event Writer Writer - https://github.com/billgraziano/xelogstash",
 	}
 
 	prg := &app.Program{

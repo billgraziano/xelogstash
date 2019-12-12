@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"fmt"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/billgraziano/mssqlodbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
+	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -164,6 +166,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 		}
 
 		readCount.Add(1)
+		expvar.Get("app:eventsRead").(metric.Metric).Add(1)
 
 		var tsutc string
 		var j jobResult
@@ -179,13 +182,13 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 
 		if j.TimestampUTC.Before(source.StartAt) {
 			if !startAtHit {
-				log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Start At' skipped at least one event", wid, info.Server, "agent-jobs"))
+				log.Info(fmt.Sprintf("[%d] Source: %s (%s);  'Start At' skipped at least one event", wid, info.Server, "agent-jobs"))
 				startAtHit = true
 			}
 			continue
 		}
 		if j.TimestampUTC.After(source.StopAt) {
-			log.Debug(fmt.Sprintf("[%d] Source: %s (%s);  'Stop At' stopped processing", wid, info.Server, "agent-jobs"))
+			log.Info(fmt.Sprintf("[%d] Source: %s (%s);  'Stop At' stopped processing", wid, info.Server, "agent-jobs"))
 			break
 		}
 
@@ -308,6 +311,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 			// }
 			result.Rows++
 			totalCount.Add(1)
+			expvar.Get("app:eventsWritten").(metric.Metric).Add(1)
 			eventCount.Add(j.Name, 1)
 			serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), "agent_jobs")
 			serverCount.Add(serverKey, 1)

@@ -64,7 +64,8 @@ type App struct {
 	StrictSessions bool   `toml:"strict_sessions"` // true - log session errors
 
 	// Enables a web server on :8080 with basic metrics
-	HTTPMetrics bool `toml:"http_metrics"`
+	HTTPMetrics     bool `toml:"http_metrics"`
+	HTTPMetricsPort int  `toml:"http_metrics_port"`
 }
 
 // AppLog controls the application logging

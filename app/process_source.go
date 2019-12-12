@@ -31,7 +31,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 	if source.StopAt != config.DefaultStopAt {
 		logmsg += fmt.Sprintf("; Events before: %v", source.StopAt.Format(time.RFC3339))
 	}
-	log.Info(logmsg)
+	log.Debug(logmsg)
 
 	var textMessage string
 	info, err := xe.GetSQLInfo(source.FQDN)
@@ -48,7 +48,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 		if ctx.Err() != nil {
 			break
 		}
-		log.Debug(fmt.Sprintf("[%d] Starting session: %s on  %s", wid, source.Sessions[i], source.FQDN))
+		log.Trace(fmt.Sprintf("[%d] Starting session: %s on  %s", wid, source.Sessions[i], source.FQDN))
 		start := time.Now()
 
 		var result Result
@@ -97,7 +97,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 					txtDuration,
 				)
 			}
-			log.Info(textMessage)
+			log.Debug(textMessage)
 		}
 	}
 
@@ -139,7 +139,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 					humanize.Comma(int64(result.Rows)),
 					english.PluralWord(result.Rows, "event", ""))
 			}
-			log.Info(textMessage)
+			log.Debug(textMessage)
 		}
 	}
 

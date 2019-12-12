@@ -1,6 +1,8 @@
 package app
 
-import "expvar"
+import (
+	"expvar"
+)
 
 var (
 	totalCount  = expvar.NewInt("eventsProcessed")
@@ -9,3 +11,7 @@ var (
 	readCount   = expvar.NewInt("eventsRead")
 	//expWorker   = expvar.NewMap("workers").Init()
 )
+
+func init() {
+
+}

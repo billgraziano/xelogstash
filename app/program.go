@@ -2,14 +2,17 @@ package app
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 	"math/rand"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
+	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
@@ -78,21 +81,47 @@ func (p *Program) Start(svc service.Service) error {
 		}
 	}
 
-	// TODO Enable the http server
-	// Enable the PPROF server
+	// configure monitoring
+	expvar.Publish("app:eventsRead", metric.NewCounter("5m10s", "60m1m", "24h15m"))
+	expvar.Publish("app:eventsWritten", metric.NewCounter("5m10s", "60m1m", "24h15m"))
+	expvar.Publish("go:alloc", metric.NewGauge("60m15s", "48h15m"))
+	expvar.Publish("go:numgoroutine", metric.NewGauge("60m15s", "48h15m"))
+	expvar.Publish("go:sys", metric.NewGauge("60m15s", "48h15m"))
+
+	m := &runtime.MemStats{}
+	runtime.ReadMemStats(m)
+	expvar.Get("go:numgoroutine").(metric.Metric).Add(float64(runtime.NumGoroutine()))
+	expvar.Get("go:alloc").(metric.Metric).Add(float64(m.Alloc) / 1000000)
+	expvar.Get("go:sys").(metric.Metric).Add(float64(m.Sys) / 1000000)
+
 	go func() {
-		log.Info(http.ListenAndServe("localhost:6060", nil))
+		for range time.Tick(5 * time.Second) {
+			m := &runtime.MemStats{}
+			runtime.ReadMemStats(m)
+			expvar.Get("go:numgoroutine").(metric.Metric).Add(float64(runtime.NumGoroutine()))
+			expvar.Get("go:alloc").(metric.Metric).Add(float64(m.Alloc) / 1000000)
+			expvar.Get("go:sys").(metric.Metric).Add(float64(m.Sys) / 1000000)
+		}
 	}()
 
-	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: http.DefaultServeMux,
-	}
-
 	if settings.App.HTTPMetrics {
+		// Enable the PPROF server
+
+		addr := fmt.Sprintf(":%d", settings.App.HTTPMetricsPort)
+		// go func() {
+		// 	log.Info(http.ListenAndServe(addr, nil))
+		// }()
+
+		log.Infof("pprof available at http://localhost:%d/debug/pprof", settings.App.HTTPMetricsPort)
+		log.Infof("expvars available at http://localhost:%d/debug/vars", settings.App.HTTPMetricsPort)
+		log.Infof("metrics available at http://localhost:%d/debug/metrics", settings.App.HTTPMetricsPort)
+		http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
+		httpServer := &http.Server{
+			Addr:    addr,
+			Handler: http.DefaultServeMux,
+		}
+
 		go func() {
-			log.Debug("HTTP metrics server starting...")
-			//http.ListenAndServe(":8080", http.DefaultServeMux)
 			serverErr := httpServer.ListenAndServe()
 			if serverErr == http.ErrServerClosed {
 				log.Debug("HTTP metrics server closed")
@@ -153,7 +182,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	ticker := time.NewTicker(time.Duration(src.PollSeconds) * time.Second)
 	for {
 		// run at time zero
-		log.Debugf("[%d] polling (#%d)...", id, counter)
+		log.Tracef("[%d] polling (#%d)...", id, counter)
 		result, err := p.ProcessSource(ctx, id, src)
 		if err != nil {
 			if errors.Cause(err) == xe.ErrNotFound || errors.Cause(err) == xe.ErrNoFileTarget {

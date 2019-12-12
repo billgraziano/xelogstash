@@ -35,6 +35,7 @@ require (
 	github.com/tidwall/match v1.0.1
 	github.com/tidwall/sjson v1.0.4
 	github.com/tilinna/clock v1.0.2
+	github.com/zserge/metric v0.1.0
 	golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529
 	golang.org/x/sys v0.0.0-20191118133127-cf1e2d577169
 	golang.org/x/tools/gopls v0.2.1 // indirect
