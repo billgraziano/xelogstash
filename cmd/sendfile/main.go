@@ -15,7 +15,7 @@ import (
 // https://gist.github.com/glinton/f5232c82fe6bf245199d9f2c64f863e1
 
 // This utility was primarily written to test against logz.io
-// They require @timestap and a field named "message"
+// They require @timestamp and a field named "message"
 func main() {
 	var err error
 	log.SetFlags(log.LstdFlags | log.LUTC)

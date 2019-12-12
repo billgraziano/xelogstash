@@ -119,7 +119,6 @@ func (i *SQLInfo) getDataValue(object string, x xmlData, eventData string) inter
 
 func getValue(name, datatype, value, eventData string) interface{} {
 	var newValue interface{}
-	newValue = value
 
 	switch datatype {
 	case "boolean":

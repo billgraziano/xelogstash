@@ -110,6 +110,7 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 	return config, err
 }
 
+// CloseRotator closes the rotator stored in a Config
 func (c *Config) CloseRotator() error {
 	if c.rot == nil {
 		return nil

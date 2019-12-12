@@ -153,23 +153,7 @@ func TestErrorLogEvent(t *testing.T) {
 
 func TestErrorReportedEvent(t *testing.T) {
 
-	rawXML := `
-	<event name="error_reported" package="sqlserver" timestamp="2018-03-18T19:08:04.431Z">
-		<data name="error_number"><value>17830</value></data>
-		<data name="severity"><value>20</value></data>
-		<data name="state"><value>11</value></data>
-		<data name="user_defined"><value>false</value></data>
-		<data name="category"><value>4</value><text><![CDATA[LOGON]]></text></data>
-		<data name="destination"><value>0x00000010</value><text><![CDATA[BUFFER]]></text></data>
-		<data name="is_intercepted"><value>false</value></data>
-		<data name="message"><value><![CDATA[Network error code 0x2746 occurred while establishing a connection; the connection has been closed. This may have been caused by client or server login timeout expiration. Time spent during login: total 0 ms, enqueued 0 ms, network writes 0 ms, network reads 0 ms, establishing SSL 0 ms, network reads during SSL 0 ms, network writes during SSL 0 ms, secure calls during SSL 0 ms, enqueued during SSL 0 ms, negotiating SSPI 0 ms, network reads during SSPI 0 ms, network writes during SSPI 0 ms, secure calls during SSPI 0 ms, enqueued during SSPI 0 ms, validating login 0 ms, including user-defined login processing 0 ms. [CLIENT: 2605:a601:46a:5200:18de:bd28:5254:395c]]]></value></data>
-		<action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action>
-		<action name="is_system" package="sqlserver"><value>false</value></action>
-		<action name="collect_system_time" package="package0"><value>2018-03-18T19:08:04.432Z</value></action>
-	</event>
-	`
-
-	rawXML = `<event name="error_reported" package="sqlserver" timestamp="2018-04-19T16:21:25.541Z"><data name="error_number"><value>208</value></data><data name="severity"><value>16</value></data><data name="state"><value>1</value></data><data name="user_defined"><value>false</value></data><data name="category"><value>2</value><text><![CDATA[SERVER]]></text></data><data name="destination"><value>0x00000002</value><text><![CDATA[USER]]></text></data><data name="is_intercepted"><value>false</value></data><data name="message"><value><![CDATA[Invalid object name 'sys.xe_object_columns'.]]></value></data><action name="sql_text" package="sqlserver"><value><![CDATA[select * from sys.xe_object_columns ]]></value></action><action name="server_principal_name" package="sqlserver"><value><![CDATA[MicrosoftAccount\graz]]></value></action><action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action><action name="is_system" package="sqlserver"><value>false</value></action><action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action><action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action><action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action><action name="collect_system_time" package="package0"><value>2018-04-19T16:21:25.540Z</value></action></event>`
+	rawXML := `<event name="error_reported" package="sqlserver" timestamp="2018-04-19T16:21:25.541Z"><data name="error_number"><value>208</value></data><data name="severity"><value>16</value></data><data name="state"><value>1</value></data><data name="user_defined"><value>false</value></data><data name="category"><value>2</value><text><![CDATA[SERVER]]></text></data><data name="destination"><value>0x00000002</value><text><![CDATA[USER]]></text></data><data name="is_intercepted"><value>false</value></data><data name="message"><value><![CDATA[Invalid object name 'sys.xe_object_columns'.]]></value></data><action name="sql_text" package="sqlserver"><value><![CDATA[select * from sys.xe_object_columns ]]></value></action><action name="server_principal_name" package="sqlserver"><value><![CDATA[MicrosoftAccount\graz]]></value></action><action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action><action name="is_system" package="sqlserver"><value>false</value></action><action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action><action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action><action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action><action name="collect_system_time" package="package0"><value>2018-04-19T16:21:25.540Z</value></action></event>`
 
 	event, err := Parse(&i, rawXML)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 )
 
 // This utility was primarily written to test against logz.io
-// They require @timestap and a field named "message"
+// They require @timestamp and a field named "message"
 // It sends successfully but disappers without those
 func main() {
 	var err error

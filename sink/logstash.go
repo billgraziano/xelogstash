@@ -43,6 +43,9 @@ func (lss *LogstashSink) Open(ignore string) error {
 
 // Write an event to the sink
 func (lss *LogstashSink) Write(name, event string) (int, error) {
+	// TODO Backoff
+	// https://github.com/lestrrat-go/backoff,
+	// https://github.com/cenkalti/backoff
 	err := lss.ls.Writeln(event)
 	if err != nil {
 		return 0, errors.Wrap(err, "logstash.writeln")

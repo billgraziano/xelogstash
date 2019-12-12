@@ -113,6 +113,7 @@ func (r *Rotator) Close() error {
 	return nil
 }
 
+// Sync performs a sync (usually flushing)
 func (r *Rotator) Sync() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

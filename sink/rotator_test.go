@@ -80,6 +80,7 @@ func TestOpen(t *testing.T) {
 	//printtree(fs)
 	bb, err := afero.ReadFile(fs, fname)
 	assert.Equal(bb, []byte("one\r\ntwo\r\n"))
+	assert.NoError(err)
 }
 
 func TestRotateDaily(t *testing.T) {
@@ -96,12 +97,15 @@ func TestRotateDaily(t *testing.T) {
 
 	m.Add(24 * time.Hour)
 	_, err = r.Write([]byte("two\r\n"))
+	assert.NoError(err)
 
 	m.Add(24 * time.Hour)
 	_, err = r.Write([]byte("three\r\n"))
+	assert.NoError(err)
 
 	m.Add(24 * time.Hour)
 	_, err = r.Write([]byte("four\r\n"))
+	assert.NoError(err)
 
 	dd, err := afero.ReadDir(fs, ".")
 	assert.NoError(err)
@@ -150,7 +154,7 @@ func TestCleanHourly(t *testing.T) {
 	r.Hourly = true
 
 	for i := 0; i < 50; i++ {
-		_, err := r.Write([]byte("test of whta I'm wriring!\r\n"))
+		_, err := r.Write([]byte("test of what I'm wriring!\r\n"))
 		assert.NoError(err)
 		m.Add(19 * time.Minute)
 	}
