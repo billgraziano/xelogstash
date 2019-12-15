@@ -199,7 +199,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 // Stop handles a stop request
 func (p *Program) Stop(s service.Service) error {
 	var err error
-	log.Info("stop signal recieved")
+	log.Info("stop signal received")
 	p.Cancel()
 	p.wg.Wait()
 
