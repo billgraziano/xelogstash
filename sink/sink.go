@@ -8,6 +8,7 @@ type Sinker interface {
 	Close() error
 	Name() string
 	Clean() error
+	Reopen() error
 }
 
 // * filesink: file_name

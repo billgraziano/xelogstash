@@ -24,6 +24,13 @@ const (
 	Info Severity = 6
 )
 
+// Logstash is the basic struct
+type Logstash struct {
+	Connection *net.TCPConn
+	Timeout    int    //Timeout in seconds
+	Host       string // Host in host:port format
+}
+
 func (s Severity) String() string {
 	switch s {
 	case 3:
@@ -35,13 +42,6 @@ func (s Severity) String() string {
 	default:
 		return "info"
 	}
-}
-
-// Logstash is the basic struct
-type Logstash struct {
-	Connection *net.TCPConn
-	Timeout    int    //Timeout in seconds
-	Host       string // Host in host:port format
 }
 
 // NewHost generates a logstash sender from a host:port format

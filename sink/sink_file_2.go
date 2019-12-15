@@ -59,3 +59,8 @@ func (fs *OneFile) Flush() error {
 func (fs *OneFile) Clean() error {
 	return nil
 }
+
+// Reopen is a noop at this point
+func (fs *OneFile) Reopen() error {
+	return nil
+}

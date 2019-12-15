@@ -185,7 +185,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 			if p.ExtraDelay > 0 {
 				<-time.After(time.Millisecond * time.Duration(rand.Intn(p.ExtraDelay*1000)))
 			}
-			log.Debugf("[%d] ctx.done", id)
+			log.Debugf("[%d] 'program.run' received ctx.done", id)
 			return
 		}
 	}

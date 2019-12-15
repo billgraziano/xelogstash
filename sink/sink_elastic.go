@@ -175,3 +175,8 @@ func (es *ElasticSink) Close() error {
 func (es *ElasticSink) Clean() error {
 	return nil
 }
+
+// Reopen is a noop at this point
+func (es *ElasticSink) Reopen() error {
+	return nil
+}

@@ -38,7 +38,7 @@ func main() {
 			log.Fatal(err)
 		}
 		dir = filepath.Join(dir, "log")
-		rot := sink.NewRotator(dir, "sqlxewriter", "json")
+		rot := sink.NewRotator(dir, "sqlxewriter", "log")
 
 		// I'm not sure about handling and error here
 		// https://www.joeshaw.org/dont-defer-close-on-writable-files/
