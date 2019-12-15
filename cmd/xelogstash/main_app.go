@@ -16,9 +16,12 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/billgraziano/xelogstash/app"
+
 	_ "github.com/alexbrainman/odbc"
 	singleinstance "github.com/allan-simon/go-singleinstance"
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/summary"
 	"github.com/jessevdk/go-flags"
@@ -31,6 +34,7 @@ var opts struct {
 	TOMLFile string `long:"config" description:"Read configuration from this TOML file"`
 	Log      bool   `long:"log" description:"Also write to log file based on the EXE name"`
 	Debug    bool   `long:"debug" description:"Enable debug logging"`
+	Trace    bool   `long:"trace" description:"Enable trace logging"`
 }
 
 var appConfig config.App
@@ -45,10 +49,6 @@ func runApp() error {
 	if err != nil {
 		log.Error(errors.Wrap(err, "flags.Parse"))
 		return err
-	}
-
-	if opts.Debug {
-		log.SetLevel(log.DebugLevel)
 	}
 
 	// Log to file
@@ -73,6 +73,16 @@ func runApp() error {
 	}
 
 	log.Info(fmt.Sprintf("version: %s (%s @ %s)", version, sha1ver, buildTime))
+
+	if opts.Debug {
+		log.SetLevel(log.DebugLevel)
+		log.Debug("debug logging enabled")
+	}
+
+	if opts.Trace {
+		log.SetLevel(log.TraceLevel)
+		log.Debug("trace logging enabled")
+	}
 
 	// use default config file if one isn't specified
 	var fn string
@@ -120,6 +130,8 @@ func runApp() error {
 		log.Info(fmt.Sprintf("Destination: %s", sinks[i].Name()))
 	}
 
+	app.ConfigureExpvar()
+
 	httpServer := &http.Server{
 		Addr:    ":8080",
 		Handler: http.DefaultServeMux,
@@ -127,6 +139,7 @@ func runApp() error {
 
 	// Enables a web server on :8080 with basic metrics
 	if appConfig.HTTPMetrics {
+		http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
 		go func() {
 			log.Debug("HTTP metrics server starting...")
 			//http.ListenAndServe(":8080", http.DefaultServeMux)

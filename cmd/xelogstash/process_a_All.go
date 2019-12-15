@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/billgraziano/xelogstash/xe"
+
 	"github.com/billgraziano/xelogstash/app"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/pkg/format"
@@ -60,10 +62,17 @@ func processall(settings config.Config) (string, bool) {
 		defer ptr.Close()
 	}
 
+	// TODO this ignores invalid sessions
 	for _, src := range settings.Sources {
 		result, err := pgm.ProcessSource(ctx, 0, src)
 		if err != nil {
-			cleanRun = false
+			root := errors.Cause(err)
+			switch root {
+			case xe.ErrNotFound:
+			default:
+				log.Error(errors.Wrap(err, "pgm.processsource"))
+				cleanRun = false
+			}
 		}
 		rows += result.Rows
 		sources++

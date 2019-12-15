@@ -16,7 +16,7 @@ var (
 	//expWorker   = expvar.NewMap("workers").Init()
 )
 
-func configureExpvar() {
+func ConfigureExpvar() {
 
 	// configure monitoring
 	expvar.Publish("app:eventsRead", metric.NewCounter("5m10s", "60m1m", "24h15m"))

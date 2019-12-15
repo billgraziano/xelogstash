@@ -62,7 +62,7 @@ func (p *Program) Start(svc service.Service) error {
 	// p.targets = 120
 	log.Infof("sources: %d; default rows: %d", p.targets, settings.Defaults.Rows)
 
-	configureExpvar()
+	ConfigureExpvar()
 
 	if settings.App.HTTPMetrics {
 		// Enable the PPROF server
