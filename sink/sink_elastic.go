@@ -2,6 +2,7 @@ package sink
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"github.com/billgraziano/xelogstash/eshelper"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // ElasticSink writes to an ElasticSearch instance
@@ -50,7 +52,7 @@ func (es *ElasticSink) Name() string {
 }
 
 // Open tests the Elastic Client (id is ignored)
-func (es *ElasticSink) Open(ignored string) error {
+func (es *ElasticSink) Open(_ context.Context, _ string) error {
 	es.mu.Lock()
 	defer es.mu.Unlock()
 
@@ -108,7 +110,7 @@ func (es *ElasticSink) Open(ignored string) error {
 // }
 
 // Write the event to Elastic
-func (es *ElasticSink) Write(name, event string) (int, error) {
+func (es *ElasticSink) Write(ctx context.Context, name, event string) (int, error) {
 	es.mu.RLock()
 	defer es.mu.RUnlock()
 
@@ -179,4 +181,8 @@ func (es *ElasticSink) Clean() error {
 // Reopen is a noop at this point
 func (es *ElasticSink) Reopen() error {
 	return nil
+}
+
+// SetLogger sets the logger for the sink
+func (es *ElasticSink) SetLogger(entry *log.Entry) {
 }

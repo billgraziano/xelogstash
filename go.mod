@@ -20,6 +20,7 @@ require (
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/jessevdk/go-flags v0.0.0-20180331124232-1c38ed7ad0cc
 	github.com/kardianos/service v1.0.0
+	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
 	github.com/pkg/errors v0.8.1

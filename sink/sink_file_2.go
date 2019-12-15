@@ -1,10 +1,12 @@
 package sink
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // OneFile writes events to a file.  This is just a wrapper for the Rotator.
@@ -26,12 +28,12 @@ func (fs *OneFile) Name() string {
 }
 
 // Open opens the file.  This is done in the Rotator.
-func (fs *OneFile) Open(id string) error {
+func (fs *OneFile) Open(_ context.Context, _ string) error {
 	return nil
 }
 
 // Write a message to the OneFile
-func (fs *OneFile) Write(name, event string) (int, error) {
+func (fs *OneFile) Write(ctx context.Context, name, event string) (int, error) {
 	var err error
 
 	if !strings.HasSuffix(event, "\n") {
@@ -63,4 +65,8 @@ func (fs *OneFile) Clean() error {
 // Reopen is a noop at this point
 func (fs *OneFile) Reopen() error {
 	return nil
+}
+
+// SetLogger sets the logger for the sink
+func (fs *OneFile) SetLogger(entry *log.Entry) {
 }

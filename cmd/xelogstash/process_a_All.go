@@ -41,6 +41,7 @@ func processall(settings config.Config) (string, bool) {
 	// Process sequentially
 	// make app.Program
 	pgm := app.Program{}
+	ctx := context.TODO()
 
 	sinks, err := settings.GetSinks()
 	if err != nil {
@@ -52,13 +53,12 @@ func processall(settings config.Config) (string, bool) {
 	}
 	for i := range pgm.Sinks {
 		ptr := *pgm.Sinks[i]
-		err := ptr.Open("id")
+		err := ptr.Open(ctx, "id")
 		if err != nil {
 			return errors.Wrap(err, "ptr.open").Error(), false
 		}
 		defer ptr.Close()
 	}
-	ctx := context.TODO()
 
 	for _, src := range settings.Sources {
 		result, err := pgm.ProcessSource(ctx, 0, src)

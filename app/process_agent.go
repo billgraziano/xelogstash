@@ -298,7 +298,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 			// Process all the destinations
 			for i := range p.Sinks {
 				snk := *p.Sinks[i]
-				_, err = snk.Write(j.Name, rs)
+				_, err = snk.Write(ctx, j.Name, rs)
 				if err != nil {
 					newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", snk.Name()))
 					log.Error(newError)

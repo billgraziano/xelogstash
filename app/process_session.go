@@ -265,7 +265,7 @@ func (p *Program) processSession(
 		// Process all the destinations
 		for i := range p.Sinks {
 			snk := *p.Sinks[i]
-			_, err = snk.Write(eventName, rs)
+			_, err = snk.Write(ctx, eventName, rs)
 			if err != nil {
 				newError := errors.Wrap(err, fmt.Sprintf("sink.write: %s", snk.Name()))
 				log.Error(newError)

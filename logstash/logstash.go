@@ -126,8 +126,11 @@ func (ls *Logstash) Writeln(message string) error {
 	if trace {
 		fmt.Println(fmt.Sprintf("ls.connection.write.bytes-sent: %d", n))
 	}
-	if n != len(messageBytes) {
+	if trace && n != len(messageBytes) {
 		fmt.Printf("send bytes mismatch: wanted: %d; sent: %d\r\n", len(messageBytes), n)
+		if err != nil {
+			println("and we got an error!")
+		}
 	}
 	if err != nil {
 		if trace {

@@ -62,23 +62,6 @@ func (p *Program) Start(svc service.Service) error {
 	// p.targets = 120
 	log.Infof("sources: %d; default rows: %d", p.targets, settings.Defaults.Rows)
 
-	sinks, err := settings.GetSinks()
-	if err != nil {
-		return errors.Wrap(err, "globalconfig.getsinks")
-	}
-	p.Sinks = make([]*sink.Sinker, 0)
-	for i := range sinks {
-		p.Sinks = append(p.Sinks, &sinks[i])
-	}
-	for i := range p.Sinks {
-		ptr := *p.Sinks[i]
-		log.Info(fmt.Sprintf("sink: %s", ptr.Name()))
-		err = ptr.Open("id")
-		if err != nil {
-			return errors.Wrap(err, "ptr.open")
-		}
-	}
-
 	configureExpvar()
 
 	if settings.App.HTTPMetrics {
@@ -111,12 +94,34 @@ func (p *Program) Start(svc service.Service) error {
 		}()
 	}
 
+	sinks, err := settings.GetSinks()
+	if err != nil {
+		return errors.Wrap(err, "globalconfig.getsinks")
+	}
+	p.Sinks = make([]*sink.Sinker, 0)
+	for i := range sinks {
+		p.Sinks = append(p.Sinks, &sinks[i])
+	}
+
+	for i := range p.Sinks {
+		ptr := *p.Sinks[i]
+		ptr.SetLogger(log.WithFields(log.Fields{}))
+		log.Info(fmt.Sprintf("sink: %s", ptr.Name()))
+		err = ptr.Open(ctx, "id")
+		if err != nil {
+			return errors.Wrap(err, "ptr.open")
+		}
+	}
+
 	// launch the polling go routines
 	for i := 0; i < p.targets; i++ {
 		go p.run(ctx, i, settings)
 	}
 
-	logMemory(ctx)
+	go func(ctx context.Context) {
+		sleep(ctx, 60*time.Second)
+		logMemory(ctx)
+	}(ctx)
 
 	return nil
 }
@@ -194,7 +199,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 // Stop handles a stop request
 func (p *Program) Stop(s service.Service) error {
 	var err error
-	log.Info("app.program.stop")
+	log.Info("stop signal recieved")
 	p.Cancel()
 	p.wg.Wait()
 
@@ -207,7 +212,7 @@ func (p *Program) Stop(s service.Service) error {
 		}
 	}
 
-	log.Info("app.program.stop...done")
+	log.Info("all sinks closed.  application stopping.")
 	return nil
 }
 
@@ -268,4 +273,13 @@ func (p *Program) getConfig() (config.Config, error) {
 		return c, nil
 	}
 	return c, errors.New("missing sqlxewriter.toml or xelogstash.toml")
+}
+
+func sleep(ctx context.Context, dur time.Duration) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(dur):
+		break
+	}
 }
