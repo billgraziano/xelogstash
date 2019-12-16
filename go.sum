@@ -21,6 +21,8 @@ github.com/benbjohnson/clock v1.0.0/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiU
 github.com/billgraziano/go-elasticsearch v0.0.0 h1:yCMK3qJyAR5RMs7wWSBRCDLU/Bqt5SgBowCGe2kHA94=
 github.com/billgraziano/mssqlodbc v0.0.0-20170430162528-8873d0e202ac h1:43B12E/RqVKMEZqKm4rsCqWypBq/Ctaj2Os1s92x3so=
 github.com/billgraziano/mssqlodbc v0.0.0-20170430162528-8873d0e202ac/go.mod h1:Jzu5sa/KG41LKVbL0nCNffHRu4sCptEm/zXdmX6tN7o=
+github.com/billgraziano/mssqlodbc v0.0.0-20191216224242-03520c72ba67 h1:R5vkLgg5Z+YRi0e3UE3SqICTBsc1I75GMCC/DOVa1/g=
+github.com/billgraziano/mssqlodbc v0.0.0-20191216224242-03520c72ba67/go.mod h1:Jzu5sa/KG41LKVbL0nCNffHRu4sCptEm/zXdmX6tN7o=
 github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa h1:56b6q2OYwqvHCZuUyJ6tON0WIDEsrTLS06BUmTXedOA=
 github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa/go.mod h1:Il3cv31KlDNX91RemB8FU9l1kuHwYe2laq7XUPJx7ww=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
@@ -151,6 +153,8 @@ golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190422165155-953cdadca894/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191118133127-cf1e2d577169 h1:LPLFLulk2vyM7yI3CwNW64O6e8AxBmr9opfv14yI7HI=
 golang.org/x/sys v0.0.0-20191118133127-cf1e2d577169/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 h1:gSbV7h1NRL2G1xTg/owz62CST1oJBmxy4QpMMregXVQ=
+golang.org/x/sys v0.0.0-20191210023423-ac6580df4449/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/tools v0.0.0-20190621195816-6e04913cbbac/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=

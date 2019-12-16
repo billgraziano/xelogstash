@@ -9,7 +9,7 @@ require (
 	github.com/alexbrainman/odbc v0.0.0-20190102080306-cf37ce290779
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
 	github.com/benbjohnson/clock v1.0.0
-	github.com/billgraziano/mssqlodbc v0.0.0-20170430162528-8873d0e202ac
+	github.com/billgraziano/mssqlodbc v0.0.0-20191216224242-03520c72ba67
 	github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/dlclark/regexp2 v1.1.6
@@ -38,7 +38,7 @@ require (
 	github.com/tilinna/clock v1.0.2
 	github.com/zserge/metric v0.1.0
 	golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529
-	golang.org/x/sys v0.0.0-20191118133127-cf1e2d577169
+	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449
 	golang.org/x/tools/gopls v0.2.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.5 // indirect
