@@ -63,6 +63,7 @@ func main() {
 				// FieldMap: log.FieldMap{
 				// 	log.FieldKeyTime: "@timestamp",
 				// },
+				TimestampFormat: "2006-01-02T15:04:05.999999999-07:00",
 			},
 		})
 		log.SetOutput(rot)
