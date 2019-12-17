@@ -23,6 +23,8 @@ github.com/billgraziano/mssqlodbc v0.0.0-20170430162528-8873d0e202ac h1:43B12E/R
 github.com/billgraziano/mssqlodbc v0.0.0-20170430162528-8873d0e202ac/go.mod h1:Jzu5sa/KG41LKVbL0nCNffHRu4sCptEm/zXdmX6tN7o=
 github.com/billgraziano/mssqlodbc v0.0.0-20191216224242-03520c72ba67 h1:R5vkLgg5Z+YRi0e3UE3SqICTBsc1I75GMCC/DOVa1/g=
 github.com/billgraziano/mssqlodbc v0.0.0-20191216224242-03520c72ba67/go.mod h1:Jzu5sa/KG41LKVbL0nCNffHRu4sCptEm/zXdmX6tN7o=
+github.com/billgraziano/mssqlodbc v0.0.0-20191217130057-34fa9fa48813 h1:9JyB1eYVzDy/kjRRhxt8CikZ4xzlQAej2mpFChMqf98=
+github.com/billgraziano/mssqlodbc v0.0.0-20191217130057-34fa9fa48813/go.mod h1:C0NaVHQLnsJvHIv7Oe1NXQEoa7D7wypYe0F4h5EbKRA=
 github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa h1:56b6q2OYwqvHCZuUyJ6tON0WIDEsrTLS06BUmTXedOA=
 github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa/go.mod h1:Il3cv31KlDNX91RemB8FU9l1kuHwYe2laq7XUPJx7ww=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=

@@ -9,7 +9,7 @@ require (
 	github.com/alexbrainman/odbc v0.0.0-20190102080306-cf37ce290779
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
 	github.com/benbjohnson/clock v1.0.0
-	github.com/billgraziano/mssqlodbc v0.0.0-20191216224242-03520c72ba67
+	github.com/billgraziano/mssqlodbc v0.0.0-20191217130057-34fa9fa48813
 	github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/dlclark/regexp2 v1.1.6
