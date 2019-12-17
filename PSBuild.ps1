@@ -11,7 +11,7 @@ Write-Output "Target:  $target"
 Write-Output "Version: $($version)"
 
 # $now = Get-Date -UFormat "%Y-%m-%d_%T_%Z"
-$now = Get-Date -Format "o"
+$now = Get-Date -Format "yyyy'-'MM'-'dd'T'HH':'mm':'sszzz"
 $sha1 = (git describe --tags --dirty --always).Trim()
 Write-Output "Git:     $sha1"
 Write-Output "Build:   $now"
