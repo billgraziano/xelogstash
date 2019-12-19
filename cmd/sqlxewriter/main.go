@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/billgraziano/xelogstash/app"
 	"github.com/billgraziano/xelogstash/sink"
@@ -98,6 +99,7 @@ func main() {
 		SHA1: sha1ver,
 		//PollInterval: 60,
 		ExtraDelay: 0,
+		StartTime:  time.Now(),
 	}
 
 	svc, err := service.New(prg, svcConfig)

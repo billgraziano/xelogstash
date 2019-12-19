@@ -3,13 +3,15 @@ package app
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/billgraziano/xelogstash/sink"
 )
 
 type Program struct {
-	SHA1    string
-	Version string
+	SHA1      string
+	Version   string
+	StartTime time.Time
 
 	//Debug bool
 

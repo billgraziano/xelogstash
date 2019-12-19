@@ -65,33 +65,10 @@ func (p *Program) Start(svc service.Service) error {
 	ConfigureExpvar()
 
 	if settings.App.HTTPMetrics {
-		// Enable the PPROF server
-
-		addr := fmt.Sprintf(":%d", settings.App.HTTPMetricsPort)
-		// go func() {
-		// 	log.Info(http.ListenAndServe(addr, nil))
-		// }()
-
-		log.Infof("pprof available at http://localhost:%d/debug/pprof", settings.App.HTTPMetricsPort)
-		log.Infof("expvars available at http://localhost:%d/debug/vars", settings.App.HTTPMetricsPort)
-		log.Infof("metrics available at http://localhost:%d/debug/metrics", settings.App.HTTPMetricsPort)
-		http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
-		httpServer := &http.Server{
-			Addr:    addr,
-			Handler: http.DefaultServeMux,
+		err = enableHTTP(settings.App.HTTPMetricsPort)
+		if err != nil {
+			log.Error(errors.Wrap(err, "enablehttp"))
 		}
-
-		go func() {
-			serverErr := httpServer.ListenAndServe()
-			if serverErr == http.ErrServerClosed {
-				log.Debug("HTTP metrics server closed")
-				return
-			}
-			if serverErr != nil {
-				log.Error(errors.Wrap(errors.Wrap(serverErr, "http.listenandserve"), "appconfig.httpmetrics"))
-			}
-			log.Debug("HTTP metrics server closed fallthrough")
-		}()
 	}
 
 	sinks, err := settings.GetSinks()
@@ -200,6 +177,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 func (p *Program) Stop(s service.Service) error {
 	var err error
 	log.Info("stop signal received")
+	writeMemory(p.StartTime)
 	p.Cancel()
 	p.wg.Wait()
 
@@ -282,4 +260,30 @@ func sleep(ctx context.Context, dur time.Duration) {
 	case <-time.After(dur):
 		break
 	}
+}
+
+func enableHTTP(port int) error {
+	addr := fmt.Sprintf(":%d", port)
+
+	log.Infof("pprof available at http://localhost:%d/debug/pprof", port)
+	log.Infof("expvars available at http://localhost:%d/debug/vars", port)
+	log.Infof("metrics available at http://localhost:%d/debug/metrics", port)
+	http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
+	httpServer := &http.Server{
+		Addr:    addr,
+		Handler: http.DefaultServeMux,
+	}
+
+	go func() {
+		serverErr := httpServer.ListenAndServe()
+		if serverErr == http.ErrServerClosed {
+			log.Debug("HTTP metrics server closed")
+			return
+		}
+		if serverErr != nil {
+			log.Error(errors.Wrap(errors.Wrap(serverErr, "http.listenandserve"), "appconfig.httpmetrics"))
+		}
+		log.Debug("HTTP metrics server closed fallthrough")
+	}()
+	return nil
 }
