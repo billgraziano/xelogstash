@@ -12,6 +12,7 @@ type Program struct {
 	SHA1      string
 	Version   string
 	StartTime time.Time
+	Verbose   bool // enable a little logging at the INFO level
 
 	//Debug bool
 

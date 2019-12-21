@@ -61,8 +61,8 @@ type App struct {
 	Samples        bool   // Print sample JSON to stdout
 	Summary        bool   // Print a summary to stdout
 	LogLevel       string `toml:"log_level"` // trace|debug|info|...
-	Verbose        bool
-	StrictSessions bool `toml:"strict_sessions"` // true - log session errors
+	Verbose        bool   // Enables logging wrote x events at the info level
+	StrictSessions bool   `toml:"strict_sessions"` // true - log session errors
 
 	// Enables a web server on :8080 with basic metrics
 	HTTPMetrics     bool `toml:"http_metrics"`
@@ -106,5 +106,6 @@ type FileSink struct {
 
 // Logstash configures a LogstashSink
 type Logstash struct {
-	Host string `toml:"host"`
+	Host                string `toml:"host"`
+	RetryAlertThreshold int    `toml:"retry_alert_threshold"`
 }

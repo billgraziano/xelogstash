@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -29,6 +30,7 @@ type Logstash struct {
 	Connection *net.TCPConn
 	Timeout    int    //Timeout in seconds
 	Host       string // Host in host:port format
+	mu         sync.RWMutex
 }
 
 func (s Severity) String() string {
@@ -90,6 +92,7 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 	if err != nil {
 		return connection, errors.Wrap(err, "net.dialtcp")
 	}
+	ls.mu.Lock()
 	if connection != nil {
 		ls.Connection = connection
 		//ls.Connection.SetLinger(0)
@@ -97,6 +100,7 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 		//ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
 		//ls.setTimeouts()
 	}
+	ls.mu.Unlock()
 	if connection == nil && err == nil {
 		return connection, errors.New("conn & err can't both be nil")
 	}
@@ -107,11 +111,15 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 func (ls *Logstash) Writeln(message string) error {
 
 	var err error
+	ls.mu.RLock()
 	if ls.Connection == nil {
+		ls.mu.RUnlock()
 		_, err = ls.Connect()
 		if err != nil {
 			return errors.Wrap(err, "connect")
 		}
+	} else {
+		ls.mu.RUnlock()
 	}
 
 	message = fmt.Sprintf("%s\n", message)
@@ -138,14 +146,18 @@ func (ls *Logstash) Writeln(message string) error {
 		}
 		neterr, ok := err.(net.Error)
 		if ok && neterr.Timeout() {
+			ls.mu.Lock()
 			ls.Connection.Close()
 			ls.Connection = nil
+			ls.mu.Unlock()
 			if err != nil {
 				return errors.Wrap(err, "write-timeout")
 			}
 		} else {
+			ls.mu.Lock()
 			ls.Connection.Close()
 			ls.Connection = nil
+			ls.mu.Unlock()
 			return errors.Wrap(err, "write")
 		}
 

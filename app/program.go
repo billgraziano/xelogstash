@@ -90,6 +90,11 @@ func (p *Program) Start(svc service.Service) error {
 		}
 	}
 
+	if settings.App.Verbose {
+		log.Info("verbose: true")
+		p.Verbose = settings.App.Verbose
+	}
+
 	// launch the polling go routines
 	for i := 0; i < p.targets; i++ {
 		go p.run(ctx, i, settings)

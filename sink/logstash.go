@@ -14,9 +14,10 @@ import (
 
 // LogstashSink write events to logstash
 type LogstashSink struct {
-	mu     sync.RWMutex
-	ls     *logstash.Logstash
-	logger *log.Entry
+	mu                  sync.RWMutex
+	ls                  *logstash.Logstash
+	logger              *log.Entry
+	RetryAlertThreshold int
 }
 
 // NewLogstashSink returns a new LogstashSink
@@ -117,6 +118,7 @@ func (lss *LogstashSink) open(ignore string) error {
 func (lss *LogstashSink) Write(ctx context.Context, name, event string) (int, error) {
 	var err error
 	var n int
+	var errorLogged bool
 
 	// first just try to lock on the happy path
 	lss.mu.RLock()
@@ -140,14 +142,28 @@ func (lss *LogstashSink) Write(ctx context.Context, name, event string) (int, er
 	defer cancel()
 	for backoff.Continue(bo) {
 
-		if lss.logger != nil {
-			log.Errorf("write error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
+		if i > lss.RetryAlertThreshold {
+			if lss.logger != nil {
+				log.Errorf("write error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
+			} else {
+				log.Errorf("write error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
+			}
+			errorLogged = true
 		}
 		lss.mu.Lock()
 		// ignore errors, we get those if it down
 		xerr := lss.reopen()
 		if xerr != nil {
-			log.Error(errors.Wrap(xerr, "lss.reopen"))
+			if i > lss.RetryAlertThreshold {
+				//log.Error(errors.Wrap(xerr, "lss.reopen"))
+				//log.Errorf("reopen error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
+				if lss.logger != nil {
+					log.Errorf("reopen error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
+				} else {
+					log.Errorf("reopen error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
+				}
+				errorLogged = true
+			}
 		}
 		lss.mu.Unlock()
 
@@ -155,7 +171,9 @@ func (lss *LogstashSink) Write(ctx context.Context, name, event string) (int, er
 		n, err = lss.write(name, event)
 		lss.mu.RUnlock()
 		if err == nil {
-			log.Infof("write succeeded: %s", lss.name())
+			if errorLogged {
+				log.Infof("write succeeded: %s", lss.name())
+			}
 			return n, nil
 		}
 		i++

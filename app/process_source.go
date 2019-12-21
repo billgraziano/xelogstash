@@ -7,7 +7,6 @@ import (
 
 	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/pkg/format"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
 	humanize "github.com/dustin/go-humanize"
@@ -63,10 +62,10 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 		sourceResult.Instance = result.Instance
 		sourceResult.Rows += result.Rows
 
-		txtDuration := fmt.Sprintf(" (%s)", format.RoundDuration(runtime, time.Second))
-		if runtime.Seconds() < 10 {
-			txtDuration = ""
-		}
+		//txtDuration := fmt.Sprintf(" (%s)", format.RoundDuration(runtime, time.Second))
+		// if runtime.Seconds() < 10 {
+		// 	txtDuration = ""
+		// }
 
 		if errors.Cause(err) == xe.ErrNotFound {
 			// TODO: if strict, then warning:
@@ -82,22 +81,52 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 			cleanRun = false
 			log.Error(textMessage)
 		} else {
+
+			// if rowsPerSecond > 0 && totalSeconds > 1 {
+			// 	textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s - %s per second%s",
+			// 		wid,
+			// 		info.Domain,
+			// 		result.Instance,
+			// 		result.Session,
+			// 		humanize.Comma(int64(result.Rows)),
+			// 		english.PluralWord(result.Rows, "event", ""),
+			// 		humanize.Comma(int64(rowsPerSecond)),
+			// 		txtDuration,
+			// 	)
+			// } else {
+			// 	textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s%s",
+			// 		wid,
+			// 		info.Domain,
+			// 		result.Instance,
+			// 		result.Session,
+			// 		humanize.Comma(int64(result.Rows)),
+			// 		english.PluralWord(result.Rows, "event", ""),
+			// 		txtDuration,
+			// 	)
+			// }
+			// [2] WORKGROUP - D40\SQL2017 - system_health - 100 events - 50 per second
+			// server: D40\SQL2017 (WORKGROUP) session: system_health events: 100  per_second: 50
 			if rowsPerSecond > 0 && totalSeconds > 1 {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s - %s per second%s",
-					wid, info.Domain, result.Instance, result.Session,
+				textMessage = fmt.Sprintf("%s (%s) session: %s events: %s per_second: %s",
+					result.Instance,
+					info.Domain,
+					result.Session,
 					humanize.Comma(int64(result.Rows)),
-					english.PluralWord(result.Rows, "event", ""),
 					humanize.Comma(int64(rowsPerSecond)),
-					txtDuration,
 				)
 			} else {
-				textMessage = fmt.Sprintf("[%d] %s - %s - %s - %s %s%s", wid, info.Domain, result.Instance, result.Session,
+				textMessage = fmt.Sprintf("%s (%s) session: %s events: %s ",
+					result.Instance,
+					info.Domain,
+					result.Session,
 					humanize.Comma(int64(result.Rows)),
-					english.PluralWord(result.Rows, "event", ""),
-					txtDuration,
 				)
 			}
-			log.Debug(textMessage)
+			if p.Verbose {
+				log.Info(textMessage)
+			} else {
+				log.Debug(textMessage)
+			}
 		}
 	}
 

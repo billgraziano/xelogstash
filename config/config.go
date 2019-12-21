@@ -101,7 +101,7 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 			config.FileSink.Directory = filepath.Join(exeDir, "events")
 		}
 
-		rot := sink.NewRotator(config.FileSink.Directory, "sqlevents", "json")
+		rot := sink.NewRotator(config.FileSink.Directory, "sqlevents", "events")
 		rot.Retention = time.Duration(config.FileSink.RetainHours) * time.Hour
 		rot.Hourly = true
 		config.rot = rot
@@ -155,6 +155,7 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 		if err != nil {
 			return sinks, errors.Wrap(err, "sink.newlogstashsink")
 		}
+		lss.RetryAlertThreshold = c.Logstash.RetryAlertThreshold
 		sinks = append(sinks, lss)
 	}
 
