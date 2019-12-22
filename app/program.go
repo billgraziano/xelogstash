@@ -46,8 +46,11 @@ func (p *Program) Start(svc service.Service) error {
 		if err != nil {
 			log.Error(errors.Wrap(err, "error parsing log level"))
 		} else {
-			log.Infof("log level: %v", lvl)
-			log.SetLevel(lvl)
+			// only change to a lower level of logging
+			if lvl > p.LogLevel {
+				log.Infof("log level: %v", lvl)
+				log.SetLevel(lvl)
+			}
 		}
 	}
 
@@ -110,18 +113,21 @@ func (p *Program) Start(svc service.Service) error {
 
 func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
-	p.wg.Add(1)
-	defer p.wg.Done()
-
-	counter := 1
-	log.Tracef("[%d] poll routine launched: %v", id, service.Platform())
-
 	// get the source
 	if id >= len(cfg.Sources) {
 		log.Errorf("poll exiting: id: %d len(sources): %d", id, len(cfg.Sources))
 		return
 	}
 	src := cfg.Sources[id]
+	contextLogger := log.WithFields(log.Fields{
+		"source": src.FQDN,
+	})
+
+	p.wg.Add(1)
+	defer p.wg.Done()
+
+	counter := 1
+	contextLogger.Tracef("source: %s, poll routine launched: %v", src.FQDN, service.Platform())
 
 	// sleep to spread out the launch (ms)
 	delay := cfg.Defaults.PollSeconds * 1000 * id / p.targets
@@ -137,7 +143,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	}
 
 	logmsg := fmt.Sprintf("polling: %s; interval: %ds", src.FQDN, src.PollSeconds)
-	log.Info(logmsg)
+	contextLogger.Info(logmsg)
 
 	// ok is false if duplicate or context times out
 	ok := p.checkdupes(ctx, src)
@@ -148,15 +154,15 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	ticker := time.NewTicker(time.Duration(src.PollSeconds) * time.Second)
 	for {
 		// run at time zero
-		log.Tracef("[%d] polling (#%d)...", id, counter)
+		contextLogger.Tracef("source: %s; polling (#%d)...", src.FQDN, counter)
 		result, err := p.ProcessSource(ctx, id, src)
 		if err != nil {
 			if errors.Cause(err) == xe.ErrNotFound || errors.Cause(err) == xe.ErrNoFileTarget {
 				if cfg.App.StrictSessions {
-					log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+					contextLogger.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
 				}
 			} else {
-				log.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+				contextLogger.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
 			}
 		}
 
@@ -172,7 +178,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 			if p.ExtraDelay > 0 {
 				<-time.After(time.Millisecond * time.Duration(rand.Intn(p.ExtraDelay*1000)))
 			}
-			log.Debugf("[%d] 'program.run' received ctx.done", id)
+			contextLogger.Debugf("source: %s 'program.run' received ctx.done", src.FQDN)
 			return
 		}
 	}

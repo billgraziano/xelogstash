@@ -79,27 +79,30 @@ func main() {
 
 	log.Infof("start: version: %s; git: %s; build: %s", version, sha1ver, buildTime)
 
+	prg := &app.Program{
+		SHA1: sha1ver,
+		//PollInterval: 60,
+		ExtraDelay: 0,
+		StartTime:  time.Now(),
+		LogLevel:   log.InfoLevel,
+	}
+
 	if *debug {
 		log.SetLevel(log.DebugLevel)
-		log.Debug("log level: debug")
+		log.Info("log level: debug")
+		prg.LogLevel = log.DebugLevel
 	}
 
 	if *trace {
 		log.SetLevel(log.TraceLevel)
-		log.Trace("log level: trace")
+		log.Info("log level: trace")
+		prg.LogLevel = log.TraceLevel
 	}
 
 	svcConfig := &service.Config{
 		Name:        "sqlxewriter",
 		DisplayName: "SQL Server XE Writer",
 		Description: "SQL Server Extended Event Writer Writer - https://github.com/billgraziano/xelogstash",
-	}
-
-	prg := &app.Program{
-		SHA1: sha1ver,
-		//PollInterval: 60,
-		ExtraDelay: 0,
-		StartTime:  time.Now(),
 	}
 
 	svc, err := service.New(prg, svcConfig)

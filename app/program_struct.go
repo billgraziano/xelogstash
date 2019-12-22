@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/xelogstash/sink"
+	log "github.com/sirupsen/logrus"
 )
 
 type Program struct {
@@ -13,6 +14,7 @@ type Program struct {
 	Version   string
 	StartTime time.Time
 	Verbose   bool // enable a little logging at the INFO level
+	LogLevel  log.Level
 
 	//Debug bool
 
