@@ -103,10 +103,9 @@ func (p *Program) Start(svc service.Service) error {
 		go p.run(ctx, i, settings)
 	}
 
-	go func(ctx context.Context) {
-		sleep(ctx, 60*time.Second)
-		logMemory(ctx)
-	}(ctx)
+	go func(ctx context.Context, count int) {
+		p.logMemory(ctx, count)
+	}(ctx, p.targets)
 
 	return nil
 }
@@ -188,7 +187,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 func (p *Program) Stop(s service.Service) error {
 	var err error
 	log.Info("stop signal received")
-	writeMemory(p.StartTime)
+	writeMemory(p.StartTime, p.targets)
 	p.Cancel()
 	p.wg.Wait()
 

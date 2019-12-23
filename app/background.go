@@ -9,25 +9,31 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func logMemory(ctx context.Context) {
-	now := time.Now()
-	go func(start time.Time, ctx context.Context) {
+func (p *Program) logMemory(ctx context.Context, count int) {
+	// context sleep for 60 seconds
+	sleep(ctx, 60*time.Second)
+	if ctx.Err() != nil {
+		return
+	}
+	writeMemory(p.StartTime, count)
+
+	go func(ctx context.Context) {
 		ticker := time.NewTicker(24 * time.Hour)
 		for {
 			select {
 			case <-ticker.C:
-				writeMemory(now)
+				writeMemory(p.StartTime, count)
 			case <-ctx.Done():
 				return
 			}
 		}
-	}(now, ctx)
+	}(ctx)
 }
 
-func writeMemory(start time.Time) {
+func writeMemory(start time.Time, count int) {
 	m := &runtime.MemStats{}
 	runtime.ReadMemStats(m)
-	msg := fmt.Sprintf("metrics: alloc: %.1fmb; sys: %.1fmb; goroutines: %d; uptime: %s",
-		float64(m.Alloc)/(1024.0*1024.0), float64(m.Sys)/(1024.0*1024.0), runtime.NumGoroutine(), time.Since(start))
+	msg := fmt.Sprintf("metrics: alloc: %.1fmb; sys: %.1fmb; goroutines: %d; uptime: %s; sources: %d",
+		float64(m.Alloc)/(1024.0*1024.0), float64(m.Sys)/(1024.0*1024.0), runtime.NumGoroutine(), time.Since(start), count)
 	log.Info(msg)
 }

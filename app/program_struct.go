@@ -16,8 +16,6 @@ type Program struct {
 	Verbose   bool // enable a little logging at the INFO level
 	LogLevel  log.Level
 
-	//Debug bool
-
 	wg      sync.WaitGroup
 	Cancel  context.CancelFunc
 	targets int
