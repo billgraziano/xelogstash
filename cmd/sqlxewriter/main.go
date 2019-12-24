@@ -31,6 +31,7 @@ func main() {
 	debug := flag.Bool("debug", false, "Enable debug logging")
 	trace := flag.Bool("trace", false, "Enable trace logging")
 	filelog := flag.Bool("log", false, "Force logging to JSON file")
+	once := flag.Bool("once", false, "run once and exit (command-line only)")
 	flag.Parse()
 
 	if !service.Interactive() || *filelog {
@@ -87,6 +88,15 @@ func main() {
 		LogLevel:   log.InfoLevel,
 	}
 
+	if *once {
+		if service.Interactive() {
+			prg.Once = true
+			log.Info("once: true")
+		} else {
+			log.Fatal("once flag not allowed for service")
+		}
+	}
+
 	if *debug {
 		log.SetLevel(log.DebugLevel)
 		log.Info("log level: debug")
@@ -120,9 +130,20 @@ func main() {
 		log.Infof("action %s: sucessful", *svcFlag)
 		return
 	}
-	err = svc.Run()
-	if err != nil {
-		log.Fatal(err)
+	if *once { // run once and exit
+		err = prg.Start(svc)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = prg.Stop(svc)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else { // else run continuously
+		err = svc.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

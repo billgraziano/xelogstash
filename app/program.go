@@ -99,13 +99,20 @@ func (p *Program) Start(svc service.Service) error {
 	}
 
 	// launch the polling go routines
-	for i := 0; i < p.targets; i++ {
-		go p.run(ctx, i, settings)
-	}
+	if p.Once {
+		for i := 0; i < p.targets; i++ {
+			p.run(ctx, i, settings)
+		}
+		writeMemory(p.StartTime, 1)
+	} else {
+		for i := 0; i < p.targets; i++ {
+			go p.run(ctx, i, settings)
+		}
 
-	go func(ctx context.Context, count int) {
-		p.logMemory(ctx, count)
-	}(ctx, p.targets)
+		go func(ctx context.Context, count int) {
+			p.logMemory(ctx, count)
+		}(ctx, p.targets)
+	}
 
 	return nil
 }
@@ -126,19 +133,21 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	defer p.wg.Done()
 
 	counter := 1
-	contextLogger.Tracef("source: %s, poll routine launched: %v", src.FQDN, service.Platform())
+	contextLogger.Tracef("source: %s; poll routine launched: %v", src.FQDN, service.Platform())
 
 	// sleep to spread out the launch (ms)
-	delay := cfg.Defaults.PollSeconds * 1000 * id / p.targets
-	if delay == 0 {
-		delay = id
-	}
+	if !p.Once {
+		delay := cfg.Defaults.PollSeconds * 1000 * id / p.targets
+		if delay == 0 {
+			delay = id
+		}
 
-	select {
-	case <-ctx.Done():
-		return
-	case <-time.After(time.Duration(delay) * time.Millisecond):
-		break
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Duration(delay) * time.Millisecond):
+			break
+		}
 	}
 
 	logmsg := fmt.Sprintf("polling: %s; interval: %ds", src.FQDN, src.PollSeconds)
@@ -163,6 +172,11 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 			} else {
 				contextLogger.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
 			}
+		}
+
+		if p.Once {
+			contextLogger.Tracef("source: %s; one poll finished", src.FQDN)
+			return
 		}
 
 		select {
@@ -261,8 +275,6 @@ func (p *Program) getConfig() (config.Config, error) {
 	}
 	return c, errors.New("missing sqlxewriter.toml or xelogstash.toml")
 }
-
-
 
 func enableHTTP(port int) error {
 	addr := fmt.Sprintf(":%d", port)

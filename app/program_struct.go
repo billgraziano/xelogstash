@@ -15,6 +15,7 @@ type Program struct {
 	StartTime time.Time
 	Verbose   bool // enable a little logging at the INFO level
 	LogLevel  log.Level
+	Once      bool // run once and exit
 
 	wg      sync.WaitGroup
 	Cancel  context.CancelFunc
