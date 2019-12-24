@@ -11,9 +11,13 @@ import (
 
 func (p *Program) logMemory(ctx context.Context, count int) {
 	// context sleep for 60 seconds
-	sleep(ctx, 60*time.Second)
-	if ctx.Err() != nil {
+	select {
+	case <-ctx.Done():
+		// write memory on exit
+		writeMemory(p.StartTime, count)
 		return
+	case <-time.After(time.Duration(60 * time.Second)):
+		break
 	}
 	writeMemory(p.StartTime, count)
 
@@ -24,6 +28,7 @@ func (p *Program) logMemory(ctx context.Context, count int) {
 			case <-ticker.C:
 				writeMemory(p.StartTime, count)
 			case <-ctx.Done():
+				writeMemory(p.StartTime, count)
 				return
 			}
 		}
@@ -36,4 +41,13 @@ func writeMemory(start time.Time, count int) {
 	msg := fmt.Sprintf("metrics: alloc: %.1fmb; sys: %.1fmb; goroutines: %d; uptime: %s; sources: %d",
 		float64(m.Alloc)/(1024.0*1024.0), float64(m.Sys)/(1024.0*1024.0), runtime.NumGoroutine(), time.Since(start), count)
 	log.Info(msg)
+}
+
+func sleep(ctx context.Context, dur time.Duration) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(dur):
+		break
+	}
 }

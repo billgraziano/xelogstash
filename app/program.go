@@ -187,7 +187,6 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 func (p *Program) Stop(s service.Service) error {
 	var err error
 	log.Info("stop signal received")
-	writeMemory(p.StartTime, p.targets)
 	p.Cancel()
 	p.wg.Wait()
 
@@ -263,14 +262,7 @@ func (p *Program) getConfig() (config.Config, error) {
 	return c, errors.New("missing sqlxewriter.toml or xelogstash.toml")
 }
 
-func sleep(ctx context.Context, dur time.Duration) {
-	select {
-	case <-ctx.Done():
-		return
-	case <-time.After(dur):
-		break
-	}
-}
+
 
 func enableHTTP(port int) error {
 	addr := fmt.Sprintf(":%d", port)
