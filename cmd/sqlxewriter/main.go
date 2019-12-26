@@ -42,7 +42,7 @@ func main() {
 		dir = filepath.Join(dir, "log")
 		rot := sink.NewRotator(dir, "sqlxewriter", "log")
 
-		// I'm not sure about handling and error here
+		// I'm not sure about handling an error here
 		// https://www.joeshaw.org/dont-defer-close-on-writable-files/
 		defer rot.Close()
 
@@ -56,15 +56,11 @@ func main() {
 				"version_git": sha1ver,
 				"application": filepath.Base(os.Args[0]),
 			},
-			//lf: &log.JSONFormatter{},
 			lf: &log.JSONFormatter{
 				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 					filename := path.Base(f.File)
 					return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
 				},
-				// FieldMap: log.FieldMap{
-				// 	log.FieldKeyTime: "@timestamp",
-				// },
 				TimestampFormat: "2006-01-02T15:04:05.999999999-07:00",
 			},
 		})
@@ -74,7 +70,6 @@ func main() {
 		log.SetFormatter(&log.TextFormatter{
 			ForceColors: true,
 		})
-
 		log.SetOutput(ansicolor.NewAnsiColorWriter(os.Stdout))
 	}
 
