@@ -70,7 +70,7 @@ ADD EVENT sqlserver.errorlog_written(
     ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_hostname,sqlserver.client_pid,sqlserver.database_name,sqlserver.is_system,sqlserver.server_instance_name,sqlserver.server_principal_name,sqlserver.sql_text))
 
 ADD TARGET package0.event_file(
-	SET filename=N'logstash_events',max_file_size=(50), max_rollover_files=(10)  )
+	SET filename=N'logstash_events',max_file_size=(10), max_rollover_files=(20)  )
 
 --ADD TARGET package0.ring_buffer(
 --	SET max_memory=(1024))
