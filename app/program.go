@@ -8,6 +8,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/billgraziano/xelogstash/pkg/metric"
@@ -118,6 +119,16 @@ func (p *Program) Start(svc service.Service) error {
 }
 
 func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Error(fmt.Sprintf("panic:  %#v\n", err))
+			buf := make([]byte, 4096)
+			buf = buf[:runtime.Stack(buf, true)]
+			log.Error(fmt.Sprintf("%s\n", buf))
+		}
+	}()
 
 	// get the source
 	if id >= len(cfg.Sources) {

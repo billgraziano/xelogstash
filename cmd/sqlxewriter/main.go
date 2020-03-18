@@ -75,6 +75,16 @@ func main() {
 
 	log.Infof("start: version: %s; git: %s; build: %s", version, sha1ver, buildTime)
 
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Error(fmt.Sprintf("panic:  %#v\n", err))
+			buf := make([]byte, 4096)
+			buf = buf[:runtime.Stack(buf, true)]
+			log.Error(fmt.Sprintf("%s\n", buf))
+		}
+	}()
+
 	prg := &app.Program{
 		SHA1: sha1ver,
 		//PollInterval: 60,
@@ -139,6 +149,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		log.Debug("svc.run exited")
 	}
 }
 

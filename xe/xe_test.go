@@ -12,16 +12,6 @@ import (
 var i SQLInfo
 
 func init() {
-	//connectionString := "Driver={SQL Server Native Client 11.0};Server=D30\\SQL2016; Trusted_Connection=yes; App=xelogstash.exe;"
-	// db, err := sql.Open("odbc", connectionString)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer db.Close()
-	// err = Initialize(db)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	i = SQLInfo{
 		Server:         "D30",
