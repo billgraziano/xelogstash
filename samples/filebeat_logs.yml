@@ -1,4 +1,4 @@
-# Sample filebeat.yml file to import sqlxewriter logs
+# Sample filebeat.yml file to import xewriter logs
 #
 #   TO DO 
 #   -----
@@ -9,15 +9,14 @@
 #    
 
 filebeat.inputs:
-# This same of for sqlxewriter logs
+# This same of for xewriter logs
 - type: log
   enabled: true
   paths:
-    # - /var/log/*.log
-    #- c:\programdata\elasticsearch\logs\*
-    C:\dev\test\log\sqlxewriter*.log
+    # Update the path to your location
+    C:\apps\xewriter\xewriter*.log
 
-  fields.kind: "sqlxewriter"
+  fields.kind: "xewriter"
   json.keys_under_root: true
   json.add_error_key: true
   json.overwrite_keys: true

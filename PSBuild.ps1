@@ -23,7 +23,7 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
-go vet -all .\cmd\sqlxewriter
+go vet -all .\cmd\xewriter
 if ($LastExitCode -ne 0) {
     exit
 }
@@ -45,8 +45,8 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
-Write-Output "Building sqlxewriter..."
-go build -o "$($target)\sqlxewriter.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\sqlxewriter"
+Write-Output "Building xewriter..."
+go build -o "$($target)\xewriter.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\xewriter"
 if ($LastExitCode -ne 0) {
     exit
 }

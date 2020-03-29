@@ -203,6 +203,7 @@ The application keeps track how far it has read into the extended event file tar
 
 ## <a name="app-settings"></a>Application Settings
 These are the fields you can set in the `[app]` section of the configuration file.
+
 ### `[app]` section
 This controls the overall application.  All these fields are optional.
 * `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send events to logstash.
@@ -210,7 +211,7 @@ This controls the overall application.  All these fields are optional.
 * `summary` set to true will print a nice summary of the output including how many of each type of event were processed.
 * `workers` controls how many concurrent workers will process the sources.  It defaults to the number of cores in the computer.  A given worker will process all the sessions for a source before moving on to the next source.  The application doesn't use much CPU.  It spends lots of time waiting on data to return from sources.
 * `http_metrics` enables a local web server that can provide diagnostic information.  This defaults to false.  It exposes the following two URLs:
-  * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars]) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
+  * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
   * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the [GO PPROF](https://golang.org/pkg/net/http/pprof/) web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.  
   * IE is horrible for viewing these.  I've found that using PowerShell and running `Invoke-RestMethod "http://localhost:8080/debug/vars"` works well to view that URL
 
