@@ -34,12 +34,17 @@ func main() {
 	once := flag.Bool("once", false, "run once and exit (command-line only)")
 	flag.Parse()
 
+	println(os.Args[0])
+	println(filepath.Dir(os.Args[0]))
+	appdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	println(appdir)
+	// we are logging to a file
 	if !service.Interactive() || *filelog {
-		dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-		if err != nil {
-			log.Fatal(err)
-		}
-		dir = filepath.Join(dir, "log")
+
+		dir := filepath.Join(appdir, "log")
 		rot := sink.NewRotator(dir, "sqlxewriter", "log")
 
 		// I'm not sure about handling an error here
@@ -114,10 +119,12 @@ func main() {
 		prg.LogLevel = log.TraceLevel
 	}
 
+	description := fmt.Sprintf("SQL Server Extended Event Writer (%s.exe) from https://github.com/billgraziano/xelogstash", filepath.Join(appdir, os.Args[0]))
+	log.Trace(description)
 	svcConfig := &service.Config{
 		Name:        "sqlxewriter",
 		DisplayName: "XEvent Writer for SQL Server",
-		Description: "SQL Server Extended Event Writer - https://github.com/billgraziano/xelogstash",
+		Description: description,
 	}
 
 	svc, err := service.New(prg, svcConfig)
