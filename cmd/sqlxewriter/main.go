@@ -34,13 +34,11 @@ func main() {
 	once := flag.Bool("once", false, "run once and exit (command-line only)")
 	flag.Parse()
 
-	println(os.Args[0])
-	println(filepath.Dir(os.Args[0]))
 	appdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Fatal(err)
 	}
-	println(appdir)
+
 	// we are logging to a file
 	if !service.Interactive() || *filelog {
 
