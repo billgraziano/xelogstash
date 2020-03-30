@@ -18,7 +18,7 @@ var (
 <html lang="us">
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="60">
-<title>XEWriter - Metrics</title>
+<title>SQLXEWriter - Metrics</title>
 <meta name="viewport" content="width=device-width">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: monospace; font-size: 12px; }

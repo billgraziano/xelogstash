@@ -271,7 +271,7 @@ func (p *Program) getConfig() (config.Config, error) {
 	}
 	exePath := filepath.Dir(exe)
 
-	configFiles := []string{"xewriter.toml", "xelogstash.toml"}
+	configFiles := []string{"sqlxewriter.toml", "xelogstash.toml"}
 	for _, s := range configFiles {
 		fqfile := filepath.Join(exePath, s)
 		_, err := os.Stat(fqfile)
@@ -284,7 +284,7 @@ func (p *Program) getConfig() (config.Config, error) {
 		}
 		return c, nil
 	}
-	return c, errors.New("missing xewriter.toml or xelogstash.toml")
+	return c, errors.New("missing sqlxewriter.toml or xelogstash.toml")
 }
 
 func enableHTTP(port int) error {

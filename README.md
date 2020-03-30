@@ -1,6 +1,6 @@
 # Extended Event Writer for SQL Server
 
-`xewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.
+`sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.
 
 1. [New Features](#new)
 1. [Getting started](#getting-started)
@@ -16,7 +16,6 @@
 ## <a name="new"></a>New Features
 ### Version 1.0
 
-1. Run as a service
 
 ## <a name="getting-started"></a>Getting Started
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
@@ -24,14 +23,14 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 1. Extract the ZIP contents to a directory.  We'll be starting with "start.toml".
 2. If you have a local SQL Server installed, no changes are necessary.
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
-4. From a command-prompt, type "`xewriter.exe -once`".  (This doesn't send anything to logstash yet)
+4. From a command-prompt, type "`sqlxewriter.exe -once`".  (This doesn't send anything to logstash yet)
 
 This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
 
 > NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions.
 
 ### Writing events to a file
-In `xewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
+In `sqlxewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
 
 ### Sending to Logstash
 To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
@@ -42,9 +41,9 @@ host = "localhost:8888"
 ````
 
 ### Command Line Options 
-Running `xewriter -?` will display the help for the options.
+Running `sqlxewriter -?` will display the help for the options.
 
-- `-log` - Captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `xewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
+- `-log` - Captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
 - `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
 - `-once` - Polls each server once and exits.  Without this flag, it polls each server every minute.
 - `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
@@ -52,7 +51,7 @@ Running `xewriter -?` will display the help for the options.
 ### Running as a service
 In order to run this as a service, complete the following steps
 
-1. `xewriter -service install` will install XEWriter as a service
+1. `sqlxewriter -service install` will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
 1. Configure the service to auto-start
 1. Update the service to run as a service account.  This service account should have `VIEW SERVER STATE` permission on each SQL Server it polls.
 1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission
@@ -86,7 +85,7 @@ The two fields `timestamp_field_name` and `payload_field_name` are available in 
 All the event fields are at the root level.
 
 ```json 
-- - - xewriter.toml - - - 
+- - - sqlxewriter.toml - - - 
 
 timestamp_field_name = "@timestamp"
 payload_field_name = ""
@@ -95,7 +94,7 @@ payload_field_name = ""
 
 {
   "@timestamp": "2018-05-08T01:23:45.691Z",
-  "client_app_name": "xewriter.exe",
+  "client_app_name": "sqlxewriter.exe",
   "client_hostname": "D30",
   ". . . lots of json fields...": "go here",
   "xe_severity_value": 6
@@ -106,7 +105,7 @@ payload_field_name = ""
 All the event fields are nested inside an "mssql" field.  This is the most common way to run the application.
 
 ```json
-- - - xewriter.toml - - - 
+- - - sqlxewriter.toml - - - 
 
 timestamp_field_name = "event_time"
 payload_field_name = "mssql"
@@ -116,7 +115,7 @@ payload_field_name = "mssql"
 {
   "event_time": "2018-05-08T01:23:49.928Z",
   "mssql": {
-    "client_app_name": "xewriter.exe",
+    "client_app_name": "sqlxewriter.exe",
     "client_hostname": "D30",
     ". . . lots of json fields...": "go here",
     "xe_severity_value": 6
@@ -144,7 +143,7 @@ payload_field_name = "event"
 
 adds =  [   "global.log.vendor:Microsoft",
             "global.log.type:Application",
-            "global.log.collector.application:xewriter.exe",
+            "global.log.collector.application:sqlxewriter.exe",
             "global.log.collector.version:'$(VERSION)'",
         ] 
 
@@ -163,7 +162,7 @@ copies = [  "event.mssql_computer:global.host.name",
       "version": "SQL Server 2016 RTM",
       "collector": {
         "version": "0.12",
-        "application": "xewriter.exe"
+        "application": "sqlxewriter.exe"
       },
       "type": "Application",
       "vendor": "Microsoft"
@@ -200,13 +199,13 @@ The values that are added can be strings, integers, floats, booleans, or dates. 
 ### Replacements
 The adds, moves, and copies also support a few "replacement" values.  
 
-* `$(VERSION)` is the version of xewriter.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
+* `$(VERSION)` is the version of sqlxewriter.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
 * `$(GITDESCRIBE)` is Git Describe from the build.
 * `$(EXENAMEPATH)` is the full path and name of the executable
 * `$(EXENAME)` is the name of the executable
-* `$(PID)` is the Process ID of xewriter.exe
-* `$(HOST)` is the computer where xewriter.exe is running
-* `$(NOW)` is the time that xewriter.exe wrote this value to a sink
+* `$(PID)` is the Process ID of sqlxewriter.exe
+* `$(HOST)` is the computer where sqlxewriter.exe is running
+* `$(NOW)` is the time that sqlxewriter.exe wrote this value to a sink
 
 See the section below on derived fields for a description of the "mssql_" and "xe_" fields
 

@@ -40,7 +40,7 @@ func main() {
 			log.Fatal(err)
 		}
 		dir = filepath.Join(dir, "log")
-		rot := sink.NewRotator(dir, "xewriter", "log")
+		rot := sink.NewRotator(dir, "sqlxewriter", "log")
 
 		// I'm not sure about handling an error here
 		// https://www.joeshaw.org/dont-defer-close-on-writable-files/
@@ -115,7 +115,7 @@ func main() {
 	}
 
 	svcConfig := &service.Config{
-		Name:        "xewriter",
+		Name:        "sqlxewriter",
 		DisplayName: "XEvent Writer for SQL Server",
 		Description: "SQL Server Extended Event Writer - https://github.com/billgraziano/xelogstash",
 	}
