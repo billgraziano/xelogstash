@@ -1,8 +1,11 @@
-# Extended Event Writer for SQL Server
+# XELogstash
 
-`sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.
+> **`xelogstash.exe` is deprecated.  Please use the newer `xewriter.exe`.**
+> **It is only included for backward compatibility.** 
 
-1. [New Features](#new)
+`xelogstash.exe` is a command-line application to pull SQL Server Extended Events and SQL Server Agent job results and push them to Logstash.   It supports SQL Server 2012 and higher.  It is untested against SQL Server 2008 (R2).
+
+1. [Breaking Changes](#breaking-changes)
 1. [Getting started](#getting-started)
 2. [Sources and Defaults](#sources)
 2. [Controlling JSON](#json)
@@ -13,9 +16,10 @@
 3. [Sinks](#sinks)
 4. [Other Notes](#notes)
 
-## <a name="new"></a>New Features
-### Version 1.0
-
+## <a name="getting-started"></a>Breaking Changes
+* post-0.44 - The AppLog section has been removed.  Please remove this from your TOML files.  All application log files are now written to JSON.
+* post-0.44 - The application log files are written to the `log` subdirectory in JSON format.   These should be processed with FileBeat.
+* 0.40 - The TOML configuration to write to logstash has moved.  It was formerly under `app.logstash`.  Now it is configured in the `logstash` section.  See [Sinks](#sinks) below.
 
 ## <a name="getting-started"></a>Getting Started
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
@@ -23,14 +27,14 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 1. Extract the ZIP contents to a directory.  We'll be starting with "start.toml".
 2. If you have a local SQL Server installed, no changes are necessary.
 3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
-4. From a command-prompt, type "`sqlxewriter.exe -once`".  (This doesn't send anything to logstash yet)
+4. From a command-prompt, type "`xelogstash.exe`".  (This doesn't send anything to logstash yet)
 
 This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
 
-> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions.
+> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions or delete the directory and allow the service account to recreate it.
 
 ### Writing events to a file
-In `sqlxewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
+In `xelogstash.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server XE session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).
 
 ### Sending to Logstash
 To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
@@ -41,20 +45,12 @@ host = "localhost:8888"
 ````
 
 ### Command Line Options 
-Running `sqlxewriter -?` will display the help for the options.
+There are three command line options.  Running `xelogstash /?` will display the help for the options.
 
-- `-log` - Captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
-- `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
-- `-once` - Polls each server once and exits.  Without this flag, it polls each server every minute.
-- `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
+- `/config filename` - Tries to load the TOML file from _filename_. If this isn't specified, `xelogstash.toml` is used.
+- `/log` - Captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `xelogstash_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
+- `/debug` - Enables additional debugging output.
 
-### Running as a service
-In order to run this as a service, complete the following steps
-
-1. `sqlxewriter -service install` will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
-1. Configure the service to auto-start
-1. Update the service to run as a service account.  This service account should have `VIEW SERVER STATE` permission on each SQL Server it polls.
-1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission
 
 ## <a name="sources"></a>Sources and Defaults
 Each SQL Server you want to extract events from is called a "source".  You can specify each source using the `[[sourece]]` header in the TOML file.  (This is an array of sources.)  The only required field for a source is the `fqdn` which is how you connect to the server.
@@ -85,7 +81,7 @@ The two fields `timestamp_field_name` and `payload_field_name` are available in 
 All the event fields are at the root level.
 
 ```json 
-- - - sqlxewriter.toml - - - 
+- - - xelogstash.toml - - - 
 
 timestamp_field_name = "@timestamp"
 payload_field_name = ""
@@ -94,7 +90,7 @@ payload_field_name = ""
 
 {
   "@timestamp": "2018-05-08T01:23:45.691Z",
-  "client_app_name": "sqlxewriter.exe",
+  "client_app_name": "xecap.exe",
   "client_hostname": "D30",
   ". . . lots of json fields...": "go here",
   "xe_severity_value": 6
@@ -102,20 +98,16 @@ payload_field_name = ""
 ```
 
 ### Example 2
-All the event fields are nested inside an "mssql" field.  This is the most common way to run the application.
+All the event fields are nested inside an "mssql" field.
 
 ```json
-- - - sqlxewriter.toml - - - 
-
 timestamp_field_name = "event_time"
 payload_field_name = "mssql"
-
-- - - generates - - - 
-
+----------------------
 {
   "event_time": "2018-05-08T01:23:49.928Z",
   "mssql": {
-    "client_app_name": "sqlxewriter.exe",
+    "client_app_name": "xecap.exe",
     "client_hostname": "D30",
     ". . . lots of json fields...": "go here",
     "xe_severity_value": 6
@@ -127,7 +119,7 @@ payload_field_name = "mssql"
 ## <a name="adds"></a>Add, Copies, and Moves
 Adds, moves, and copies give you the opptunity to modify the generated JSON.  All three are arrays with a format of "string1:string2".  
 
-> Note: For these values, any Source overwrites the Default at _the individual key level_.  If both the default and source try to add a key for "environment", it will use the value from the Source.  But if the Default adds a key for "datacenter" and the Source adds a key for "environment", it will add both keys.  Copies and Moves are handled the same way.
+Note: For these values, any Source overwrites the Default at _the individual key level_.  If both the default and source try to add a key for "environment", it will use the value from the Source.  But if the Default adds a key for "datacenter" and the Source adds a key for "environment", it will add both keys.  Copies and Moves are handled the same way.
 
 * `adds` are "key:value" that will add a key with the specified value
 * `copies` are "src:dest" that will copy the value at _src_ to _dest_
@@ -143,7 +135,7 @@ payload_field_name = "event"
 
 adds =  [   "global.log.vendor:Microsoft",
             "global.log.type:Application",
-            "global.log.collector.application:sqlxewriter.exe",
+            "global.log.collector.application:xelogstash.exe",
             "global.log.collector.version:'$(VERSION)'",
         ] 
 
@@ -162,7 +154,7 @@ copies = [  "event.mssql_computer:global.host.name",
       "version": "SQL Server 2016 RTM",
       "collector": {
         "version": "0.12",
-        "application": "sqlxewriter.exe"
+        "application": "xelogstash.exe"
       },
       "type": "Application",
       "vendor": "Microsoft"
@@ -199,17 +191,18 @@ The values that are added can be strings, integers, floats, booleans, or dates. 
 ### Replacements
 The adds, moves, and copies also support a few "replacement" values.  
 
-* `$(VERSION)` is the version of sqlxewriter.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
+* `$(VERSION)` is the version of xelogstash.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
 * `$(GITDESCRIBE)` is Git Describe from the build.
 * `$(EXENAMEPATH)` is the full path and name of the executable
 * `$(EXENAME)` is the name of the executable
-* `$(PID)` is the Process ID of sqlxewriter.exe
-* `$(HOST)` is the computer where sqlxewriter.exe is running
-* `$(NOW)` is the time that sqlxewriter.exe wrote this value to a sink
+* `$(PID)` is the Process ID of xelogstash.exe
+* `$(HOST)` is the computer where xelogstash.exe is running
+* `$(NOW)` is the time that xelogstash.exe wrote this value to a sink
 
 See the section below on derived fields for a description of the "mssql_" and "xe_" fields
 
 ## <a name="prefixes"></a>Prefixes and keeping your place
+**NOTE**: Starting in v0.20, the /status directory is being moved to the /xestate field.  This should be done for you by the application.  The new file name format is `domain_instance_class_identifier.state`.  Please leave the Prefix in the TOML file for now.  It will be removed in a future release.
 
 The application keeps track how far it has read into the extended event file target using a state file.  This file holds the file name and offset of each read for that session.  The file is named `Domain_ServerName_Session.state`.  There is also a ".0" file that is used while the application is running.  You can tell the application to start all over by deleting the state file.  The "ServerName" above is populated by `@@SERVERNAME` from the instance.
 
@@ -218,17 +211,24 @@ These are the fields you can set in the `[app]` section of the configuration fil
 
 ### `[app]` section
 This controls the overall application.  All these fields are optional.
+* `logstash` is the address of the Logstash server is _host:port_ format.  If empty, it will not send events to logstash.
 * `samples` set to true will save a JSON file with one of each event type that was processed.  This is very helpful for testing your JSON format.
 * `summary` set to true will print a nice summary of the output including how many of each type of event were processed.
-* `http_metrics` enables a local web server that can provide diagnostic information.  This defaults to false.  It exposes the following URLs:
-  * [http://localhost:8080/debug/metrics](http://localhost:8080/debug/metrics) displays counts of events read and written as well as memory usage.
+* `workers` controls how many concurrent workers will process the sources.  It defaults to the number of cores in the computer.  A given worker will process all the sessions for a source before moving on to the next source.  The application doesn't use much CPU.  It spends lots of time waiting on data to return from sources.
+* `http_metrics` enables a local web server that can provide diagnostic information.  This defaults to false.  It exposes the following two URLs:
   * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
   * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the [GO PPROF](https://golang.org/pkg/net/http/pprof/) web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.  
+  * IE is horrible for viewing these.  I've found that using PowerShell and running `Invoke-RestMethod "http://localhost:8080/debug/vars"` works well to view that URL
 
-> Internet Explorer pre-Chromium is horrible for viewing `vars` and `pprof`.  Find a newer browser.
+
+
+### `[applog]` section
+Note: This section was removed post 0.44.
+
+
 
 ## <a name="derived-fields"></a>Derived Fields
-Based on a particular event, the application computes a number of calculated fields and adds those to the event.  Most of them have an "xe_" prefix to separate them.  It also returns a few SQL Server level settings with an "mssql_" prefix.
+Based on a particular event, the application computes a number of calculated fields and adds those to the event.  Most of them have an "xe_" prefix to separate them.  It also returns a few SQL Server level settings with an "mssql_" prfix.
 
 * `mssql_domain`: This is the result of DEFAULT_DOMAIN() run on the source server
 * `mssql_computer`: This is the result of SERVERPROPERTY('MachineName') on the source computer.
@@ -244,17 +244,17 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_session_name`: name of the extended event session for this event
 * `xe_file_name`: name of the XE file for this event
 * `xe_file_offset`: file offset where we found this event
-* `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from `@@SERVERNAME` of the source server.
+* `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from @@SERVERNAME of the source server.
 
 ## <a name="sinks"></a>Sinks
-XEWriter can write to multiple targets called "sinks".  It can write to files, to logstash, or directly to Elastic Search.  It can write to all three sinks at the same time if they are all specified.  They are written serially so the performance isn't that great.
+xelogstash can write to multiple targets called "sinks".  It can write to files, to logstash, or directly to Elastic Search.  It can write to all three sinks at the same time if they are all specified.  They are written serially so the performanc isn't that great.
 
 ### File Sink
 This is configured with a `filesink` section:
 
 ````toml
 [filesink]
-retain_hours = 24
+retain_hours = 1 
 ````
 The files are named for the server, instance, session name, date, and hour and are written to an `events` directory with a `.json` extension.  The files are rotated every hour.  Any files older than  `retain_hours` are removed.
 
@@ -285,19 +285,20 @@ default_index = "dev-sql"
 event_index_map = [
     "login:dev-login"
 ]
-```
+````
 
 * `addressess` specifies one or more addresses for the Elastic servers.
 * `username` and `password` provide authentication.
-* `auto_create_indexes` controls whether the application tries to create indexes.  
+* `auto_create_indexes` controls whether the application tries to create indexes.  It creates default indexes.
 * `default_index` is the index where events will be written unless overridden by the event index map.
 * `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
 
 ## <a name="notes"></a>Other Notes
+1. I've had issues with the SQL Server Agent job ending but not stopping the executable when I manually stop the job.  The application now sets a lock file so that a second instance will exit with an error.   The lock file name is based on the TOML file name (`TOML_file_name.lock`).  Find the first instance in Task Manager and kill it.  I usually only see this if I stop it in the middle of a run or Logstash is behaving oddly.
 
-1. I find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  
+1. I find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  It's not so many that adding a new server runs for 20 minutes and everything else pauses.
 
-2. The sources are processd in the order they are listed.  Each server is polled every minute.  It spreads out the servers evenly over the minute.
+2. The sources are processd in the order they are listed.
 
 3. I make some decisions around setting the severity level.  Failed jobs and job steps are errors.  SQL Server errors are errors.  I haven't gone much beyond that yet.
 

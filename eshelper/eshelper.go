@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -144,6 +146,7 @@ func WriteElasticBuffer(esclient *elasticsearch.Client, buf *bytes.Buffer) error
 		log.Error(string(buf.String()))
 		return errors.New("res.iserror true writing to elastic")
 	}
+	io.Copy(ioutil.Discard, res.Body)
 	buf.Reset()
 	return nil
 }

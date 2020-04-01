@@ -1,4 +1,4 @@
-package rotator
+package sink
 
 import (
 	"fmt"
@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
+
+// TODO move this to the sink package
 
 // Rotator satisfies io.WriterCloser and is used to
 // rotate log files and event files
@@ -31,7 +33,7 @@ type Rotator struct {
 }
 
 // New returns a new Rotator
-func New(dir, prefix, extension string) *Rotator {
+func NewRotator(dir, prefix, extension string) *Rotator {
 	r := &Rotator{
 		Directory: dir,
 		Prefix:    prefix,
@@ -95,6 +97,30 @@ func (r *Rotator) Write(p []byte) (n int, err error) {
 	return n, err
 }
 
+// Close the current log file
+func (r *Rotator) Close() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var err error
+	err = r.close()
+	if err != nil {
+		return errors.Wrap(err, "r.close")
+	}
+	err = r.clean()
+	if err != nil {
+		return errors.Wrap(err, "r.clean")
+	}
+	return nil
+}
+
+// Sync performs a sync (usually flushing)
+func (r *Rotator) Sync() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.sync()
+}
+
 func (r *Rotator) getts() string {
 	if r.Hourly {
 		return r.clock.Now().Format("20060102_15")
@@ -106,24 +132,31 @@ func (r *Rotator) rotate() error {
 	var err error
 	err = r.close()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "r.close")
 	}
 
 	err = r.open()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "r.open")
 	}
 
 	err = r.clean()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "r.clean")
 	}
 	return nil
 }
 
 func (r *Rotator) clean() error {
-	// loop through all matching files
-	// purge the old ones
+	// loop through all matching files, and purge the old ones
+
+	// check if the directory exists
+	var err error
+
+	exists, err := afero.DirExists(r.fs, r.Directory)
+	if !exists {
+		return nil
+	}
 	files, err := afero.ReadDir(r.fs, r.Directory)
 	if err != nil {
 		return fmt.Errorf("error reading directory: %s", err)
@@ -202,32 +235,33 @@ func (r *Rotator) filename() string {
 	return filepath.Join(r.Directory, name)
 }
 
-// Close the current log file
-func (r *Rotator) Close() error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.close()
-}
-
 func (r *Rotator) close() error {
+	var err error
 	if r.file == nil {
 		return nil
 	}
-	err := r.file.Close()
+
+	err = r.sync()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "r.sync")
+	}
+
+	err = r.file.Close()
+	if err != nil {
+		return errors.Wrap(err, "r.file.close")
 	}
 
 	r.file = nil
-	return err
+	return nil
 }
 
-func (r *Rotator) Sync() error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if r.file != nil {
-		return r.file.Sync()
+func (r *Rotator) sync() error {
+	if r.file == nil {
+		return nil
+	}
+	err := r.file.Sync()
+	if err != nil {
+		return errors.Wrap(err, "r.file.sync")
 	}
 	return nil
 }

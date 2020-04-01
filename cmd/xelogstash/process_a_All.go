@@ -1,13 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"sync"
 	"time"
 
+	"github.com/billgraziano/xelogstash/xe"
+
+	"github.com/billgraziano/xelogstash/app"
 	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/format"
+	"github.com/billgraziano/xelogstash/sink"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/dustin/go-humanize/english"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,39 +32,83 @@ func processall(settings config.Config) (string, bool) {
 		}
 	}
 	// the +1 is for agent jobs
-	maxSize := (maxSessions + 1) * len(settings.Sources) * 2
-
-	jobs := make(chan config.Source, maxSize)
-	results := make(chan int, maxSize)
-	exceptions := make(chan error, maxSize)
-
-	var wg sync.WaitGroup
-	for w := 1; w <= settings.App.Workers; w++ {
-		go worker(w, &wg, jobs, results, exceptions)
-	}
-
-	for _, s := range settings.Sources {
-		wg.Add(1)
-		jobs <- s
-	}
-
-	close(jobs)
-	wg.Wait()
-
-	close(results)
-	//close(exceptions)
-
-	select {
-	case <-exceptions:
-		cleanRun = false
-	default:
-	}
+	//maxSize := (maxSessions + 1) * len(settings.Sources) * 2
 
 	var rows, sources int
-	for r := range results {
-		sources++
-		rows += r
+	// for r := range results {
+	// 	sources++
+	// 	rows += r
+	// }
+
+	// Process sequentially
+	// make app.Program
+	pgm := app.Program{}
+	ctx := context.TODO()
+
+	sinks, err := settings.GetSinks()
+	if err != nil {
+		return errors.Wrap(err, "settings.getsink").Error(), false
 	}
+	pgm.Sinks = make([]*sink.Sinker, 0)
+	for i := range sinks {
+		pgm.Sinks = append(pgm.Sinks, &sinks[i])
+	}
+	for i := range pgm.Sinks {
+		ptr := *pgm.Sinks[i]
+		err := ptr.Open(ctx, "id")
+		if err != nil {
+			return errors.Wrap(err, "ptr.open").Error(), false
+		}
+		defer ptr.Close()
+	}
+
+	// TODO this ignores invalid sessions
+	for _, src := range settings.Sources {
+		result, err := pgm.ProcessSource(ctx, 0, src)
+		if err != nil {
+			root := errors.Cause(err)
+			switch root {
+			case xe.ErrNotFound:
+			default:
+				log.Error(errors.Wrap(err, "pgm.processsource"))
+				cleanRun = false
+			}
+		}
+		rows += result.Rows
+		sources++
+	}
+
+	// jobs := make(chan config.Source, maxSize)
+	// results := make(chan int, maxSize)
+	// exceptions := make(chan error, maxSize)
+
+	// var wg sync.WaitGroup
+	// for w := 1; w <= settings.App.Workers; w++ {
+	// 	go worker(w, &wg, jobs, results, exceptions)
+	// }
+
+	// for _, s := range settings.Sources {
+	// 	wg.Add(1)
+	// 	jobs <- s
+	// }
+
+	// close(jobs)
+	// wg.Wait()
+
+	// close(results)
+	// //close(exceptions)
+
+	// select {
+	// case <-exceptions:
+	// 	cleanRun = false
+	// default:
+	// }
+
+	// var rows, sources int
+	// for r := range results {
+	// 	sources++
+	// 	rows += r
+	// }
 
 	runtime := time.Since(start)
 	seconds := runtime.Seconds()
@@ -75,7 +125,7 @@ func processall(settings config.Config) (string, bool) {
 			humanize.Comma(int64(rows)),
 			english.PluralWord(rows, "event", ""),
 			humanize.Comma(int64(rowsPerSecond)),
-			roundDuration(runtime, time.Second))
+			format.RoundDuration(runtime, time.Second))
 	} else {
 		textMessage = fmt.Sprintf("Processed %s %s", humanize.Comma(int64(rows)), english.PluralWord(rows, "event", ""))
 	}

@@ -7,7 +7,6 @@
 # retain_hours = 1 
 
 [app]
-# workers = 1 # max number of concurrent workers.  Defaults to the number of cores
 summary = true # prints a summary of events to stdout after running
 samples = true # prints one of each type event to samples.xe.json after running
 
@@ -29,5 +28,3 @@ excludedEvents = [
 
 [[source]]
 fqdn = "localhost"
-
-

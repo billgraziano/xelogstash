@@ -1,11 +1,13 @@
 package main
 
-import "expvar"
+// Moved to the "app" package
 
-var (
-	totalCount  = expvar.NewInt("eventsProcessed")
-	eventCount  = expvar.NewMap("events").Init()
-	serverCount = expvar.NewMap("servers").Init()
-	readCount   = expvar.NewInt("eventsRead")
-	//expWorker   = expvar.NewMap("workers").Init()
-)
+// import "expvar"
+
+// var (
+// 	totalCount  = expvar.NewInt("eventsProcessed")
+// 	eventCount  = expvar.NewMap("events").Init()
+// 	serverCount = expvar.NewMap("servers").Init()
+// 	readCount   = expvar.NewInt("eventsRead")
+// 	//expWorker   = expvar.NewMap("workers").Init()
+// )

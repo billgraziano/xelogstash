@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/toml"
-	"github.com/billgraziano/xelogstash/pkg/rotator"
+	"github.com/billgraziano/xelogstash/sink"
 )
 
 // Config defines the configuration read from the TOML file
@@ -18,8 +18,9 @@ type Config struct {
 	FileSink *FileSink     `toml:"filesink"`
 	Logstash *Logstash     `toml:"logstash"`
 	MetaData toml.MetaData
+	FileName string
 
-	rot *rotator.Rotator
+	rot *sink.Rotator
 	//Sinks    []sink.Sinker
 }
 
@@ -38,6 +39,7 @@ type Source struct {
 	StopAt         time.Time `toml:"stop_at"`
 	LookBackRaw    string    `toml:"look_back"`
 	lookback       time.Duration
+	PollSeconds    int `toml:"poll_seconds"`
 
 	Adds               map[string]string
 	Copies             map[string]string
@@ -54,13 +56,17 @@ type Source struct {
 
 // App defines the application configuration
 type App struct {
-	Workers  int
-	Logstash string
-	Samples  bool // Print sample JSON to stdout
-	Summary  bool // Print a summary to stdout
+	Workers        int
+	Logstash       string
+	Samples        bool   // Print sample JSON to stdout
+	Summary        bool   // Print a summary to stdout
+	LogLevel       string `toml:"log_level"` // trace|debug|info|...
+	Verbose        bool   // Enables logging wrote x events at the info level
+	StrictSessions bool   `toml:"strict_sessions"` // true - log session errors
 
 	// Enables a web server on :8080 with basic metrics
-	HTTPMetrics bool `toml:"http_metrics"`
+	HTTPMetrics     bool `toml:"http_metrics"`
+	HTTPMetricsPort int  `toml:"http_metrics_port"`
 }
 
 // AppLog controls the application logging
@@ -100,5 +106,6 @@ type FileSink struct {
 
 // Logstash configures a LogstashSink
 type Logstash struct {
-	Host string `toml:"host"`
+	Host                string `toml:"host"`
+	RetryAlertThreshold int    `toml:"retry_alert_threshold"`
 }

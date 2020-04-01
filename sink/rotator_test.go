@@ -1,4 +1,4 @@
-package rotator
+package sink
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 
 func TestFileName(t *testing.T) {
 	assert := assert.New(t)
-	r := New("", "pfx", "log")
+	r := NewRotator("", "pfx", "log")
 	r.fs = afero.NewMemMapFs()
 	r.clock = clock.NewMock()
 	r.ts = r.clock.Now().Format("20060102")
@@ -24,7 +24,7 @@ func TestFileName(t *testing.T) {
 
 func TestWrite(t *testing.T) {
 	assert := assert.New(t)
-	r := New("", "pfx", "log")
+	r := NewRotator("", "pfx", "log")
 	fs := afero.NewMemMapFs()
 	r.fs = fs
 	r.clock = clock.NewMock()
@@ -38,7 +38,7 @@ func TestWrite(t *testing.T) {
 
 func TestSubdirectory(t *testing.T) {
 	assert := assert.New(t)
-	r := New("events", "pfx", "log")
+	r := NewRotator("events", "pfx", "log")
 	fs := afero.NewMemMapFs()
 	r.fs = fs
 	r.clock = clock.NewMock()
@@ -59,7 +59,7 @@ func TestOpen(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	cl := clock.NewMock()
 
-	r := New(".", "pfx", "log")
+	r := NewRotator(".", "pfx", "log")
 
 	r.fs = fs
 	r.clock = cl
@@ -69,7 +69,7 @@ func TestOpen(t *testing.T) {
 	err = r.Close()
 	assert.NoError(err)
 
-	r2 := New(".", "pfx", "log")
+	r2 := NewRotator(".", "pfx", "log")
 	r2.fs = fs
 	r2.clock = cl
 	_, err = r2.Write([]byte("two\r\n"))
@@ -80,6 +80,7 @@ func TestOpen(t *testing.T) {
 	//printtree(fs)
 	bb, err := afero.ReadFile(fs, fname)
 	assert.Equal(bb, []byte("one\r\ntwo\r\n"))
+	assert.NoError(err)
 }
 
 func TestRotateDaily(t *testing.T) {
@@ -87,7 +88,7 @@ func TestRotateDaily(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	m := clock.NewMock()
 
-	r := New(".", "pfx", "log")
+	r := NewRotator(".", "pfx", "log")
 	r.fs = fs
 	r.clock = m
 
@@ -96,12 +97,15 @@ func TestRotateDaily(t *testing.T) {
 
 	m.Add(24 * time.Hour)
 	_, err = r.Write([]byte("two\r\n"))
+	assert.NoError(err)
 
 	m.Add(24 * time.Hour)
 	_, err = r.Write([]byte("three\r\n"))
+	assert.NoError(err)
 
 	m.Add(24 * time.Hour)
 	_, err = r.Write([]byte("four\r\n"))
+	assert.NoError(err)
 
 	dd, err := afero.ReadDir(fs, ".")
 	assert.NoError(err)
@@ -120,7 +124,7 @@ func TestRotateHourly(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	m := clock.NewMock()
 
-	r := New(".", "pfx", "log")
+	r := NewRotator(".", "pfx", "log")
 	r.fs = fs
 	r.clock = m
 
@@ -143,14 +147,14 @@ func TestCleanHourly(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	m := clock.NewMock()
 
-	r := New(dir, "pfx", "log")
+	r := NewRotator(dir, "pfx", "log")
 	r.Retention = 10 * time.Hour
 	r.fs = fs
 	r.clock = m
 	r.Hourly = true
 
 	for i := 0; i < 50; i++ {
-		_, err := r.Write([]byte("test of whta I'm wriring!\r\n"))
+		_, err := r.Write([]byte("test of what I'm wriring!\r\n"))
 		assert.NoError(err)
 		m.Add(19 * time.Minute)
 	}
@@ -166,7 +170,7 @@ func TestCleanDaily(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	m := clock.NewMock()
 
-	r := New(dir, "pfx", "log")
+	r := NewRotator(dir, "pfx", "log")
 	r.Retention = 168 * time.Hour
 	r.fs = fs
 	r.clock = m

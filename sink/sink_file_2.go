@@ -1,20 +1,21 @@
 package sink
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // OneFile writes events to a file.  This is just a wrapper for the Rotator.
 type OneFile struct {
-	r *rotator.Rotator
+	r *Rotator
 }
 
 // NewOneFile returns a OneFile
-func NewOneFile(rot *rotator.Rotator) *OneFile {
+func NewOneFile(rot *Rotator) *OneFile {
 	return &OneFile{r: rot}
 }
 
@@ -27,12 +28,12 @@ func (fs *OneFile) Name() string {
 }
 
 // Open opens the file.  This is done in the Rotator.
-func (fs *OneFile) Open(id string) error {
+func (fs *OneFile) Open(_ context.Context, _ string) error {
 	return nil
 }
 
 // Write a message to the OneFile
-func (fs *OneFile) Write(name, event string) (int, error) {
+func (fs *OneFile) Write(ctx context.Context, name, event string) (int, error) {
 	var err error
 
 	if !strings.HasSuffix(event, "\n") {
@@ -59,4 +60,13 @@ func (fs *OneFile) Flush() error {
 // Clean up any old artifacts.  This is done in the Rotator.
 func (fs *OneFile) Clean() error {
 	return nil
+}
+
+// Reopen is a noop at this point
+func (fs *OneFile) Reopen() error {
+	return nil
+}
+
+// SetLogger sets the logger for the sink
+func (fs *OneFile) SetLogger(entry *log.Entry) {
 }

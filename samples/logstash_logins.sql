@@ -34,7 +34,7 @@ ADD EVENT sqlserver.login(
 			sqlserver.session_id)
     WHERE ([is_cached]=(0)))
 ADD TARGET package0.event_file(
-	SET filename=N'logstash_logins',max_file_size=(50),max_rollover_files=(10))
+	SET filename=N'logstash_logins',max_file_size=(10),max_rollover_files=(20))
 WITH (	MAX_MEMORY=4096 KB,
 		EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,
 		MAX_DISPATCH_LATENCY=10 SECONDS,

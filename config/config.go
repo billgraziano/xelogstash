@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/billgraziano/xelogstash/pkg/rotator"
 	"github.com/billgraziano/xelogstash/sink"
 
 	"github.com/Showmax/go-fqdn"
@@ -30,6 +29,7 @@ var DefaultStopAt = time.Date(9999, time.December, 31, 0, 0, 0, 0, time.UTC)
 
 // Get the configuration from a configuration file
 func Get(f, version, sha1ver string) (config Config, err error) {
+	config.FileName = f
 	md, err := toml.DecodeFile(f, &config)
 	if err != nil {
 		return config, errors.Wrap(err, "toml.decode")
@@ -46,6 +46,13 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 		config.Defaults.StopAt = DefaultStopAt
 	}
 
+	if config.Defaults.PollSeconds == 0 {
+		config.Defaults.PollSeconds = 60
+	}
+
+	if config.App.HTTPMetricsPort == 0 {
+		config.App.HTTPMetricsPort = 8080
+	}
 	// Calculate the default lookback and use if more recent than StartAt
 	if config.Defaults.LookBackRaw != "" {
 		err = config.Defaults.processLookback()
@@ -94,7 +101,7 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 			config.FileSink.Directory = filepath.Join(exeDir, "events")
 		}
 
-		rot := rotator.New(config.FileSink.Directory, "sqlevents", "json")
+		rot := sink.NewRotator(config.FileSink.Directory, "sqlevents", "events")
 		rot.Retention = time.Duration(config.FileSink.RetainHours) * time.Hour
 		rot.Hourly = true
 		config.rot = rot
@@ -103,11 +110,16 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 	return config, err
 }
 
+// CloseRotator closes the rotator stored in a Config
 func (c *Config) CloseRotator() error {
 	if c.rot == nil {
 		return nil
 	}
 	return c.rot.Close()
+}
+
+func (c *Config) GetRotator() *sink.Rotator {
+	return c.rot
 }
 
 // GetSinks returns an array of sinks based on the config
@@ -143,6 +155,7 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 		if err != nil {
 			return sinks, errors.Wrap(err, "sink.newlogstashsink")
 		}
+		lss.RetryAlertThreshold = c.Logstash.RetryAlertThreshold
 		sinks = append(sinks, lss)
 	}
 
@@ -317,6 +330,10 @@ func (c *Config) setSourceDefaults() error {
 			n.Rows = v.Rows
 		}
 
+		if v.PollSeconds > 0 {
+			n.PollSeconds = v.PollSeconds
+		}
+
 		if !v.StartAt.IsZero() {
 			n.StartAt = v.StartAt
 		}
@@ -357,6 +374,7 @@ func (c *Config) setSourceDefaults() error {
 			n.Moves = merge(n.Moves, v.Moves)
 			// n.Renames = v.Renames
 		}
+
 		c.Sources[i] = n
 	}
 	return nil
