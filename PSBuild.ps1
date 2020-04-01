@@ -40,7 +40,7 @@ if ($LastExitCode -ne 0) {
 }
 
 Write-Output "Building xelogstash.exe..."
-go build -o "$($target)\xelogstash.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\xelogstash"
+go build -o "$($target)\xelogstash.deprecated.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\xelogstash"
 if ($LastExitCode -ne 0) {
     exit
 }

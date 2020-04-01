@@ -1,8 +1,7 @@
 # Extended Event Writer for SQL Server
 
-`sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.  It can write to Logstash, Elastic Search, or JSON files.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.
+`sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.  It can write to Logstash, Elastic Search, or JSON files.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.  *If you were running `xelogstash.exe`, please read this carefully.*
 
-1. [New Features](#new)
 1. [Getting started](#getting-started)
 2. [Sources and Defaults](#sources)
 2. [Controlling JSON](#json)
@@ -13,21 +12,26 @@
 3. [Sinks](#sinks)
 4. [Other Notes](#notes)
 
-## <a name="new"></a>New Features
-### Version 1.0
-
+## What's New
+1. `sqlxewriter.exe` runs as a service
+1. Added metrics page to see a count of events read and written
+1. Log memory use every 24 hours
+1. Added retry logic for sinks
+1. Logging to a JSON file suitable for Filebeat
 
 ## <a name="getting-started"></a>Getting Started
+I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
+
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
 
-1. Extract the ZIP contents to a directory.  We'll be starting with "start.toml".
+1. Extract the ZIP contents to a directory.  The sample configuration file ( `sqlxewriter.toml`) reads the `system_health` session and writes samples to a file.
 2. If you have a local SQL Server installed, no changes are necessary.
-3. Otherwise, edit the `fqdn` under ``[[source]]`` to point to a SQL Server
-4. From a command-prompt, type "`sqlxewriter.exe -once`".  (This doesn't send anything to logstash yet)
+3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.
+4. From a command-prompt, type "`sqlxewriter.exe -once`".  (This doesn't send anything to Logstash or Elastic Search yet)
 
 This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
 
-> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions.
+> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions to grant the service account full control of that directory.
 
 ### Writing events to a file
 In `sqlxewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
@@ -39,11 +43,12 @@ To send events to directly Logstash, specify the `logstash` section with a `host
 [logstash]
 host = "localhost:8888"
 ````
+Now it is writing to both the file and Logstash.
 
 ### Command Line Options 
 Running `sqlxewriter -?` will display the help for the options.
 
-- `-log` - Captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. 
+- `-log` - When running interactively, captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. When running as a service, logs are always written to a file.
 - `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
 - `-once` - Polls each server once and exits.  Without this flag, it polls each server every minute.
 - `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
@@ -51,10 +56,17 @@ Running `sqlxewriter -?` will display the help for the options.
 ### Running as a service
 In order to run this as a service, complete the following steps
 
-1. `sqlxewriter -service install` will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
+1. From an Administrative command prompt, run `sqlxewriter -service install`.  This will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
 1. Configure the service to auto-start
 1. Update the service to run as a service account.  This service account should have `VIEW SERVER STATE` permission on each SQL Server it polls.
-1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission
+1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission.
+1. When it comes time to update the service, just stop the service and replace the executable.
+
+### Scaling up
+1. Changes to the `.toml` require a service restart to take effect.  This includes adding sources.
+1. The sample `sqlxewriter.toml` only reads 10 events per server per minute.  This should be set to unlimited (`rows = 0`) or some high number like 20,000 (`rows = 20000`)
+1. There are two sample Extended Event session scripts.  One capture logins and the other interesting events like errors, slow SQL, blocked procesess, mirroring events, and error log written.
+1. I suggest capturing the `system_health`, `AlwaysOn_health`, and these two sessions.
 
 ## <a name="sources"></a>Sources and Defaults
 Each SQL Server you want to extract events from is called a "source".  You can specify each source using the `[[sourece]]` header in the TOML file.  (This is an array of sources.)  The only required field for a source is the `fqdn` which is how you connect to the server.
@@ -225,7 +237,7 @@ This controls the overall application.  All these fields are optional.
   * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
   * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the [GO PPROF](https://golang.org/pkg/net/http/pprof/) web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.  
 
-> Internet Explorer pre-Chromium is horrible for viewing `vars` and `pprof`.  Find a newer browser.
+> Internet Explorer pre-Chromium is horrible for viewing `vars` and `pprof`.  I suggest a newer browser.
 
 ## <a name="derived-fields"></a>Derived Fields
 Based on a particular event, the application computes a number of calculated fields and adds those to the event.  Most of them have an "xe_" prefix to separate them.  It also returns a few SQL Server level settings with an "mssql_" prefix.
