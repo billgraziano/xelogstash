@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 Write-Output "Running PSBuild.ps1..."
 Write-Output "" 
 $deploy=".\deploy"
-$target="$($deploy)\xelogstash"
+$target="$($deploy)\sqlxewriter"
 Write-Output "Target:  $target"
 
 Write-Output "Version: $($version)"
