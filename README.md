@@ -1,6 +1,6 @@
 # Extended Event Writer for SQL Server
 
-`sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.
+`sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.  It can write to Logstash, Elastic Search, or JSON files.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.
 
 1. [New Features](#new)
 1. [Getting started](#getting-started)
