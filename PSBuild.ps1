@@ -5,7 +5,8 @@ $ErrorActionPreference = "Stop"
 
 Write-Output "Running PSBuild.ps1..."
 Write-Output "" 
-$target=".\deploy\xelogstash"
+$deploy=".\deploy"
+$target="$($deploy)\xelogstash"
 Write-Output "Target:  $target"
 
 Write-Output "Version: $($version)"
@@ -57,5 +58,15 @@ Copy-Item -Path ".\samples\*.sql"           -Destination $target
 Copy-Item -Path ".\samples\minimum.batch"   -Destination $target
 blackfriday-tool -css .\samples\style.css   -embed README-xelogstash.md "$($target)\README-xelogstash.html"
 blackfriday-tool -css .\samples\style.css   -embed README.md "$($target)\README.html"
+
+$stdZip = "$($deploy)\sqlxewriter.$($sha1).zip"
+Write-Host "Writing $($stdZip)..."
+$stdCompress = @{
+    Path = $target
+    CompressionLevel = "Fastest"
+    DestinationPath = $stdZip
+    Update = $true
+}
+ Compress-Archive @stdCompress
 
 Write-Output "Done."
