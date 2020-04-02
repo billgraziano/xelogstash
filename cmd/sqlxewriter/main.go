@@ -31,7 +31,8 @@ func main() {
 	debug := flag.Bool("debug", false, "Enable debug logging")
 	trace := flag.Bool("trace", false, "Enable trace logging")
 	filelog := flag.Bool("log", false, "Force logging to JSON file")
-	once := flag.Bool("once", false, "run once and exit (command-line only)")
+	//once := flag.Bool("once", false, "run once and exit (command-line only)")
+	loop := flag.Bool("loop", false, "continue polling until canceleld (command-line only)")
 	flag.Parse()
 
 	appdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -94,16 +95,10 @@ func main() {
 		ExtraDelay: 0,
 		StartTime:  time.Now(),
 		LogLevel:   log.InfoLevel,
+		Loop:       *loop,
 	}
 
-	if *once {
-		if service.Interactive() {
-			prg.Once = true
-			log.Info("once: true")
-		} else {
-			log.Fatal("once flag not allowed for service")
-		}
-	}
+	prg.Loop = *loop
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)
@@ -140,7 +135,18 @@ func main() {
 		log.Infof("action %s: sucessful", *svcFlag)
 		return
 	}
-	if *once { // run once and exit
+
+	log.Tracef("loop: %t", *loop)
+	// if we're running as a service or we are looping...
+	if !service.Interactive() || *loop {
+		log.Tracef("starting svc.run")
+		err = svc.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Tracef("svc.run exited")
+	} else {
+		log.Tracef("running once...")
 		err = prg.Start(svc)
 		if err != nil {
 			log.Fatal(err)
@@ -149,12 +155,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else { // else run continuously
-		err = svc.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Debug("svc.run exited")
 	}
 }
 

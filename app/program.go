@@ -24,16 +24,43 @@ import (
 
 // Start the service
 func (p *Program) Start(svc service.Service) error {
+
 	var err error
 	log.Debug("app.program.start")
 	if service.Interactive() {
-		log.Debug("running interactively")
+		log.Trace("running interactively")
 	} else {
-		log.Debug("running under service manager")
+		log.Trace("running under service manager")
 	}
 
+	ConfigureExpvar()
+	http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
+
+	err = p.startPolling()
+	if err != nil {
+		log.Error(errors.Wrap(err, "startpolling"))
+		return errors.Wrap(err, "startpolling")
+	}
+
+	err = p.startWatching()
+	if err != nil {
+		log.Error(errors.Wrap(err, "startwatching"))
+		log.Error("reload on error probably disabled")
+	}
+
+	log.Trace("app.start exiting")
+	return nil
+}
+
+func (p *Program) startPolling() (err error) {
+
+	log.Trace("app.program.startpolling...")
+	p.Lock()
+	defer p.Unlock()
 	ctx, cancel := context.WithCancel(context.Background())
 	p.Cancel = cancel
+
+	p.Server = nil
 
 	// Read the config file
 	settings, err := p.getConfig()
@@ -41,6 +68,7 @@ func (p *Program) Start(svc service.Service) error {
 		return errors.Wrap(err, "p.getconfig")
 	}
 	log.Infof("config file: %s", settings.FileName)
+	p.WatchConfig = settings.App.WatchConfig
 
 	if settings.App.LogLevel != "" {
 		lvl, err := log.ParseLevel(settings.App.LogLevel)
@@ -62,18 +90,15 @@ func (p *Program) Start(svc service.Service) error {
 
 	log.Info(msg)
 
-	p.targets = len(settings.Sources)
-	// p.targets = 120
-	log.Infof("sources: %d; default rows: %d", p.targets, settings.Defaults.Rows)
-
-	ConfigureExpvar()
-
 	if settings.App.HTTPMetrics {
-		err = enableHTTP(settings.App.HTTPMetricsPort)
+		err = p.enableHTTP(settings.App.HTTPMetricsPort)
 		if err != nil {
 			log.Error(errors.Wrap(err, "enablehttp"))
 		}
 	}
+
+	p.targets = len(settings.Sources)
+	log.Infof("sources: %d; default rows: %d", p.targets, settings.Defaults.Rows)
 
 	sinks, err := settings.GetSinks()
 	if err != nil {
@@ -100,12 +125,8 @@ func (p *Program) Start(svc service.Service) error {
 	}
 
 	// launch the polling go routines
-	if p.Once {
-		for i := 0; i < p.targets; i++ {
-			p.run(ctx, i, settings)
-		}
-		writeMemory(p.StartTime, 1)
-	} else {
+	log.Tracef("loop: %t", p.Loop)
+	if p.Loop {
 		for i := 0; i < p.targets; i++ {
 			go p.run(ctx, i, settings)
 		}
@@ -113,11 +134,20 @@ func (p *Program) Start(svc service.Service) error {
 		go func(ctx context.Context, count int) {
 			p.logMemory(ctx, count)
 		}(ctx, p.targets)
+
+	} else {
+		for i := 0; i < p.targets; i++ {
+			p.run(ctx, i, settings)
+		}
+		writeMemory(p.StartTime, 1)
 	}
 
 	return nil
 }
 
+func (p *Program) fileSave() {
+
+}
 func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
 	defer func() {
@@ -147,7 +177,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	contextLogger.Tracef("source: %s; poll routine launched: %v", src.FQDN, service.Platform())
 
 	// sleep to spread out the launch (ms)
-	if !p.Once {
+	if p.Loop {
 		delay := cfg.Defaults.PollSeconds * 1000 * id / p.targets
 		if delay == 0 {
 			delay = id
@@ -185,7 +215,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 			}
 		}
 
-		if p.Once {
+		if !p.Loop {
 			contextLogger.Tracef("source: %s; one poll finished", src.FQDN)
 			return
 		}
@@ -208,23 +238,57 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	}
 }
 
-// Stop handles a stop request
-func (p *Program) Stop(s service.Service) error {
-	var err error
-	log.Info("stop signal received")
+// stopPolling stops all polling and closes all sinks
+func (p *Program) stopPolling() (err error) {
+	p.Lock()
+	defer p.Unlock()
+
+	log.Debug("sending cancel to pollers...")
 	p.Cancel()
 	p.wg.Wait()
 
+	badClose := false
 	log.Trace("closing sinks...")
 	for i := range p.Sinks {
 		snk := *p.Sinks[i]
 		err = snk.Close()
 		if err != nil {
 			log.Error(errors.Wrap(err, fmt.Sprintf("close: sink: %s", snk.Name())))
+			badClose = true
 		}
 	}
+	log.Info("all sinks closed")
+	if badClose {
+		return errors.Wrap(err, "sink.close")
+	}
 
-	log.Info("all sinks closed.  application stopping.")
+	// shutdown the HTTP server, if not nil
+	if p.Server != nil {
+		log.Trace("http.server.shutdown...")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err = p.Server.Shutdown(ctx)
+		if err != nil {
+			log.Error(err)
+		}
+		p.Server = nil
+	}
+
+	// clean out the map of servers so we can restart
+	status.Reset()
+
+	return nil
+}
+
+// Stop handles a stop request
+func (p *Program) Stop(s service.Service) error {
+	var err error
+	log.Info("stop signal received")
+	err = p.stopPolling()
+	if err != nil {
+		return errors.Wrap(err, "stoppolling")
+	}
+	log.Info("application stopping")
 	return nil
 }
 
@@ -265,9 +329,24 @@ func (p *Program) getConfig() (config.Config, error) {
 	var err error
 
 	// get the dir of the EXE
+
+	fqfile, err := getConfigFileName()
+	if err != nil {
+		return c, errors.Wrap(err, "getconfigfilename")
+	}
+	c, err = config.Get(fqfile, p.Version, p.SHA1)
+	if err != nil {
+		return c, errors.Wrap(err, fmt.Sprintf("config.get (%s)", fqfile))
+	}
+	return c, nil
+}
+
+func getConfigFileName() (name string, err error) {
+
+	// get the dir of the EXE
 	exe, err := os.Executable()
 	if err != nil {
-		return c, errors.Wrap(err, "os.executable")
+		return name, errors.Wrap(err, "os.executable")
 	}
 	exePath := filepath.Dir(exe)
 
@@ -278,29 +357,29 @@ func (p *Program) getConfig() (config.Config, error) {
 		if os.IsNotExist(err) {
 			continue
 		}
-		c, err = config.Get(fqfile, p.Version, p.SHA1)
 		if err != nil {
-			return c, errors.Wrap(err, fmt.Sprintf("config.get (%s)", s))
+			return name, errors.Wrap(err, "os.stat")
 		}
-		return c, nil
+		return fqfile, nil
 	}
-	return c, errors.New("missing sqlxewriter.toml or xelogstash.toml")
+	return name, errors.New("missing sqlxewriter.toml or xelogstash.toml")
 }
 
-func enableHTTP(port int) error {
+func (p *Program) enableHTTP(port int) error {
 	addr := fmt.Sprintf(":%d", port)
 
 	log.Infof("pprof available at http://localhost:%d/debug/pprof", port)
 	log.Infof("expvars available at http://localhost:%d/debug/vars", port)
 	log.Infof("metrics available at http://localhost:%d/debug/metrics", port)
-	http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
-	httpServer := &http.Server{
+
+	p.Server = &http.Server{
 		Addr:    addr,
 		Handler: http.DefaultServeMux,
 	}
+	//
 
 	go func() {
-		serverErr := httpServer.ListenAndServe()
+		serverErr := p.Server.ListenAndServe()
 		if serverErr == http.ErrServerClosed {
 			log.Debug("HTTP metrics server closed")
 			return

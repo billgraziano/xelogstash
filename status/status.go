@@ -100,6 +100,12 @@ func CheckDupeInstance(domain, instance string) error {
 	return nil
 }
 
+// Reset clears out the list of servers so we can restart
+func Reset() {
+	sources = make(map[string]bool)
+	instances = make(map[string]bool)
+}
+
 // NewFile generates a new state file for this domain, instance, session
 // This also creates the state file if it doesn't exist
 func NewFile(domain, instance, class, id string) (File, error) {

@@ -12,12 +12,19 @@
 3. [Sinks](#sinks)
 4. [Other Notes](#notes)
 
-## What's New
-1. `sqlxewriter.exe` runs as a service
-1. Added metrics page to see a count of events read and written
-1. Log memory use every 24 hours
-1. Added retry logic for sinks
-1. Logging to a JSON file suitable for Filebeat
+## What's New 
+### Release 0.91
+* I hated the `-once` flag.  If you run it interactively, it now runs once by default.  If you want it to continue running and polling, you'll need to use the `-loop` flag.  Running as a service isn't affected.
+* (BETA) If you enable `watch_config` in the TOML file, it will try to reload the configuration in the event of a file change.  It seems that any save is really two writes: one for the file and one set attributes.  So you'll see two reloads.
+* I'm not testing `xelogstash.exe` at all.  Please use a previous version if that's what you want.
+* The settings to print a summary and a sample of each event have been removed.  Instead, you can write a small number of events to a file sink and review those.
+
+### Release 0.9
+* `sqlxewriter.exe` can run as a Windows service
+* Added metrics page to see a count of events read and written
+* Log memory use every 24 hours
+* Added retry logic for sinks
+* Logging to a JSON file suitable for Filebeat
 
 ## <a name="getting-started"></a>Getting Started
 I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
@@ -26,8 +33,8 @@ The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for confi
 
 1. Extract the ZIP contents to a directory.  The sample configuration file ( `sqlxewriter.toml`) reads the `system_health` session and writes samples to a file.
 2. If you have a local SQL Server installed, no changes are necessary.
-3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.
-4. From a command-prompt, type "`sqlxewriter.exe -once`".  (This doesn't send anything to Logstash or Elastic Search yet)
+3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.  If you put in a named instance, use double-backslashes instead of a single backslash.  You will need `VIEW SERVER STATE` permission on the instance.
+4. From a command-prompt, type "`sqlxewriter.exe -debug`".  (This doesn't send anything to Logstash or Elastic Search yet)
 
 This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
 
@@ -50,7 +57,7 @@ Running `sqlxewriter -?` will display the help for the options.
 
 - `-log` - When running interactively, captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. When running as a service, logs are always written to a file.
 - `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
-- `-once` - Polls each server once and exits.  Without this flag, it polls each server every minute.
+- `-loop` - Instead of polling each server once and exiting, it continues to loop and polls each server every minute.  
 - `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
 
 ### Running as a service
@@ -230,13 +237,12 @@ These are the fields you can set in the `[app]` section of the configuration fil
 
 ### `[app]` section
 This controls the overall application.  All these fields are optional.
-* `samples` set to true will save a JSON file with one of each event type that was processed.  This is very helpful for testing your JSON format.
-* `summary` set to true will print a nice summary of the output including how many of each type of event were processed.
 * `http_metrics` enables a local web server that can provide diagnostic information.  This defaults to false.  It exposes the following URLs:
   * [http://localhost:8080/debug/metrics](http://localhost:8080/debug/metrics) displays counts of events read and written as well as memory usage.
   * [http://localhost:8080/debug/vars](http://localhost:8080/debug/vars) provides some basic metrics in JSON format including the total number of events processed. This information is real-time.
   * [http://localhost:8080/debug/pprof/](http://localhost:8080/debug/pprof/) exposes the [GO PPROF](https://golang.org/pkg/net/http/pprof/) web page for diagnostic information on the executable including memory usage, blocking, and running GO routines.  
-
+* `http_metrics_port` is the port the metrics URLs are exposed on.  It defaults to 8080.  
+* `watch_config` (BETA) attempts to stop and restart if the TOML configuration file changes.  This defaults to false.
 > Internet Explorer pre-Chromium is horrible for viewing `vars` and `pprof`.  I suggest a newer browser.
 
 ## <a name="derived-fields"></a>Derived Fields

@@ -7,12 +7,15 @@
 # retain_hours = 1 
 
 [app]
-
+summary = true # prints a summary of events to stdout after running
+samples = true # prints one of each type event to samples.xe.json after running
+http_metrics = true
+watch_config = true 
 
 [defaults]
 sessions = ["system_health"]
 look_back = "168h" # one week
-rows = 10   # 20000 is a good value.  Lots of events but doesn't block too long.  0 or omitted processes all the rows
+rows = 1  # 20000 is a good value.  Lots of events but doesn't block too long.  0 or omitted processes all the rows
 
 timestamp_field_name = "@timestamp"
 payload_field_name = "mssql" # all the XE events are under this field
@@ -26,4 +29,11 @@ excludedEvents = [
     ]
 
 [[source]]
-fqdn = "localhost"
+fqdn = "D40\\SQL2016"
+
+[[source]]
+fqdn = "D40\\SQL2014"
+
+[[source]]
+fqdn = "D40\\SQL2017"
+

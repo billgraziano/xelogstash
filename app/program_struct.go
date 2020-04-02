@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"net/http"
 	"sync"
 	"time"
 
@@ -15,11 +16,17 @@ type Program struct {
 	StartTime time.Time
 	Verbose   bool // enable a little logging at the INFO level
 	LogLevel  log.Level
-	Once      bool // run once and exit
+	Loop      bool // run in a loop
+	Server    *http.Server
 
-	wg      sync.WaitGroup
-	Cancel  context.CancelFunc
+	wg          sync.WaitGroup
+	Cancel      context.CancelFunc
+	WatchConfig bool
+	//FSCancel context.CancelFunc
 	targets int
+
+	// Lock so we can handle file changes
+	sync.Mutex
 
 	// Interval that we poll servers in seconds
 	// PollInterval int
