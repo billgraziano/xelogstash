@@ -98,7 +98,10 @@ func main() {
 		Loop:       *loop,
 	}
 
-	//prg.Loop = *loop
+	// if we are running as a service or loop is true
+	if !service.Interactive() || *loop {
+		prg.Loop = true
+	}
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)
@@ -138,8 +141,7 @@ func main() {
 
 	log.Tracef("loop: %t", *loop)
 	// if we're running as a service or we are looping...
-	if !service.Interactive() || *loop {
-		prg.Loop = true
+	if prg.Loop {
 		log.Tracef("starting svc.run")
 		err = svc.Run()
 		if err != nil {
