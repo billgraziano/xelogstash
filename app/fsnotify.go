@@ -23,30 +23,29 @@ func (p *Program) startWatching() (err error) {
 		log.Error(err)
 		return errors.Wrap(err, "fsnotify.newwatcher")
 	}
-	//defer watcher.Close()
+	ch := make(chan int)
+	go coalesce(watcher.Events, ch)
+
 	log.Infof("watching configuration file: %s", configFile)
 	go func() {
 
 		for {
 			select {
-			case event, ok := <-watcher.Events:
+			case count, ok := <-ch:
 				if !ok {
 					return
 				}
-				log.Info("filewatcher event:", event)
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					log.Info("file changed: ", event.Name)
-					err = p.stopPolling()
-					if err != nil {
-						log.Error(errors.Wrap(err, "stoppolling"))
-					}
-					time.Sleep(1 * time.Second)
-					err = p.startPolling()
-					if err != nil {
-						log.Error(errors.Wrap(err, "startpolling"))
-					}
-					time.Sleep(1 * time.Second)
+				log.Infof("configuration file changed: events: %d", count)
+				err = p.stopPolling()
+				if err != nil {
+					log.Error(errors.Wrap(err, "stoppolling"))
 				}
+				time.Sleep(1 * time.Second)
+				err = p.startPolling()
+				if err != nil {
+					log.Error(errors.Wrap(err, "startpolling"))
+				}
+				time.Sleep(1 * time.Second)
 			case err, ok := <-watcher.Errors:
 				if !ok {
 					return
@@ -62,4 +61,39 @@ func (p *Program) startWatching() (err error) {
 		return errors.Wrap(err, "watcher.add")
 	}
 	return nil
+}
+
+// coalesce watches fsnotify events and returns when no new event has happened
+// for one second or after five seconds
+func coalesce(in <-chan fsnotify.Event, out chan<- int) {
+
+	timer := time.NewTicker(1 * time.Second)
+	var events int // count of events
+
+	active := false
+	first := time.Time{}
+	last := time.Time{}
+
+	for {
+		select {
+		case e := <-in:
+			events++
+			log.Debugf("filewatcher-in: %s:%s (%d)", e.Name, e.Op.String(), events)
+			last = time.Now()
+			if !active {
+				first = time.Now()
+			}
+			active = true
+
+		case <-timer.C:
+			if active {
+				if time.Since(first) > time.Duration(5*time.Second) || time.Since(last) > time.Duration(1*time.Second) {
+					log.Debugf("filwatcher-out: active: %v first:%v last:%v", active, first, last)
+					out <- events
+					active = false
+					events = 0
+				}
+			}
+		}
+	}
 }
