@@ -155,7 +155,12 @@ func (ls *Logstash) Writeln(message string) error {
 			}
 		} else {
 			ls.mu.Lock()
-			ls.Connection.Close()
+			if ls.Connection != nil {
+				err = ls.Connection.Close()
+				if err != nil {
+					return errors.Wrap(err, "ls.connection.close")
+				}
+			}
 			ls.Connection = nil
 			ls.mu.Unlock()
 			return errors.Wrap(err, "write")
