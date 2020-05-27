@@ -11,8 +11,15 @@
 3. [Derived Fields](#derived-fields)
 3. [Sinks](#sinks)
 4. [Other Notes](#notes)
+4. [Building](#building)
 
 ## What's New 
+
+### Release 0.92
+ 
+ * Coalesced multiple file change events into a single event.  This behaves much better if you're editing the file while it's running.  I still don't suggest this though.
+ * Better handle errors where logstash stops responding
+
 ### Release 0.91
 * I hated the `-once` flag.  If you run it interactively, it now runs once by default.  If you want it to continue running and polling, you'll need to use the `-loop` flag.  Running as a service isn't affected.
 * (BETA) If you enable `watch_config` in the TOML file, it will try to reload the configuration in the event of a file change.  It seems that any save is really two writes: one for the file and one set attributes.  So you'll see two reloads.
@@ -322,3 +329,16 @@ event_index_map = [
 4. I haven't done much in the way of optimizations yet.  It will process between 2,000 and 3,000 events per second on my aging desktop with SQL Server running on the same box.  A properly scaled Logstash doesn't slow it down much.  I have a few servers that keep 1 GB of login events in 50 MB files.  It takes roughly 20 minutes to get through it the first time.
 
 5. If it gets behind and the offset becomes invalid, it will log an error.  It will also set a flag to try and catch up next time.  That flag is a third column in the status file that says "reset".  If it finds that, it will start at the beginning of the extended event file target and read until it gets to an event after the last one it saw.  It will also log an error that events were probably skipped.
+
+## <a name="building"></a>Building the Application
+
+* The application is currently built with GO 1.14.2
+* SQLXEWriter can be built with `go build .\cmd\sqlxewriter`
+* XELogstash can be built with `go build .\cmd\xelogstash`
+* A home grown build system is provided by running `PSMake.cmd 1.0` (or whatever the version you want applied).  That will build the executables, apply the GIT information, and build all the supporting files into a `deploy` directory.
+* The tests can be run with `go test .\...`
+
+
+
+
+
