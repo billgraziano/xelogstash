@@ -15,10 +15,9 @@
 
 ## What's New 
 
-### Release TBD
+### Release 1.0
 
-* Configuration files are split into two.
-
+* Configuration files are split into two.  Sources can now be split out into a separate file named `sqlxewriter_sources.toml`.
 
 ### Release 0.92
  
