@@ -15,9 +15,14 @@
 
 ## What's New 
 
+### Release TBD
+
+* Configuration files are split into two.
+
+
 ### Release 0.92
  
- * Coalesced multiple file change events into a single event.  This behaves much better if you're editing the file while it's running.  I still don't suggest this though.
+ * Coalesce multiple file change events into a single event.  This behaves much better if you're editing the file while it's running.  I still don't suggest this though.
  * Better handle errors where logstash stops responding
 
 ### Release 0.91

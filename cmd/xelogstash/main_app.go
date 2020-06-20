@@ -96,7 +96,7 @@ func runApp() error {
 	}
 
 	var settings config.Config
-	settings, err = config.Get(opts.TOMLFile, version, sha1ver)
+	settings, err = config.Get(opts.TOMLFile, "", version, sha1ver)
 	if err != nil {
 		log.Error(errors.Wrap(err, "config.get"))
 		return err

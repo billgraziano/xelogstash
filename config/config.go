@@ -27,9 +27,18 @@ const (
 // DefaultStopAt is the date we use for stop at if not defined
 var DefaultStopAt = time.Date(9999, time.December, 31, 0, 0, 0, 0, time.UTC)
 
+func sourcesFile(f string) (cfg Config, err error) {
+	_, err = toml.DecodeFile(f, &cfg)
+	if err != nil {
+		return cfg, errors.Wrap(err, "toml.decode")
+	}
+	return cfg, nil
+}
+
 // Get the configuration from a configuration file
-func Get(f, version, sha1ver string) (config Config, err error) {
+func Get(f, src, version, sha1ver string) (config Config, err error) {
 	config.FileName = f
+	config.SourcesFile = src
 	md, err := toml.DecodeFile(f, &config)
 	if err != nil {
 		return config, errors.Wrap(err, "toml.decode")
@@ -66,6 +75,16 @@ func Get(f, version, sha1ver string) (config Config, err error) {
 		return config, errors.Wrap(err, "config.defaults.validate")
 	}
 
+	// Get the extra sources
+	if src != "" {
+		sources, err := sourcesFile(src)
+		if err != nil {
+			return config, errors.Wrap(err, "sourcesfile")
+		}
+		for _, x := range sources.Sources {
+			config.Sources = append(config.Sources, x)
+		}
+	}
 	err = config.setSourceDefaults()
 	if err != nil {
 		return config, errors.Wrap(err, "config.setsourcedefaults")

@@ -14,11 +14,12 @@ type Config struct {
 	Defaults Source   `toml:"defaults"`
 	Sources  []Source `toml:"source"`
 
-	Elastic  ElasticConfig `toml:"elastic"`
-	FileSink *FileSink     `toml:"filesink"`
-	Logstash *Logstash     `toml:"logstash"`
-	MetaData toml.MetaData
-	FileName string
+	Elastic     ElasticConfig `toml:"elastic"`
+	FileSink    *FileSink     `toml:"filesink"`
+	Logstash    *Logstash     `toml:"logstash"`
+	MetaData    toml.MetaData
+	FileName    string
+	SourcesFile string
 
 	rot *sink.Rotator
 	//Sinks    []sink.Sinker

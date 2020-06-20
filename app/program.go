@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/billgraziano/xelogstash/pkg/metric"
@@ -68,6 +69,9 @@ func (p *Program) startPolling() (err error) {
 		return errors.Wrap(err, "p.getconfig")
 	}
 	log.Infof("config file: %s", settings.FileName)
+	if settings.SourcesFile != "" {
+		log.Infof("sources file: %s", settings.SourcesFile)
+	}
 	p.WatchConfig = settings.App.WatchConfig
 
 	if settings.App.LogLevel != "" {
@@ -330,39 +334,53 @@ func (p *Program) getConfig() (config.Config, error) {
 
 	// get the dir of the EXE
 
-	fqfile, err := getConfigFileName()
+	cfg, src, err := getConfigFiles()
 	if err != nil {
-		return c, errors.Wrap(err, "getconfigfilename")
+		return c, errors.Wrap(err, "getconfigfiles")
 	}
-	c, err = config.Get(fqfile, p.Version, p.SHA1)
+	c, err = config.Get(cfg, src, p.Version, p.SHA1)
 	if err != nil {
-		return c, errors.Wrap(err, fmt.Sprintf("config.get (%s)", fqfile))
+		return c, errors.Wrap(err, "config.get")
 	}
 	return c, nil
 }
 
-func getConfigFileName() (name string, err error) {
+func getConfigFiles() (cfg string, src string, err error) {
 
 	// get the dir of the EXE
+	// c:\dir\sqlxewriter.exe
 	exe, err := os.Executable()
 	if err != nil {
-		return name, errors.Wrap(err, "os.executable")
+		return "", "", errors.Wrap(err, "os.executable")
 	}
 	exePath := filepath.Dir(exe)
+	base := filepath.Base(exe)
+	base = strings.TrimSuffix(base, filepath.Ext(base))
+	config := filepath.Join(exePath, base+".toml")
+	log.Debugf("desired config file: %s", config)
 
-	configFiles := []string{"sqlxewriter.toml", "xelogstash.toml"}
-	for _, s := range configFiles {
-		fqfile := filepath.Join(exePath, s)
-		_, err := os.Stat(fqfile)
-		if os.IsNotExist(err) {
-			continue
-		}
-		if err != nil {
-			return name, errors.Wrap(err, "os.stat")
-		}
-		return fqfile, nil
+	// Does the desired config file exist
+	_, err = os.Stat(config)
+	if os.IsNotExist(err) {
+		return "", "", fmt.Errorf("missing config file: %s", config)
 	}
-	return name, errors.New("missing sqlxewriter.toml or xelogstash.toml")
+	if err != nil {
+		return "", "", errors.Wrap(err, "os.stat")
+	}
+	cfg = config
+
+	// Does the sources file exist
+	sources := filepath.Join(exePath, base+"_sources.toml")
+	log.Debugf("checking sources file: %s", sources)
+	_, err = os.Stat(sources)
+	if os.IsNotExist(err) {
+		return cfg, "", nil
+	}
+	if err != nil {
+		return "", "", errors.Wrap(err, "os.state: sources")
+	}
+	src = sources
+	return cfg, src, nil
 }
 
 func (p *Program) enableHTTP(port int) error {
