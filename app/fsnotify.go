@@ -12,10 +12,10 @@ func (p *Program) startWatching() (err error) {
 	if !p.WatchConfig {
 		return nil
 	}
-	configFile, err := getConfigFileName()
+	config, sources, err := getConfigFiles()
 	if err != nil {
 		log.Error(err)
-		return errors.Wrap(err, "getconfigfilename")
+		return errors.Wrap(err, "getconfigfiles")
 	}
 
 	watcher, err := fsnotify.NewWatcher()
@@ -26,7 +26,6 @@ func (p *Program) startWatching() (err error) {
 	ch := make(chan int)
 	go coalesce(watcher.Events, ch)
 
-	log.Infof("watching configuration file: %s", configFile)
 	go func() {
 
 		for {
@@ -55,11 +54,22 @@ func (p *Program) startWatching() (err error) {
 		}
 	}()
 
-	err = watcher.Add(configFile)
+	err = watcher.Add(config)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "watcher.add")
 	}
+	log.Infof("watching configuration file: %s", config)
+
+	if sources != "" {
+		err = watcher.Add(sources)
+		if err != nil {
+			log.Error(err)
+			return errors.Wrap(err, "watcher.add")
+		}
+		log.Infof("watching sources file: %s", sources)
+	}
+
 	return nil
 }
 
@@ -87,7 +97,7 @@ func coalesce(in <-chan fsnotify.Event, out chan<- int) {
 
 		case <-timer.C:
 			if active {
-				if time.Since(first) > time.Duration(5*time.Second) || time.Since(last) > time.Duration(1*time.Second) {
+				if time.Since(first) > time.Duration(5*time.Second) || time.Since(last) > time.Duration(2*time.Second) {
 					log.Debugf("filwatcher-out: active: %v first:%v last:%v", active, first, last)
 					out <- events
 					active = false
