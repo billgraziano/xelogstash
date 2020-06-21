@@ -70,6 +70,14 @@ func Get(f, src, version, sha1ver string) (config Config, err error) {
 		}
 	}
 
+	// make sure each filter has a filter action field
+	for i, f := range config.Filters {
+		_, ok := f["filter_action"]
+		if !ok {
+			return config, fmt.Errorf("filter #%d missing 'filter_action'", i+1)
+		}
+	}
+
 	err = config.Defaults.validate()
 	if err != nil {
 		return config, errors.Wrap(err, "config.defaults.validate")

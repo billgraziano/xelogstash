@@ -229,6 +229,38 @@ func (p *Program) processSession(
 		event.Set("xe_file_name", fileName)
 		event.Set("xe_file_offset", fileOffset)
 
+		// process the filters.  The last filter to match sets the action
+		action := "include"                   // default to include
+		for fnum, filter := range p.Filters { // loop through the filters
+			matched := true
+			fa, ok := filter["filter_action"]
+			if !ok {
+				return result, fmt.Errorf("Filter #%d is missing 'filter_action'", fnum+1)
+			}
+			filter_action := fmt.Sprintf("%v", fa)
+			for filterField, filterValue := range filter { // loop through the filtered fields
+				if filterField == "filter_action" {
+					continue
+				}
+				event_value, ok := event[filterField] // get the value for the field
+				if !ok {                              // if it doesn't exist, this filter can't match so break looping through fields
+					matched = false
+					break
+				}
+				if event_value != filterValue { // this field doesn't match, next filter
+					matched = false
+					break
+				}
+			}
+			if matched {
+				action = filter_action
+			}
+		}
+
+		if action == "exclude" {
+			continue
+		}
+
 		lr := logstash.NewRecord()
 		// if payload field is empty, put at root
 		if source.PayloadField == "" {

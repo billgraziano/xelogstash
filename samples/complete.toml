@@ -66,6 +66,8 @@ fqdn = "computer\\instance"
 # Except that adds, copies, and moves are merged
 #
 
-
+# [[ filter ]]
+# filter_action = "exclude"
+# error_number = 17830
 
 

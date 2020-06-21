@@ -15,6 +15,10 @@
 
 ## What's New 
 
+### Release 1.1 (Beta)
+
+* Supports adding filters (see below)
+
 ### Release 1.0
 
 * Configuration files are split into two.  Sources can now be split out into a separate file named `sqlxewriter_sources.toml`.
@@ -167,7 +171,7 @@ Further, the keys can be nested using a dotted notation.  For example, setting a
 
 Consider the following settings:
 
-```json 
+```toml
 timestamp_field_name = "@timestamp"
 payload_field_name = "event"
 
@@ -181,7 +185,9 @@ copies = [  "event.mssql_computer:global.host.name",
             "event.mssql_domain:global.host.domain",
             "event.mssql_version:global.log.version"
         ]
-----------------------------
+```
+That results in this event:
+```json
 {
   "global": {
     "host": {
@@ -255,6 +261,26 @@ This controls the overall application.  All these fields are optional.
 * `http_metrics_port` is the port the metrics URLs are exposed on.  It defaults to 8080.  
 * `watch_config` (BETA) attempts to stop and restart if the TOML configuration file changes.  This defaults to false.
 > Internet Explorer pre-Chromium is horrible for viewing `vars` and `pprof`.  I suggest a newer browser.
+
+### Filters
+
+A series of filters can be added the the TOML configuration file.  That looks like this:
+
+```toml 
+[[filter]]
+filter_action = "exclude"
+error_number = 15151
+
+[[filter]]
+filter_action = "include"
+error_number = 15151
+server_instance_name = "server01"
+``` 
+The `filter_action` must be `include` or `exclude`.  Each filter that matches ALL fields sets the `action` based on the that value. After all filters have processed, the event is either included or excluded.
+
+For example, this means that a broad filter could exclude an event but a later more specific filter could chang the action to include it.
+
+In the example above, all 15151 errors are excluded except for "server01".
 
 ## <a name="derived-fields"></a>Derived Fields
 Based on a particular event, the application computes a number of calculated fields and adds those to the event.  Most of them have an "xe_" prefix to separate them.  It also returns a few SQL Server level settings with an "mssql_" prefix.
