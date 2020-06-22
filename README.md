@@ -17,11 +17,11 @@
 
 ### Release 1.1 (Beta)
 
-* Supports adding filters (see below)
+* Supports adding filters (see Filters in the [Application Settings](#app-settings))
 
 ### Release 1.0
 
-* Configuration files are split into two.  Sources can now be split out into a separate file named `sqlxewriter_sources.toml`.
+* Configuration files are split into two.  Sources can now be split out into a separate file named `sqlxewriter_sources.toml`.  **NOTE: This requires that configuration files are named `sqlxewriter.toml` and `sqlxewriter_sources.toml`.**
 
 ### Release 0.92
  
