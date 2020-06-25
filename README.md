@@ -278,7 +278,7 @@ server_instance_name = "server01"
 ``` 
 The `filter_action` must be `include` or `exclude`.  Each filter that matches ALL fields sets the `action` based on the that value. After all filters have processed, the event is either included or excluded.
 
-For example, this means that a broad filter could exclude an event but a later more specific filter could chang the action to include it.
+For example, this means that a broad filter could exclude an event but a later more specific filter could change the action to include it.
 
 In the example above, all 15151 errors are excluded except for "server01".
 
