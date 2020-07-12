@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -213,6 +214,10 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		event["blocked_process_report"] = blockedProcessReport
 	}
 
+	if ed.Name == "errorlog_written" {
+		event.parseErrorLogMessage()
+	}
+
 	// Fixup 2008 used "error" but 2012+ used error_number remap this
 	event.Rename("error", "error_number")
 	severity := event.getSeverity()
@@ -237,6 +242,39 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	}
 
 	return event, nil
+}
+
+func (e *Event) parseErrorLogMessage() {
+	rawMsg := e.GetString("message")
+	space := regexp.MustCompile(`\s+`)
+	rawMsg = space.ReplaceAllString(rawMsg, " ")
+	if rawMsg == "" {
+		return
+	}
+
+	ff := strings.Split(rawMsg, " ")
+	if len(ff) < 4 {
+		return
+	}
+	e.Set("errorlog_date", strings.TrimSpace(ff[0]))
+	e.Set("errorlog_time", strings.TrimSpace(ff[1]))
+
+	process := strings.ToLower(strings.TrimSpace(ff[2]))
+	e.Set("errorlog_process", process)
+	switch process {
+	case "logon":
+		if len(ff) >= 13 {
+			msg := strings.TrimSpace(strings.Join(ff[3:9], " "))
+			msg += " " + strings.TrimSpace(strings.Join(ff[12:], " "))
+			e.Set("errorlog_message", msg)
+		}
+
+	default:
+		msg := strings.TrimSpace(strings.Join(ff[3:], " "))
+		e.Set("errorlog_message", msg)
+	}
+
+	return
 }
 
 // setDatabaseName sets the name if we have a database_id
@@ -338,6 +376,10 @@ func (e *Event) getDescription() string {
 		return msg
 
 	case "errorlog_written":
+		str := e.GetString("errorlog_message")
+		if str != "" {
+			return str
+		}
 		return e.GetString("message")
 
 	case "sql_batch_completed":
