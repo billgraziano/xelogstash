@@ -21,7 +21,8 @@ type Config struct {
 	FileName    string
 	SourcesFile string
 
-	rot *sink.Rotator
+	Filters []Filter `toml:"filter"`
+	rot     *sink.Rotator
 	//Sinks    []sink.Sinker
 }
 
@@ -111,3 +112,5 @@ type Logstash struct {
 	Host                string `toml:"host"`
 	RetryAlertThreshold int    `toml:"retry_alert_threshold"`
 }
+
+type Filter map[string]interface{}

@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/billgraziano/xelogstash/config"
+
 	"github.com/billgraziano/xelogstash/sink"
 	log "github.com/sirupsen/logrus"
 )
@@ -41,4 +43,6 @@ type Program struct {
 	// eventRotator *sink.Rotator
 
 	Sinks []*sink.Sinker
+
+	Filters []config.Filter
 }

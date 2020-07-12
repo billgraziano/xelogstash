@@ -72,6 +72,9 @@ func (p *Program) startPolling() (err error) {
 	if settings.SourcesFile != "" {
 		log.Infof("sources file: %s", settings.SourcesFile)
 	}
+	if len(p.Filters) > 0 {
+		log.Info(fmt.Sprintf("filters: %d", len(p.Filters)))
+	}
 	p.WatchConfig = settings.App.WatchConfig
 
 	if settings.App.LogLevel != "" {
@@ -342,6 +345,7 @@ func (p *Program) getConfig() (config.Config, error) {
 	if err != nil {
 		return c, errors.Wrap(err, "config.get")
 	}
+	p.Filters = c.Filters
 	return c, nil
 }
 
