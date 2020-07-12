@@ -15,7 +15,7 @@
 
 ## What's New 
 
-### Release 1.1 (Beta)
+### Release 1.2 (Pre-Release)
 
 * Supports adding filters (see Filters in the [Application Settings](#app-settings))
 * Parse Error Log events into individual fields
