@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	_ "github.com/alexbrainman/odbc"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

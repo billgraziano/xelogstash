@@ -18,7 +18,6 @@ import (
 
 	"github.com/billgraziano/xelogstash/app"
 
-	_ "github.com/alexbrainman/odbc"
 	singleinstance "github.com/allan-simon/go-singleinstance"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/pkg/metric"

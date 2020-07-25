@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/pkg/metric"

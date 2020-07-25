@@ -52,6 +52,25 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
+Write-Output "Building sqlxewriter_linux..."
+$Env:GOARCH="amd64"
+$Env:GOOS="linux"
+go build -o "$($target)\sqlxewriter_linux" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\sqlxewriter"
+if ($LastExitCode -ne 0) {
+    exit
+}
+
+$Env:GOARCH="amd64"
+$Env:GOOS="darwin"
+Write-Output "Building sqlxewriter_darwin..."
+go build -o "$($target)\sqlxewriter_darwin" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\sqlxewriter"
+if ($LastExitCode -ne 0) {
+    exit
+}
+
+$Env:GOARCH=""
+$Env:GOOS=""
+
 Write-Output "Copying Files..."
 Copy-Item -Path ".\samples\*.toml"          -Destination $target
 Copy-Item -Path ".\samples\*.sql"           -Destination $target
@@ -67,6 +86,6 @@ $stdCompress = @{
     DestinationPath = $stdZip
     Update = $true
 }
- Compress-Archive @stdCompress
+Compress-Archive @stdCompress
 
 Write-Output "Done."

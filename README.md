@@ -15,10 +15,15 @@
 
 ## What's New 
 
-### Release 1.2 (Pre-Release)
+### Release 1.3.0 (Pre-Release)
+
+* Experimental support for Linux and macOS
+* The driver library to connect to SQL Server has changed.  Please report any issues.
+
+### Release 1.2.X (Pre-Release)
 
 * Supports adding filters (see Filters in the [Application Settings](#app-settings))
-* Parse Error Log events into individual fields
+* Parse Error Log Written events into individual fields
 
 ### Release 1.0
 
@@ -91,14 +96,17 @@ In order to run this as a service, complete the following steps
 1. There are two sample Extended Event session scripts.  One capture logins and the other interesting events like errors, slow SQL, blocked procesess, mirroring events, and error log written.
 1. I suggest capturing the `system_health`, `AlwaysOn_health`, and these two sessions.
 
-## <a name="sources"></a>Sources and Defaults
-Each SQL Server you want to extract events from is called a "source".  You can specify each source using the `[[sourece]]` header in the TOML file.  (This is an array of sources.)  The only required field for a source is the `fqdn` which is how you connect to the server.
+<a name="sources"></a>Sources and Defaults
+------------------------------------------
+
+Each SQL Server you want to extract events from is called a "source".  You can specify each source using the `[[source]]` header in the TOML file.  (This is an array of sources.)  The only required field for a source is the `fqdn` which is how you connect to the server.
 
 The `[defaults]` section applies to all sources (but can be overridden by the source).  I find it's easiest to set most of your values in this section and then override them for each source.  The "default" section is just a source itself.  __Note: The  _source_ values override the _default_ values except for adds, copies and moves which are discussed below. Those are merged together.__
 
 You can set the following Source fields (or Default fields)
 
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
+* `user` and `password`.  If you leave this blank or don't specify them it will connect using a trusted connection.  
 * `sessions` is a list of sessions to process.
 * `ignore_sessions` says to not process any sessions for this source.  This is mainly useful if you have a list of default sessions but some old SQL Server 2008 boxes that you want to ignore the sessions completely so you can just get the failed agent jobs.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
@@ -368,6 +376,16 @@ event_index_map = [
 * XELogstash can be built with `go build .\cmd\xelogstash`
 * A home grown build system is provided by running `PSMake.cmd 1.0` (or whatever the version you want applied).  That will build the executables, apply the GIT information, and build all the supporting files into a `deploy` directory.
 * The tests can be run with `go test .\...`
+
+Linux and macOS Support
+-----------------------
+Experimental support is included for Linux and macOS (darwin).  Please be aware of the following issues:
+
+* This was only tested using WSL2 to connect to a local SQL Server
+* Trusted connections don't seem to work
+* Reloading configuration on file change doesn't seem to work
+* macOS is untested (but it compiled!)
+
 
 
 

@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/alexbrainman/odbc"
-	"github.com/billgraziano/mssqlodbc"
+	"github.com/billgraziano/mssqlh"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/status"
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -46,19 +46,29 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 	result.Source = source
 	dummyFileName := "_dummy_"
 
-	cxn := mssqlodbc.Connection{
-		Server:  source.FQDN,
-		AppName: "xelogstash.exe",
-		Trusted: true,
+	// cxn := mssqlodbc.Connection{
+	// 	Server:  source.FQDN,
+	// 	AppName: "sqlxewriter.exe",
+	// 	Trusted: true,
+	// }
+
+	// connectionString, err := cxn.ConnectionString()
+	// if err != nil {
+	// 	return result, errors.Wrap(err, "mssqlodbc.connectionstring")
+	// }
+	// db, err := sql.Open("odbc", connectionString)
+	// if err != nil {
+	// 	return result, errors.Wrap(err, "db.open")
+	// }
+	cxn := mssqlh.NewConnection(source.FQDN, source.User, source.Password, "msdb", "sqlxewriter.exe")
+	db, err := sql.Open("mssql", cxn.String())
+	if err != nil {
+		return result, errors.Wrap(err, "sql.open")
 	}
 
-	connectionString, err := cxn.ConnectionString()
+	err = db.Ping()
 	if err != nil {
-		return result, errors.Wrap(err, "mssqlodbc.connectionstring")
-	}
-	db, err := sql.Open("odbc", connectionString)
-	if err != nil {
-		return result, errors.Wrap(err, "db.open")
+		return result, errors.Wrap(err, "db.ping")
 	}
 	defer safeClose(db, &err)
 
