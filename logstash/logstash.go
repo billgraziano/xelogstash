@@ -70,11 +70,17 @@ func NewHost(host string, timeout int) (*Logstash, error) {
 // SetTimeouts sets the TCPConn timeout value from the LogStash object
 func (ls *Logstash) setTimeouts() {
 	deadline := time.Now().Add(time.Duration(ls.Timeout) * time.Second)
-	ls.Connection.SetDeadline(deadline)
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	if ls.Connection != nil {
+		ls.Connection.SetDeadline(deadline)
+	}
 }
 
 // Close the underlying TCP connection
 func (ls *Logstash) Close() error {
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
 	if ls.Connection != nil {
 		return ls.Connection.Close()
 	}
