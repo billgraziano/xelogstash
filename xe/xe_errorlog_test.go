@@ -63,9 +63,9 @@ func TestParseErrorLog(t *testing.T) {
 		e := Event{}
 		e.Set("message", tc.raw)
 		e.parseErrorLogMessage()
-		assert.Equal(tc.dt, e.GetString("errorlog_date"))
-		assert.Equal(tc.tm, e.GetString("errorlog_time"))
-		assert.Equal(tc.proc, e.GetString("errorlog_process"))
-		assert.Equal(tc.msg, e.GetString("errorlog_message"))
+		assert.Equal(tc.dt, e.GetString("errorlog.date"))
+		assert.Equal(tc.tm, e.GetString("errorlog.time"))
+		assert.Equal(tc.proc, e.GetString("errorlog.process"))
+		assert.Equal(tc.msg, e.GetString("errorlog.message"))
 	}
 }

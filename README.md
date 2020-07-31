@@ -15,10 +15,15 @@
 
 ## What's New 
 
+### Release 1.3.1 (Pre-Release)
+
+* The new error log fields take the form `errorlog.process`, `errorlog.message`, etc.
+
 ### Release 1.3.0 (Pre-Release)
 
 * Experimental support for Linux and macOS
 * The driver library to connect to SQL Server has changed.  Please report any issues.
+
 
 ### Release 1.2.X (Pre-Release)
 
