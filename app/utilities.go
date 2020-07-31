@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
+	"github.com/davidscholberg/go-durationfmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -85,4 +87,27 @@ func containsString(array []string, search string) bool {
 		}
 	}
 	return false
+}
+
+// fmtduration a duration to 5d3h, 2h4m, 2m1s
+func fmtduration(d time.Duration) string {
+	if d.Hours() >= 24 {
+		str, err := durationfmt.Format(d, "%dd%hh")
+		if err != nil {
+			return d.String()
+		}
+		return str
+	}
+	if d.Hours() >= 1 {
+		str, err := durationfmt.Format(d, "%hh%mm")
+		if err != nil {
+			return d.String()
+		}
+		return str
+	}
+	str, err := durationfmt.Format(d, "%mm%ss")
+	if err != nil {
+		return d.String()
+	}
+	return str
 }
