@@ -256,22 +256,22 @@ func (e *Event) parseErrorLogMessage() {
 	if len(ff) < 4 {
 		return
 	}
-	e.Set("errorlog.date", strings.TrimSpace(ff[0]))
-	e.Set("errorlog.time", strings.TrimSpace(ff[1]))
+	e.Set("errorlog_date", strings.TrimSpace(ff[0]))
+	e.Set("errorlog_time", strings.TrimSpace(ff[1]))
 
 	process := strings.ToLower(strings.TrimSpace(ff[2]))
-	e.Set("errorlog.process", process)
+	e.Set("errorlog_process", process)
 	switch process {
 	case "logon":
 		if len(ff) >= 13 {
 			msg := strings.TrimSpace(strings.Join(ff[3:9], " "))
 			msg += " " + strings.TrimSpace(strings.Join(ff[12:], " "))
-			e.Set("errorlog.message", msg)
+			e.Set("errorlog_message", msg)
 		}
 
 	default:
 		msg := strings.TrimSpace(strings.Join(ff[3:], " "))
-		e.Set("errorlog.message", msg)
+		e.Set("errorlog_message", msg)
 	}
 
 	return
