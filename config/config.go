@@ -326,6 +326,13 @@ func (c *Config) setSourceDefaults() error {
 		if v.FQDN != "" {
 			n.FQDN = v.FQDN
 		}
+		if v.User != "" {
+			n.User = v.User
+		}
+		if v.Password != "" {
+			n.Password = v.Password
+		}
+
 		if len(v.Sessions) > 0 {
 			n.Sessions = v.Sessions
 		}

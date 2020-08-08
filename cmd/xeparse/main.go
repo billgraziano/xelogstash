@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	_ "github.com/alexbrainman/odbc"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/xe"
@@ -43,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	info, err := xe.GetSQLInfo(opts.Server)
+	info, err := xe.GetSQLInfo(opts.Server, "", "")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,8 +5,6 @@ import (
 	"encoding/xml"
 	"testing"
 	"time"
-
-	_ "github.com/alexbrainman/odbc"
 )
 
 var i SQLInfo

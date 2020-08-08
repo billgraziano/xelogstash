@@ -181,7 +181,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 	defer p.wg.Done()
 
 	counter := 1
-	contextLogger.Tracef("source: %s; poll routine launched: %v", src.FQDN, service.Platform())
+	contextLogger.Tracef("poll routine launched: %v", service.Platform())
 
 	// sleep to spread out the launch (ms)
 	if p.Loop {
@@ -198,7 +198,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		}
 	}
 
-	logmsg := fmt.Sprintf("polling: %s; interval: %ds", src.FQDN, src.PollSeconds)
+	logmsg := fmt.Sprintf("polling interval: %ds", src.PollSeconds)
 	contextLogger.Info(logmsg)
 
 	// ok is false if duplicate or context times out
@@ -300,17 +300,15 @@ func (p *Program) Stop(s service.Service) error {
 }
 
 func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
-	// try to connect in a loop until we do
-	ticker := time.NewTicker(time.Duration(src.PollSeconds) * time.Second)
-
 	for {
 		// TODO need a version of this with context
-		info, err := xe.GetSQLInfo(src.FQDN)
+		info, err := xe.GetSQLInfo(src.FQDN, src.User, src.Password)
 		if err != nil {
 			// if there was an error the server could be down
 			// or entered incorrectly
 			// we just keep logging the error
-			log.Error(err, fmt.Sprintf("uneachable: fqdn: %s", src.FQDN))
+			err = errors.Wrap(err, fmt.Sprintf("checkdupes: fqdn: %s", src.FQDN))
+			log.Error(err)
 		} else { // we connected and got info
 			err = status.CheckDupeInstance(info.Domain, info.Server)
 			if err == nil {
@@ -320,7 +318,8 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 			return false
 		}
 
-		// we just keep checking every minute in case the server was down
+		// we just keep checking in case the server was down
+		ticker := time.NewTicker(time.Duration(src.PollSeconds) * time.Second)
 		select {
 		case <-ticker.C:
 			continue

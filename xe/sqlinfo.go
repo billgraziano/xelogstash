@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/billgraziano/mssqlodbc"
+	"github.com/billgraziano/mssqlh"
 	"github.com/pkg/errors"
+
+	_ "github.com/denisenkom/go-mssqldb"
 )
 
 // SQLInfo stores cached info about the server we connected to
@@ -54,27 +56,32 @@ type MapValueKey struct {
 // fields  map[dataTypeKey]string
 
 // GetSQLInfo gets basic SQL Server info and lookup values
-func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
-
+func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	info.Fields = make(map[FieldTypeKey]string)
 	info.Actions = make(map[string]string)
 	info.MapValues = make(map[MapValueKey]string)
 
-	cxn := mssqlodbc.Connection{
-		Server:  fqdn,
-		AppName: "xelogstash.exe",
-		Trusted: true,
-	}
+	// cxn := mssqlodbc.Connection{
+	// 	Server:  fqdn,
+	// 	AppName: "sqlxewriter.exe",
+	// 	Trusted: true,
+	// }
 
-	// connectionString := fmt.Sprintf("Driver={SQL Server Native Client 11.0};Server=%s; Trusted_Connection=yes; App=xecap.exe;", source.FQDN)
-	connectionString, err := cxn.ConnectionString()
-	if err != nil {
-		return info, errors.Wrap(err, "mssqlodbc.connectionstring")
-	}
+	// // connectionString := fmt.Sprintf("Driver={SQL Server Native Client 11.0};Server=%s; Trusted_Connection=yes; App=xecap.exe;", source.FQDN)
+	// connectionString, err := cxn.ConnectionString()
+	// if err != nil {
+	// 	return info, errors.Wrap(err, "mssqlodbc.connectionstring")
+	// }
 
-	db, err := sql.Open("odbc", connectionString)
+	// db, err := sql.Open("odbc", connectionString)
+	// if err != nil {
+	// 	return info, errors.Wrap(err, "db.open")
+	// }
+
+	cxn := mssqlh.NewConnection(fqdn, user, password, "master", "sqlxewriter.exe")
+	db, err := sql.Open(cxn.Driver, cxn.String())
 	if err != nil {
-		return info, errors.Wrap(err, "db.open")
+		return info, errors.Wrap(err, "sql.open")
 	}
 
 	err = db.Ping()
@@ -88,7 +95,7 @@ func GetSQLInfo(fqdn string) (info SQLInfo, err error) {
 	SET NOCOUNT ON;
 	SELECT	@@SERVERNAME AS [ServerName]
 		,DEFAULT_DOMAIN() AS [DomainName]
-		,CAST(SERVERPROPERTY('MachineName') as nvarchar(128)) AS [Computer]
+		,COALESCE(CAST(SERVERPROPERTY('MachineName') as nvarchar(128)), @@SERVERNAME) AS [Computer]
 		,CAST(COALESCE(SERVERPROPERTY('ProductLevel'), '') as nvarchar(128)) AS ProductLevel
 		,COALESCE(CAST(SERVERPROPERTY('ProductMajorVersion') as NVARCHAR(128))  + '.' + CAST(SERVERPROPERTY('ProductMinorVersion') as NVARCHAR(128)),'') AS ProductRelease
 		,COALESCE(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR(128)), '') as [ProductVersion];

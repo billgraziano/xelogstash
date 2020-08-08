@@ -39,7 +39,7 @@ func writeMemory(start time.Time, count int) {
 	m := &runtime.MemStats{}
 	runtime.ReadMemStats(m)
 	msg := fmt.Sprintf("metrics: alloc: %.1fmb; sys: %.1fmb; goroutines: %d; uptime: %s; sources: %d",
-		float64(m.Alloc)/(1024.0*1024.0), float64(m.Sys)/(1024.0*1024.0), runtime.NumGoroutine(), time.Since(start), count)
+		float64(m.Alloc)/(1024.0*1024.0), float64(m.Sys)/(1024.0*1024.0), runtime.NumGoroutine(), fmtduration(time.Since(start)), count)
 	log.Info(msg)
 }
 
