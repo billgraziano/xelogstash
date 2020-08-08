@@ -37,4 +37,7 @@ runlogzio.toml
 /sqlxewriter_sources.toml
 
 # exclude linux builds
-/sqlxewriter_linux*
+sqlxewriterx
+sqlxewriterx.toml
+sqlxewriterx_sources.toml
+
