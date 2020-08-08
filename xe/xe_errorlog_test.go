@@ -58,7 +58,17 @@ func TestParseErrorLog(t *testing.T) {
 			proc: "logon",
 			msg:  "",
 		},
+		// Test is broken
+		// Need to figure out the language and work backwords to extract the text
+		// {
+		// 	raw:  "2020-08-06 07:28:24.76 Logon       Login succeeded for user 'D40\\graz'. Connection made using Windows authentication. [CLIENT: <local machine>]  ",
+		// 	dt:   "2020-08-06",
+		// 	tm:   "07:28:24.76",
+		// 	proc: "logon",
+		// 	msg:  "Login succeeded for user 'D40\\graz'. Connection made using Windows authentication. [CLIENT: <local machine>]",
+		// },
 	}
+
 	for _, tc := range tt {
 		e := Event{}
 		e.Set("message", tc.raw)
