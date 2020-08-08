@@ -3,6 +3,7 @@
 `sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.  It can write to Logstash, Elastic Search, or JSON files.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.  *If you were running `xelogstash.exe`, please read this carefully.*
 
 1. [Getting started](#getting-started)
+1. [What's New](#whats-new)
 2. [Sources and Defaults](#sources)
 2. [Controlling JSON](#json)
 1. [Adds, Moves, Copies](#adds)
@@ -13,17 +14,69 @@
 4. [Other Notes](#notes)
 4. [Building](#building)
 
-## What's New 
+## <a name="getting-started"></a>Getting Started
+I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
 
-### Release 1.3.1 (Pre-Release)
+The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
 
-* The new error log fields take the form `errorlog.process`, `errorlog.message`, etc.
+1. Extract the ZIP contents to a directory.  The sample configuration file ( `sqlxewriter.toml` in the `samples` directory) reads the `system_health` session and writes samples to a file.
+2. If you have a local SQL Server installed, no changes are necessary.
+3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.  If you put in a named instance, use double-backslashes instead of a single backslash.  You will need `VIEW SERVER STATE` permission on the instance.
+4. From a command-prompt, type "`sqlxewriter.exe -debug`".  (This doesn't send anything to Logstash or Elastic Search yet)
+
+This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
+
+> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions to grant the service account full control of that directory and the files in it.
+
+### Writing events to a file
+In `sqlxewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in newline-delimited JSON format.  Each source's Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
+
+### Sending to Logstash
+To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
+
+````toml
+[logstash]
+host = "localhost:8888"
+````
+Now it is writing to both the file and Logstash.
+
+### Command Line Options 
+Running `sqlxewriter -?` will display the help for the options.
+
+- `-log` - When running interactively, captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. When running as a service, logs are always written to a file.
+- `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
+- `-loop` - Instead of polling each server once and exiting, it continues to loop and polls each server every minute.  
+- `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
+
+### Running as a service
+In order to run this as a service in Windows, complete the following steps
+
+1. From an Administrative command prompt, run `sqlxewriter -service install`.  This will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
+1. Configure the service to auto-start
+1. Update the service to run as a service account.  This service account should have `VIEW SERVER STATE` permission on each SQL Server it polls.
+1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission.
+1. When it comes time to update the service, just stop the service and replace the executable.
+
+A similar process should work for Linux and macOS.  This uses [github.com/kardianos/service](https://github.com/kardianos/service).  Additional documentation may be found there.
+
+### Scaling up
+1. Changes to the `.toml` require a service restart to take effect unless you set `watch_config = true`.  This includes adding sources.
+1. The sample `sqlxewriter.toml` only reads 10 events per server per minute.  This should be set to unlimited (`rows = 0`) or some high number like 20,000 (`rows = 20000`)
+1. There are two sample Extended Event session scripts.  One captures logins and the other captures interesting events like errors, slow SQL, blocked procesess, mirroring events, and and writes to the error log.
+1. I suggest capturing the `system_health`, `AlwaysOn_health`, and these two sessions.
+
+
+<a name="whats-new"></a>What's New
+------------------------------------------
+
+### Release 1.3.1
+
+* Add [GOReleaser](https://goreleaser.com/) support for Linux builds
 
 ### Release 1.3.0 (Pre-Release)
 
 * Experimental support for Linux and macOS
 * The driver library to connect to SQL Server has changed.  Please report any issues.
-
 
 ### Release 1.2.X (Pre-Release)
 
@@ -52,54 +105,7 @@
 * Added retry logic for sinks
 * Logging to a JSON file suitable for Filebeat
 
-## <a name="getting-started"></a>Getting Started
-I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
 
-The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
-
-1. Extract the ZIP contents to a directory.  The sample configuration file ( `sqlxewriter.toml`) reads the `system_health` session and writes samples to a file.
-2. If you have a local SQL Server installed, no changes are necessary.
-3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.  If you put in a named instance, use double-backslashes instead of a single backslash.  You will need `VIEW SERVER STATE` permission on the instance.
-4. From a command-prompt, type "`sqlxewriter.exe -debug`".  (This doesn't send anything to Logstash or Elastic Search yet)
-
-This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
-
-> NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions to grant the service account full control of that directory.
-
-### Writing events to a file
-In `sqlxewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in JSON format.  Each source server Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
-
-### Sending to Logstash
-To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
-
-````toml
-[logstash]
-host = "localhost:8888"
-````
-Now it is writing to both the file and Logstash.
-
-### Command Line Options 
-Running `sqlxewriter -?` will display the help for the options.
-
-- `-log` - When running interactively, captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. When running as a service, logs are always written to a file.
-- `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
-- `-loop` - Instead of polling each server once and exiting, it continues to loop and polls each server every minute.  
-- `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
-
-### Running as a service
-In order to run this as a service, complete the following steps
-
-1. From an Administrative command prompt, run `sqlxewriter -service install`.  This will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
-1. Configure the service to auto-start
-1. Update the service to run as a service account.  This service account should have `VIEW SERVER STATE` permission on each SQL Server it polls.
-1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission.
-1. When it comes time to update the service, just stop the service and replace the executable.
-
-### Scaling up
-1. Changes to the `.toml` require a service restart to take effect.  This includes adding sources.
-1. The sample `sqlxewriter.toml` only reads 10 events per server per minute.  This should be set to unlimited (`rows = 0`) or some high number like 20,000 (`rows = 20000`)
-1. There are two sample Extended Event session scripts.  One capture logins and the other interesting events like errors, slow SQL, blocked procesess, mirroring events, and error log written.
-1. I suggest capturing the `system_health`, `AlwaysOn_health`, and these two sessions.
 
 <a name="sources"></a>Sources and Defaults
 ------------------------------------------

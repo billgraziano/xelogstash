@@ -41,3 +41,8 @@ sqlxewriterx
 sqlxewriterx.toml
 sqlxewriterx_sources.toml
 
+# goreleaser
+README.html
+/dist
+
+

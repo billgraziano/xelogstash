@@ -1,0 +1,55 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    # - go mod download
+    - blackfriday-tool -css ./samples/style.css   -embed README.md "README.html"
+    # you may remove this if you don't need go generate
+    # - go generate ./...
+builds:
+  - main: ./cmd/sqlxewriter/main.go
+    id: "sqlxewriter"
+    binary: "sqlxewriter"
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch: 
+      - amd64
+    # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
+    ldflags:
+     - -s -w -X main.version={{.Version}} -X main.sha1ver={{.Commit}} -X main.buildTime={{.Date}} -X main.builtBy=goreleaser
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: sqlxewriter_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}
+    # - if format is `binary`:
+    wrap_in_directory: true
+    files:
+      - samples/complete.toml
+      - samples/filebeat_logs.yml
+      - samples/logstash_events.sql
+      - samples/logstash_logins.sql
+      - samples/sqlxewriter.toml
+      - README.html
+      - LICENSE.txt
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+# changelog:
+#   sort: asc
+#   filters:
+#     exclude:
+#       - '^docs:'
+#       - '^test:'
