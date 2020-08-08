@@ -21,6 +21,7 @@ var (
 	sha1ver   = "dev"
 	version   = "dev"
 	buildTime string
+	builtBy   = "dev"
 )
 
 func main() {
@@ -38,6 +39,10 @@ func main() {
 	appdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if len(sha1ver) > 7 {
+		sha1ver = sha1ver[:7]
 	}
 
 	// we are logging to a file
