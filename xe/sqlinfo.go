@@ -81,11 +81,17 @@ func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	cxn := mssqlh.NewConnection(fqdn, user, password, "master", "sqlxewriter.exe")
 	db, err := sql.Open(cxn.Driver, cxn.String())
 	if err != nil {
+		if db != nil {
+			db.Close()
+		}
 		return info, errors.Wrap(err, "sql.open")
 	}
 
 	err = db.Ping()
 	if err != nil {
+		if db != nil {
+			db.Close()
+		}
 		return info, errors.Wrap(err, "db.ping")
 	}
 
@@ -124,7 +130,7 @@ func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	case "9.0":
 		v = "SQL Server 2005"
 	default:
-		v = "unknown"
+		v = fmt.Sprintf("SQL Server %s", info.ProductRelease)
 	}
 	info.Version = fmt.Sprintf("%s %s", v, info.ProductLevel)
 

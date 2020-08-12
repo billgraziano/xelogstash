@@ -53,8 +53,6 @@ func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 	}
 	var v string
 	switch info.ProductRelease {
-	case "16.0":
-		v = "SQL Server vNext"
 	case "15.0":
 		v = "SQL Server 2019"
 	case "14.0":
@@ -72,7 +70,7 @@ func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 	case "9.0":
 		v = "SQL Server 2005"
 	default:
-		v = "unknown"
+		v = fmt.Sprintf("SQL Server %s", info.ProductRelease)
 	}
 	info.Version = fmt.Sprintf("%s %s", v, info.ProductLevel)
 
