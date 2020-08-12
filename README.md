@@ -69,6 +69,11 @@ A similar process should work for Linux and macOS.  This uses [github.com/kardia
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release 1.3.2
+
+* Clean up leaking connection pool for invalid servers
+* Update what gets written into the variable substitions for GIT based on using GORELEASER.  See "Replacements" further down.
+
 ### Release 1.3.1
 
 * Add [GOReleaser](https://goreleaser.com/) support for Linux builds
@@ -255,8 +260,9 @@ The values that are added can be strings, integers, floats, booleans, or dates. 
 ### Replacements
 The adds, moves, and copies also support a few "replacement" values.  
 
-* `$(VERSION)` is the version of sqlxewriter.exe.  Note that $(VERSION) is forced to a string by enclosing it in single ticks.
-* `$(GITDESCRIBE)` is Git Describe from the build.
+* `$(VERSION)` is the version of sqlxewriter.exe.  Note that $(VERSION) should be forced to a string by enclosing it in single quotes in the TOML file.  Otherwise the parser will try to make it a number.
+* `$(GITDESCRIBE)` is the same as `$(VERSION)`.  It used to hold the results of `git describe` but GORELEASER does it differently so these are how the same.
+* `$(GITHASH)` is the seven character GIT hash that was used for the build
 * `$(EXENAMEPATH)` is the full path and name of the executable
 * `$(EXENAME)` is the name of the executable
 * `$(PID)` is the Process ID of sqlxewriter.exe

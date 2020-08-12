@@ -305,11 +305,11 @@ func buildmap(a []string, version, sha1ver string) (map[string]string, error) {
 		value = strings.Replace(value, "$(EXENAME)", strings.ToLower(exeName), -1)
 		value = strings.Replace(value, "$(PID)", strconv.Itoa(os.Getpid()), -1)
 		value = strings.Replace(value, "$(VERSION)", version, -1)
-		value = strings.Replace(value, "$(GITDESCRIBE)", sha1ver, -1)
+		value = strings.Replace(value, "$(GITDESCRIBE)", version, -1)
+		value = strings.Replace(value, "$(GITHASH)", sha1ver, -1)
 		value = strings.Replace(value, "$(HOST)", strings.ToLower(fqdn.Get()), -1)
 
 		m[kv[0]] = value
-
 	}
 	return m, err
 }
