@@ -95,12 +95,13 @@ func main() {
 	}()
 
 	prg := &app.Program{
-		SHA1: sha1ver,
-		//PollInterval: 60,
+		SHA1:       sha1ver,
+		Version:    version,
 		ExtraDelay: 0,
 		StartTime:  time.Now(),
 		LogLevel:   log.InfoLevel,
 		Loop:       *loop,
+		//PollInterval: 60,
 	}
 
 	// if we are running as a service or loop is true

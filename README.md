@@ -261,7 +261,7 @@ The values that are added can be strings, integers, floats, booleans, or dates. 
 The adds, moves, and copies also support a few "replacement" values.  
 
 * `$(VERSION)` is the version of sqlxewriter.exe.  Note that $(VERSION) should be forced to a string by enclosing it in single quotes in the TOML file.  Otherwise the parser will try to make it a number.
-* `$(GITDESCRIBE)` is the same as `$(VERSION)`.  It used to hold the results of `git describe` but GORELEASER does it differently so these are how the same.
+* (DEPRECATED) `$(GITDESCRIBE)` is the same as `$(VERSION)`.  It used to hold the results of `git describe` but GORELEASER does it differently so these are now the same. _This is deprecated and will be removed at some point.  Use VERSION and GITHASH._
 * `$(GITHASH)` is the seven character GIT hash that was used for the build
 * `$(EXENAMEPATH)` is the full path and name of the executable
 * `$(EXENAME)` is the name of the executable
