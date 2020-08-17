@@ -14,6 +14,7 @@
 4. [Other Notes](#notes)
 4. [Building](#building)
 
+
 ## <a name="getting-started"></a>Getting Started
 I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
 
@@ -68,6 +69,10 @@ A similar process should work for Linux and macOS.  This uses [github.com/kardia
 
 <a name="whats-new"></a>What's New
 ------------------------------------------
+
+### Release 1.4
+
+* This application now reads past invalid offsets.  The most likely cause of invalid offsets is that this service stopped or the files rolled over so fast that the file and offset are no longer valid.  In both cases, the extended event files rolled over and the events no longer exist. Previously this application would log the error and wait so we could investigate and fix.  Meanwhile, more events were being missed.  Now it just logs the error and tries to find the next valid event for the extended event.
 
 ### Release 1.3.2
 

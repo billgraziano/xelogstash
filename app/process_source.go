@@ -37,7 +37,9 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 	contextLogger.Trace(logmsg)
 
 	var textMessage string
-	contextLogger.Debugf("user: %s", source.User)
+	if source.User != "" {
+		contextLogger.Debugf("user: %s", source.User)
+	}
 	info, err := xe.GetSQLInfo(source.FQDN, source.User, source.Password)
 	if err != nil {
 		textMessage = fmt.Sprintf("source: %s err: %v", source.FQDN, err)
