@@ -90,6 +90,12 @@ func (ls *Logstash) Close() error {
 // Connect to the host
 func (ls *Logstash) Connect() (*net.TCPConn, error) {
 	var connection *net.TCPConn
+
+	// This will be a long lock if we can't connect
+	// But nothing else should try during this time
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+
 	addr, err := net.ResolveTCPAddr("tcp", ls.Host)
 	if err != nil {
 		return connection, errors.Wrap(err, "net.resolveicpaddr")
@@ -98,31 +104,50 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 	if err != nil {
 		return connection, errors.Wrap(err, "net.dialtcp")
 	}
-	ls.mu.Lock()
-	if connection != nil {
-		ls.Connection = connection
-		//ls.Connection.SetLinger(0)
-		ls.Connection.SetKeepAlive(true)
-		//ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
-		//ls.setTimeouts()
+	if connection == nil {
+		return connection, errors.New("nil connection")
 	}
-	ls.mu.Unlock()
-	if connection == nil && err == nil {
-		return connection, errors.New("conn & err can't both be nil")
-	}
-	return connection, err
+
+
+	ls.Connection = connection
+	ls.Connection.SetKeepAlive(true)
+
+	return connection, nil
+
+	// // TODO - all the checking before we try to use the connection
+	// ls.mu.Lock()
+	// if connection != nil {
+	// 	ls.Connection = connection
+	// 	//ls.Connection.SetLinger(0)
+	// 	ls.Connection.SetKeepAlive(true)
+	// 	//ls.Connection.SetKeepAlivePeriod(time.Duration(60) * time.Second)
+	// 	//ls.setTimeouts()
+	// }
+	// ls.mu.Unlock()
+	// if connection == nil && err == nil {
+	// 	return connection, errors.New("conn & err can't both be nil")
+	// }
+	// return connection, err
 }
 
 // Writeln send a message to the host
 func (ls *Logstash) Writeln(message string) error {
 
+	// TODO
+	// 0. logstash is up and accepting TCP connections but not accepting writes
+	// 0a. - fix println to log for the trace messages
+	// 1. come in with nil connection
+	// 2. call connect to get a connection
+	// 3. before we write, something else sets it to nil since we no longer have a read lock
+	// 4. maybe check for nil in a loop?
+	// 5. maybe add a lower case
 	var err error
 	ls.mu.RLock()
 	if ls.Connection == nil {
 		ls.mu.RUnlock()
 		_, err = ls.Connect()
 		if err != nil {
-			return errors.Wrap(err, "connect")
+			return errors.Wrap(err, "ls.connect")
 		}
 	} else {
 		ls.mu.RUnlock()
@@ -136,7 +161,7 @@ func (ls *Logstash) Writeln(message string) error {
 
 	var n int
 	ls.setTimeouts()
-	n, err = ls.Connection.Write(messageBytes)
+	n, err = ls.Connection.Write(messageBytes) // used to be line 139
 	if trace {
 		fmt.Println(fmt.Sprintf("ls.connection.write.bytes-sent: %d", n))
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
+	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -317,7 +318,22 @@ func (p *Program) processSession(
 
 	err = rows.Err()
 	if err != nil {
-		return result, errors.Wrap(err, "rows.Err")
+		sqlerr, ok := err.(mssql.Error)
+		if !ok {
+			return result, errors.Wrap(err, "rows.err")
+		}
+		// invalid offset in file -- set the reset
+		if sqlerr.Number == 25722 {
+			if len(lastFileName) > 0 {
+				saveErr := sf.Done(lastFileName, lastFileOffset, status.StateReset)
+				if saveErr != nil {
+					log.Error(fmt.Sprintf("[%d] Source: %s (%s) Error saving the status file: %v", wid, info.Server, session.Name, saveErr))
+				} else {
+					log.Error(fmt.Sprintf("[%d] Source: %s (%s) Events skipped! Invalid offset. Will try to read past.", wid, info.Server, session.Name))
+				}
+			}
+		}
+		return result, errors.Wrap(err, "rows.err")
 	}
 
 	if gotRows /* && !source.Test */ {
