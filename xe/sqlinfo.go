@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/billgraziano/mssqlh"
 	"github.com/pkg/errors"
 
+	_ "github.com/alexbrainman/odbc"
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
@@ -56,7 +56,8 @@ type MapValueKey struct {
 // fields  map[dataTypeKey]string
 
 // GetSQLInfo gets basic SQL Server info and lookup values
-func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
+func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
+	//func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	info.Fields = make(map[FieldTypeKey]string)
 	info.Actions = make(map[string]string)
 	info.MapValues = make(map[MapValueKey]string)
@@ -78,8 +79,9 @@ func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	// 	return info, errors.Wrap(err, "db.open")
 	// }
 
-	cxn := mssqlh.NewConnection(fqdn, user, password, "master", "sqlxewriter.exe")
-	db, err := sql.Open(cxn.Driver, cxn.String())
+	//cxn := mssqlh.NewConnection(fqdn, user, password, "master", "sqlxewriter.exe")
+
+	db, err := sql.Open(driver, cxnstring)
 	if err != nil {
 		if db != nil {
 			db.Close()

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/billgraziano/mssqlh"
 	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/sink"
 	"github.com/billgraziano/xelogstash/status"
@@ -302,7 +303,14 @@ func (p *Program) Stop(s service.Service) error {
 func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 	for {
 		// TODO need a version of this with context
-		info, err := xe.GetSQLInfo(src.FQDN, src.User, src.Password)
+		cxn := mssqlh.NewConnection(src.FQDN, src.User, src.Password, "master", "sqlxewriter.exe")
+		if src.Driver != "" {
+			cxn.Driver = src.Driver
+		}
+		if src.ODBCDriver != "" {
+			cxn.ODBCDriver = src.ODBCDriver
+		}
+		info, err := xe.GetSQLInfo(cxn.Driver, cxn.String())
 		if err != nil {
 			// if there was an error the server could be down
 			// or entered incorrectly

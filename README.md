@@ -13,6 +13,7 @@
 3. [Sinks](#sinks)
 4. [Other Notes](#notes)
 4. [Building](#building)
+4. [Linux and macOS Support](#linux)
 
 
 ## <a name="getting-started"></a>Getting Started
@@ -69,6 +70,10 @@ A similar process should work for Linux and macOS.  This uses [github.com/kardia
 
 <a name="whats-new"></a>What's New
 ------------------------------------------
+
+### Release 1.4.1
+
+* Improves support for trusted connections in Linux.  See [Linux and macOS Support](#linux) for more details.
 
 ### Release 1.4
 
@@ -128,6 +133,9 @@ You can set the following Source fields (or Default fields)
 
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
 * `user` and `password`.  If you leave this blank or don't specify them it will connect using a trusted connection.  
+* `driver` and `odbc_driver` allow different database drivers.  Normally these values are not needed.
+  * `driver` is can be either "mssql" (default) or "odbc".  "mssql" is a native GO driver that handles everything except trusted connections on Linux.
+  * `odbc_driver` sets the ODBC driver if using ODBC.  The default is "ODBC Driver 13 for SQL Server".  This value must match exactly (case-sensitive) to a driver on the system if using ODBC.
 * `sessions` is a list of sessions to process.
 * `ignore_sessions` says to not process any sessions for this source.  This is mainly useful if you have a list of default sessions but some old SQL Server 2008 boxes that you want to ignore the sessions completely so you can just get the failed agent jobs.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
@@ -399,17 +407,13 @@ event_index_map = [
 * A home grown build system is provided by running `PSMake.cmd 1.0` (or whatever the version you want applied).  That will build the executables, apply the GIT information, and build all the supporting files into a `deploy` directory.
 * The tests can be run with `go test .\...`
 
-Linux and macOS Support
------------------------
+## <a name="linux"></a>Linux and macOS Support
+
 Experimental support is included for Linux and macOS (darwin).  Please be aware of the following issues:
 
 * This was only tested using WSL2 to connect to a local SQL Server
-* Trusted connections don't seem to work
+* Trusted connections only work using the ODBC driver.  Set the following for the "default" section or for each source:
+  * `driver="odbc"`
+  * `odbc_driver="ODBC Driver 17 for SQL Server"` or the ODBC driver you are using.  This is the only one I've tested with.
 * Reloading configuration on file change doesn't seem to work
 * macOS is untested (but it compiled!)
-
-
-
-
-
-

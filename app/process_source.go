@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/billgraziano/mssqlh"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/status"
 	"github.com/billgraziano/xelogstash/xe"
@@ -40,7 +41,15 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 	if source.User != "" {
 		contextLogger.Debugf("user: %s", source.User)
 	}
-	info, err := xe.GetSQLInfo(source.FQDN, source.User, source.Password)
+
+	cxn := mssqlh.NewConnection(source.FQDN, source.User, source.Password, "master", "sqlxewriter.exe")
+	if source.Driver != "" {
+		cxn.Driver = source.Driver
+	}
+	if source.ODBCDriver != "" {
+		cxn.ODBCDriver = source.ODBCDriver
+	}
+	info, err := xe.GetSQLInfo(cxn.Driver, cxn.String())
 	if err != nil {
 		textMessage = fmt.Sprintf("source: %s err: %v", source.FQDN, err)
 		contextLogger.Error(textMessage)
