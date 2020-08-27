@@ -14,9 +14,9 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
-      - linux
+      # - linux
       - windows
-      - darwin
+      # - darwin
     goarch: 
       - amd64
     # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
