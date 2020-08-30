@@ -11,9 +11,10 @@
 2. [Application Settings](#app-settings)
 3. [Derived Fields](#derived-fields)
 3. [Sinks](#sinks)
+4. [Linux and macOS Support](#linux)
 4. [Other Notes](#notes)
 4. [Building](#building)
-4. [Linux and macOS Support](#linux)
+
 
 
 ## <a name="getting-started"></a>Getting Started
@@ -74,7 +75,7 @@ A similar process should work for Linux and macOS.  This uses [github.com/kardia
 ### Release 1.4.3
 
 * Improves support for trusted connections in Linux.  See [Linux and macOS Support](#linux) for more details.
-* Added the `login_failed` column.  See below.  
+* Added the `login_failed` column.  This is populated for errorlog_written (logon) events and error_reported events whose error number indicates a login failed event.  Filter Kibana for the existance of this field.  See below for more details.
 
 ### Release 1.4
 
@@ -340,9 +341,10 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_file_name`: name of the XE file for this event
 * `xe_file_offset`: file offset where we found this event
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from `@@SERVERNAME` of the source server.
-* `login_failed`: This is populated for login fails. Login errors are reported two ways and this captures both. 
-  * For `errorlog_written`, if the process is `logon` it populates this with the error message.  That has the IP address of the client.  It also means that if you're capturing succesful logins in the error log, this will be wrong.  Those should be caputred by extended events.
-  * For `error_reported`, if the error number is one whose text has "login failed", then we populate the the field with the error.
+* `login_failed`: This field is populated when a login fails.  The easiest way to monitor failed logins in Kibana is filter for the existance of the `login_failed` field. Login errors are reported two ways and this tries to captures both.  That means you will typically see two errors in Kibana for each failed attempt.
+  * For `errorlog_written`, if the errorlog written process is `logon` it populates this field with the error message.  That has the IP address of the client.  It also means that if you're capturing succesful logins in the error log, this will be wrong.  Successful logins should be caputred by extended events.
+  * For `error_reported`, if the error number is one whose text has "login failed", then we populate the field with the error message.
+
 
 ## <a name="sinks"></a>Sinks
 XEWriter can write to multiple targets called "sinks".  It can write to files, to logstash, or directly to Elastic Search.  It can write to all three sinks at the same time if they are all specified.  They are written serially so the performance isn't that great.
@@ -391,6 +393,18 @@ event_index_map = [
 * `default_index` is the index where events will be written unless overridden by the event index map.
 * `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
 
+## <a name="linux"></a>Linux and macOS Support
+
+Experimental support is included for Linux and macOS (darwin).  Please be aware of the following issues:
+
+* This was only tested using WSL2 to connect to a local SQL Server
+* Trusted connections only work using the ODBC driver.  Set the following for the "default" section or for each source:
+  * `driver="odbc"`
+  * `odbc_driver="ODBC Driver 17 for SQL Server"` or the ODBC driver you are using.  This is the only one I've tested with.
+* Reloading configuration on file change doesn't seem to work
+* macOS is untested (but it compiled!)
+
+
 ## <a name="notes"></a>Other Notes
 
 1. I find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  
@@ -412,13 +426,3 @@ event_index_map = [
 * SQLXEWriter can be built with `go build .\cmd\sqlxewriter`
 * XELogstash can be built with `go build .\cmd\xelogstash`
 
-## <a name="linux"></a>Linux and macOS Support
-
-Experimental support is included for Linux and macOS (darwin).  Please be aware of the following issues:
-
-* This was only tested using WSL2 to connect to a local SQL Server
-* Trusted connections only work using the ODBC driver.  Set the following for the "default" section or for each source:
-  * `driver="odbc"`
-  * `odbc_driver="ODBC Driver 17 for SQL Server"` or the ODBC driver you are using.  This is the only one I've tested with.
-* Reloading configuration on file change doesn't seem to work
-* macOS is untested (but it compiled!)
