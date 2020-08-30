@@ -56,11 +56,12 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 		return sourceResult, errors.Wrap(err, "xe.getsqlinfo")
 	}
 
+	defer safeClose(info.DB, &err)
 	contextLogger = contextLogger.WithFields(log.Fields{
 		"instance": info.Server,
 	})
 
-	defer safeClose(info.DB, &err)
+	contextLogger.Infof("%s: sys.messages for login_failed: %d\n", info.Server, len(info.LoginErrors))
 
 	cleanRun := true
 	for i := range source.Sessions {
@@ -70,7 +71,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 		if ctx.Err() != nil {
 			break
 		}
-		sessionLogger.Trace(fmt.Sprintf("starting: session: %s on  %s", source.Sessions[i], source.FQDN))
+		sessionLogger.Trace(fmt.Sprintf("%s: starting: session: %s", source.FQDN, source.Sessions[i]))
 		start := time.Now()
 
 		var result Result

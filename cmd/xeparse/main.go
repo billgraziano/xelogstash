@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/billgraziano/mssqlh"
 	"github.com/billgraziano/xelogstash/log"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/xe"
@@ -42,7 +43,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	info, err := xe.GetSQLInfo(opts.Server, "", "")
+	cxn := mssqlh.NewConnection(opts.Server, "", "", "master", "")
+	info, err := xe.GetSQLInfo("mssql", cxn.String())
 	if err != nil {
 		log.Fatal(err)
 	}

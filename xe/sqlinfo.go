@@ -26,10 +26,11 @@ type SQLInfo struct {
 	// ProductVersion holds "13.0.5101.9"
 	ProductVersion string
 
-	Fields    map[FieldTypeKey]string
-	Actions   map[string]string
-	MapValues map[MapValueKey]string
-	Databases map[int64]*Database
+	Fields      map[FieldTypeKey]string
+	Actions     map[string]string
+	MapValues   map[MapValueKey]string
+	Databases   map[int64]*Database
+	LoginErrors map[int64]bool
 
 	DB *sql.DB
 }
@@ -61,25 +62,6 @@ func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
 	info.Fields = make(map[FieldTypeKey]string)
 	info.Actions = make(map[string]string)
 	info.MapValues = make(map[MapValueKey]string)
-
-	// cxn := mssqlodbc.Connection{
-	// 	Server:  fqdn,
-	// 	AppName: "sqlxewriter.exe",
-	// 	Trusted: true,
-	// }
-
-	// // connectionString := fmt.Sprintf("Driver={SQL Server Native Client 11.0};Server=%s; Trusted_Connection=yes; App=xecap.exe;", source.FQDN)
-	// connectionString, err := cxn.ConnectionString()
-	// if err != nil {
-	// 	return info, errors.Wrap(err, "mssqlodbc.connectionstring")
-	// }
-
-	// db, err := sql.Open("odbc", connectionString)
-	// if err != nil {
-	// 	return info, errors.Wrap(err, "db.open")
-	// }
-
-	//cxn := mssqlh.NewConnection(fqdn, user, password, "master", "sqlxewriter.exe")
 
 	db, err := sql.Open(driver, cxnstring)
 	if err != nil {
@@ -192,8 +174,12 @@ func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
 		return info, errors.Wrap(err, "info.getdatabases")
 	}
 
-	return info, err
+	err = info.getLoginErrors()
+	if err != nil {
+		return info, errors.Wrap(err, "info.getloginerrors")
+	}
 
+	return info, err
 }
 
 func (i *SQLInfo) getMapValues() error {
@@ -220,6 +206,35 @@ func (i *SQLInfo) getMapValues() error {
 	err = rows.Close()
 	if err != nil {
 		return errors.Wrap(err, "rows.close")
+	}
+	return nil
+}
+
+// getLoginErrors returns all the error messags with "login failed"
+func (i *SQLInfo) getLoginErrors() error {
+	i.LoginErrors = make(map[int64]bool)
+
+	query := `
+		SELECT	message_id 
+		FROM 	sys.messages 
+		WHERE 	language_id = 1033 
+		AND 	[text] LIKE '%login failed%'
+		AND		message_id NOT IN (40801);
+	`
+
+	rows, err := i.DB.Query(query)
+	if err != nil {
+		return errors.Wrap(err, "mapvalue-query")
+	}
+	defer rows.Close()
+	var id int64
+
+	for rows.Next() {
+		err = rows.Scan(&id)
+		if err != nil {
+			return errors.Wrap(err, "mapvalue-scan")
+		}
+		i.LoginErrors[id] = true
 	}
 	return nil
 }

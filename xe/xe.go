@@ -241,6 +241,16 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		event["xe_description"] = desc
 	}
 
+	if ed.Name == "error_reported" {
+		errnum, ok := event.GetInt64("error_number")
+		if ok {
+			_, ok = i.LoginErrors[errnum]
+			if ok {
+				event["login_failed"] = desc
+			}
+		}
+	}
+
 	return event, nil
 }
 
@@ -267,6 +277,9 @@ func (e *Event) parseErrorLogMessage() {
 			msg := strings.TrimSpace(strings.Join(ff[3:9], " "))
 			msg += " " + strings.TrimSpace(strings.Join(ff[12:], " "))
 			e.Set("errorlog_message", msg)
+
+			// create the login_failed event
+			e.Set("login_failed", msg)
 		}
 
 	default:

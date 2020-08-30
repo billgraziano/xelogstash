@@ -71,9 +71,10 @@ A similar process should work for Linux and macOS.  This uses [github.com/kardia
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### Release 1.4.1
+### Release 1.4.3
 
 * Improves support for trusted connections in Linux.  See [Linux and macOS Support](#linux) for more details.
+* Added the `login_failed` column.  See below.  
 
 ### Release 1.4
 
@@ -339,6 +340,9 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_file_name`: name of the XE file for this event
 * `xe_file_offset`: file offset where we found this event
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from `@@SERVERNAME` of the source server.
+* `login_failed`: This is populated for login fails. Login errors are reported two ways and this captures both. 
+  * For `errorlog_written`, if the process is `logon` it populates this with the error message.  That has the IP address of the client.  It also means that if you're capturing succesful logins in the error log, this will be wrong.  Those should be caputred by extended events.
+  * For `error_reported`, if the error number is one whose text has "login failed", then we populate the the field with the error.
 
 ## <a name="sinks"></a>Sinks
 XEWriter can write to multiple targets called "sinks".  It can write to files, to logstash, or directly to Elastic Search.  It can write to all three sinks at the same time if they are all specified.  They are written serially so the performance isn't that great.
@@ -402,10 +406,11 @@ event_index_map = [
 ## <a name="building"></a>Building the Application
 
 * The application is currently built with GO 1.14.2
+* The tests can be run with `go test .\...`
+* Building for Windows is best accomplished by running `goreleaser --rm-dist` (or adding `--snapshot` to test)
+* Building for Linux is best accomplished by running `./build.sh` from Linux.  I use WSL2 with Ubuntu 20.04.
 * SQLXEWriter can be built with `go build .\cmd\sqlxewriter`
 * XELogstash can be built with `go build .\cmd\xelogstash`
-* A home grown build system is provided by running `PSMake.cmd 1.0` (or whatever the version you want applied).  That will build the executables, apply the GIT information, and build all the supporting files into a `deploy` directory.
-* The tests can be run with `go test .\...`
 
 ## <a name="linux"></a>Linux and macOS Support
 
