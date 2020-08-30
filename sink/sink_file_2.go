@@ -3,6 +3,7 @@ package sink
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -21,10 +22,15 @@ func NewOneFile(rot *Rotator) *OneFile {
 
 // Name returns the name of the sink.  This is used for logging.
 func (fs *OneFile) Name() string {
+	var n string
 	if fs.r.Hourly {
-		return fmt.Sprintf("files: %s\\%s_YYYYMMDD_HH.%s (keep: %s)", fs.r.Directory, fs.r.Prefix, fs.r.Extension, fs.r.Retention.String())
+		n = fmt.Sprintf("%s_YYYYMMDD_HH.%s", fs.r.Prefix, fs.r.Extension)
+	} else {
+		n = fmt.Sprintf("%s_YYYYMMDD_.%s", fs.r.Prefix, fs.r.Extension)
 	}
-	return fmt.Sprintf("files: %s\\%s_YYYYMMDD_.%s (keep: %s)", fs.r.Directory, fs.r.Prefix, fs.r.Extension, fs.r.Retention.String())
+	name := fmt.Sprintf("files: %s (keep: %s)", filepath.Join(fs.r.Directory, n), fs.r.Retention.String())
+	return name
+	// return fmt.Sprintf("files: %s\\%s_YYYYMMDD_.%s (keep: %s)", fs.r.Directory, fs.r.Prefix, fs.r.Extension, fs.r.Retention.String())
 }
 
 // Open opens the file.  This is done in the Rotator.
