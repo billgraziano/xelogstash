@@ -11,7 +11,7 @@
 2. [Application Settings](#app-settings)
 3. [Derived Fields](#derived-fields)
 3. [Sinks](#sinks)
-4. [Linux and macOS Support](#linux)
+4. [Linux Support](#linux)
 4. [Other Notes](#notes)
 4. [Building](#building)
 
@@ -60,7 +60,7 @@ In order to run this as a service in Windows, complete the following steps
 1. Reset the permissions on the `xestate` directory and ALL files in that directory to grant the service account write permission.
 1. When it comes time to update the service, just stop the service and replace the executable.
 
-A similar process should work for Linux and macOS.  This uses [github.com/kardianos/service](https://github.com/kardianos/service).  Additional documentation may be found there.
+A similar process should work for Linux.  This uses [github.com/kardianos/service](https://github.com/kardianos/service).  Additional documentation may be found there.
 
 ### Scaling up
 1. Changes to the `.toml` require a service restart to take effect unless you set `watch_config = true`.  This includes adding sources.
@@ -74,7 +74,7 @@ A similar process should work for Linux and macOS.  This uses [github.com/kardia
 
 ### Release 1.4.3
 
-* Improves support for trusted connections in Linux.  See [Linux and macOS Support](#linux) for more details.
+* Improves support for trusted connections in Linux.  See [Linux Support](#linux) for more details.
 * Added the `login_failed` column.  This is populated for errorlog_written (logon) events and error_reported events whose error number indicates a login failed event.  Filter Kibana for the existance of this field.  See below for more details.
 
 ### Release 1.4
@@ -393,16 +393,16 @@ event_index_map = [
 * `default_index` is the index where events will be written unless overridden by the event index map.
 * `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
 
-## <a name="linux"></a>Linux and macOS Support
+## <a name="linux"></a>Linux Support
 
-Experimental support is included for Linux and macOS (darwin).  Please be aware of the following issues:
+Experimental support is included for Linux.  Please be aware of the following issues:
 
 * This was only tested using WSL2 to connect to a local SQL Server
 * Trusted connections only work using the ODBC driver.  Set the following for the "default" section or for each source:
   * `driver="odbc"`
   * `odbc_driver="ODBC Driver 17 for SQL Server"` or the ODBC driver you are using.  This is the only one I've tested with.
 * Reloading configuration on file change doesn't seem to work
-* macOS is untested (but it compiled!)
+* macOS doesn't compile properly at this time.
 
 
 ## <a name="notes"></a>Other Notes
