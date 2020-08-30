@@ -72,6 +72,10 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release 1.4.X
+
+* Add some very limited macOS (darwin) support. You'll have to compile it yourself and trusted connections don't work.
+
 ### Release 1.4.3
 
 * Improves support for trusted connections in Linux.  See [Linux Support](#linux) for more details.

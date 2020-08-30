@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/billgraziano/xelogstash/pkg/dbx"
 	"github.com/pkg/errors"
-
-	_ "github.com/alexbrainman/odbc"
-	_ "github.com/denisenkom/go-mssqldb"
 )
 
 // SQLInfo stores cached info about the server we connected to
@@ -53,9 +51,6 @@ type MapValueKey struct {
 	MapKey int
 }
 
-// actions map[string]string
-// fields  map[dataTypeKey]string
-
 // GetSQLInfo gets basic SQL Server info and lookup values
 func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
 	//func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
@@ -63,12 +58,9 @@ func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
 	info.Actions = make(map[string]string)
 	info.MapValues = make(map[MapValueKey]string)
 
-	db, err := sql.Open(driver, cxnstring)
+	db, err := dbx.Open(driver, cxnstring)
 	if err != nil {
-		if db != nil {
-			db.Close()
-		}
-		return info, errors.Wrap(err, "sql.open")
+		return info, errors.Wrap(err, "opendb")
 	}
 
 	err = db.Ping()

@@ -2,19 +2,19 @@ package app
 
 import (
 	"context"
-	"database/sql"
 	"expvar"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/billgraziano/xelogstash/pkg/dbx"
+
 	"github.com/billgraziano/mssqlh"
 	"github.com/billgraziano/xelogstash/config"
 	"github.com/billgraziano/xelogstash/logstash"
 	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/status"
-	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -46,24 +46,16 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 	result.Source = source
 	dummyFileName := "_dummy_"
 
-	// cxn := mssqlodbc.Connection{
-	// 	Server:  source.FQDN,
-	// 	AppName: "sqlxewriter.exe",
-	// 	Trusted: true,
-	// }
-
-	// connectionString, err := cxn.ConnectionString()
-	// if err != nil {
-	// 	return result, errors.Wrap(err, "mssqlodbc.connectionstring")
-	// }
-	// db, err := sql.Open("odbc", connectionString)
-	// if err != nil {
-	// 	return result, errors.Wrap(err, "db.open")
-	// }
 	cxn := mssqlh.NewConnection(source.FQDN, source.User, source.Password, "msdb", "sqlxewriter.exe")
-	db, err := sql.Open("mssql", cxn.String())
+	if source.Driver != "" {
+		cxn.Driver = source.Driver
+	}
+	if source.ODBCDriver != "" {
+		cxn.ODBCDriver = source.ODBCDriver
+	}
+	db, err := dbx.Open(cxn.Driver, cxn.String())
 	if err != nil {
-		return result, errors.Wrap(err, "sql.open")
+		return result, errors.Wrap(err, "dbx.open")
 	}
 
 	err = db.Ping()
