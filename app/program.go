@@ -199,7 +199,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		}
 	}
 
-	logmsg := fmt.Sprintf("polling interval: %ds", src.PollSeconds)
+	logmsg := fmt.Sprintf("%s: polling interval: %ds", src.FQDN, src.PollSeconds)
 	contextLogger.Info(logmsg)
 
 	// ok is false if duplicate or context times out
