@@ -61,7 +61,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 		"instance": info.Server,
 	})
 
-	contextLogger.Infof("%s: sys.messages for login_failed: %d\n", info.Server, len(info.LoginErrors))
+	contextLogger.Tracef("%s: sys.messages for login_failed: %d\n", info.Server, len(info.LoginErrors))
 
 	cleanRun := true
 	for i := range source.Sessions {
