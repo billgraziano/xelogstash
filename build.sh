@@ -28,6 +28,7 @@ cp -r ./samples $TARGET
 cp ./LICENSE.txt $TARGET
 cp ./README.html $TARGET
 cp ./samples/sqlxewriter.toml $TARGET
+cp -r ./internal/resources/.vscode $TARGET 
 
 TAR_FILE=$DEPLOY/sqlxewriter_${GIT_TAG}_linux_x64.tar
 rm $TAR_FILE 

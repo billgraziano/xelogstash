@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.events": "ndjson",
+        "*.jsonl": "ndjson",
+        "*.njson": "ndjson",
+        "sqlxewriter*.log": "ndjson"
+      }
+}

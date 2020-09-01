@@ -21,11 +21,12 @@
 /deploy/
 /events/
 *.log
-*.json
+# *.json
 *.pprof
 *.prof
 *.xml
 *.lock
+/.vscode
 
 /cmd/sendproxy
 
