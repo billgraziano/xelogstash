@@ -3,8 +3,8 @@
 # [logstash]
 # host = "localhost:8888"
 
-# [filesink]
-# retain_hours = 1 
+[filesink]
+retain_hours = 4
 
 [app]
 

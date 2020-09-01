@@ -22,7 +22,7 @@ I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good t
 
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
 
-1. Extract the ZIP contents to a directory.  The sample configuration file ( `sqlxewriter.toml` in the `samples` directory) reads the `system_health` session and writes samples to a file.
+1. Extract the ZIP contents to a directory.  The sample configuration file (`sqlxewriter.toml`) reads the `system_health` session and writes samples to a file.
 2. If you have a local SQL Server installed, no changes are necessary.
 3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.  If you put in a named instance, use double-backslashes instead of a single backslash.  You will need `VIEW SERVER STATE` permission on the instance.
 4. From a command-prompt, type "`sqlxewriter.exe -debug`".  (This doesn't send anything to Logstash or Elastic Search yet)

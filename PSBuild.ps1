@@ -6,10 +6,19 @@ $ErrorActionPreference = "Stop"
 Write-Output "Running PSBuild.ps1..."
 Write-Output "" 
 $deploy=".\deploy"
-$target="$($deploy)\sqlxewriter"
+$target="$($deploy)\windows\sqlxewriter"
+Write-Output "Deploy:  $deploy"
 Write-Output "Target:  $target"
-
+If ($Version -eq "") {
+    Write-Output "Missing Version"
+    Exit
+}
 Write-Output "Version: $($version)"
+
+# Clean deploy directory
+If (Test-Path $target) {
+    Remove-Item $target -Recurse
+}
 
 # $now = Get-Date -UFormat "%Y-%m-%d_%T_%Z"
 $now = Get-Date -Format "yyyy'-'MM'-'dd'T'HH':'mm':'sszzz"
@@ -19,11 +28,6 @@ Write-Output "Build:   $now"
 
 Write-Output "" 
 Write-Output "Running go vet..."
-go vet -all .\cmd\xelogstash
-if ($LastExitCode -ne 0) {
-    exit
-}
-
 go vet -all .\cmd\sqlxewriter
 if ($LastExitCode -ne 0) {
     exit
@@ -35,13 +39,7 @@ if ($LastExitCode -ne 0) {
 }
 
 Write-Output "Running go test..."
-go test .\cmd\xelogstash .\config .\seq .\xe .\sink .\status .\pkg\...
-if ($LastExitCode -ne 0) {
-    exit
-}
-
-Write-Output "Building xelogstash.exe..."
-go build -o "$($target)\xelogstash.deprecated.exe" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\xelogstash"
+go test .\cmd\xelogstash ./cmd/sqlxewriter .\config .\seq .\xe .\sink .\status .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
@@ -52,33 +50,17 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
-# Write-Output "Building sqlxewriter_linux..."
-# $Env:GOARCH="amd64"
-# $Env:GOOS="linux"
-# go build -o "$($target)\sqlxewriter_linux" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\sqlxewriter"
-# if ($LastExitCode -ne 0) {
-#     exit
-# }
-
-# $Env:GOARCH="amd64"
-# $Env:GOOS="darwin"
-# Write-Output "Building sqlxewriter_darwin..."
-# go build -o "$($target)\sqlxewriter_darwin" -a -ldflags "-X main.sha1ver=$sha1 -X main.buildTime=$now -X main.version=$version" ".\cmd\sqlxewriter"
-# if ($LastExitCode -ne 0) {
-#     exit
-# }
-
-$Env:GOARCH=""
-$Env:GOOS=""
-
 Write-Output "Copying Files..."
-Copy-Item -Path ".\samples\*.toml"          -Destination $target
-Copy-Item -Path ".\samples\*.sql"           -Destination $target
-Copy-Item -Path ".\samples\minimum.batch"   -Destination $target
-blackfriday-tool -css .\samples\style.css   -embed README-xelogstash.md "$($target)\README-xelogstash.html"
-blackfriday-tool -css .\samples\style.css   -embed README.md "$($target)\README.html"
+blackfriday-tool -css .\docs\style.css   -embed README.md "README.html"
+Copy-Item -Path README.html -Destination $target
+Copy-Item -Path LICENSE.txt -Destination $target
+Copy-Item -Path ".\samples\sqlxewriter.toml" -Destination $target
+Copy-Item -Path ".\samples" -Destination $target -Recurse
 
-$stdZip = "$($deploy)\sqlxewriter.$($sha1).zip"
+$stdZip = "$($deploy)\sqlxewriter_$($sha1)_windows_x64.zip"
+If (Test-Path $stdZip) {
+    Remove-Item $stdZip
+}
 Write-Host "Writing $($stdZip)..."
 $stdCompress = @{
     Path = $target
