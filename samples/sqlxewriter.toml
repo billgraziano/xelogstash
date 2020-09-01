@@ -12,7 +12,7 @@ retain_hours = 4
 [defaults]
 sessions = ["system_health"]
 look_back = "168h" # one week
-rows = 10   # 20000 is a good value.  Lots of events but doesn't block too long.  0 or omitted processes all the rows
+rows = 1   # 20000 is a good value.  Lots of events but doesn't block too long.  0 or omitted processes all the rows
 
 timestamp_field_name = "@timestamp"
 payload_field_name = "mssql" # all the XE events are under this field

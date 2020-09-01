@@ -2,6 +2,7 @@
 
 `sqlxewriter.exe` is an application to pull SQL Server Extended Events and SQL Server Agent job results and write them to various sinks.  It can write to Logstash, Elastic Search, or JSON files.   It runs on the command-line or as a service.    It supports SQL Server 2012 and higher.  It has limited support for SQL Server 2008 (R2). This application replaces `xelogstash.exe`.  *If you were running `xelogstash.exe`, please read this carefully.*
 
+
 1. [Getting started](#getting-started)
 1. [What's New](#whats-new)
 2. [Sources and Defaults](#sources)
@@ -16,23 +17,22 @@
 4. [Building](#building)
 
 
-
 ## <a name="getting-started"></a>Getting Started
 I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
 
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
 
-1. Extract the ZIP contents to a directory.  The sample configuration file (`sqlxewriter.toml`) reads the `system_health` session and writes samples to a file.
+1. Extract the ZIP contents to a directory.  The sample configuration file (`sqlxewriter.toml`) reads the `system_health` session and writes events to a file.
 2. If you have a local SQL Server installed, no changes are necessary.
 3. Otherwise, edit `sqlxewriter.toml` and change the `fqdn` under ``[[source]]`` to point to a SQL Server.  If you put in a named instance, use double-backslashes instead of a single backslash.  You will need `VIEW SERVER STATE` permission on the instance.
-4. From a command-prompt, type "`sqlxewriter.exe -debug`".  (This doesn't send anything to Logstash or Elastic Search yet)
+4. From a command-prompt, run "`sqlxewriter.exe -debug`".  (This doesn't send anything to Logstash or Elastic Search yet).  This will pull one set of events and then exit.
 
-This should generate a `samples.xe.json` and an `xestate` folder.  The `samples.xe.json` file is one of each type of event that would have been sent to Logstash.  This gives you a chance to see how things will look.  The `xestate` folder is used to keep track of the read position in the XE session.  
+This should create an `events` folder and an `xestate` folder.  The `events` folder holds the JSON generated for each event.  The `xestate` folder is used to keep track of the read position in each Extended Event session.  
 
 > NOTE: The permissions on the `xestate` directory are limited. When switching to a service account, be prepared to reset the permissions to grant the service account full control of that directory and the files in it.
 
 ### Writing events to a file
-In `sqlxewriter.toml`, uncomment the two lines of the `filesink` section and rerun the application.  This will write events to a file in the `events` directory in newline-delimited JSON format.  Each source's Extended Event session gets a file and they rotate every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
+The files in the `events` directory are newline-delimited JSON (NDJSON).  The files are rotated every hour.  These files can be written to Elastic Search using [FileBeat](https://www.elastic.co/products/beats/filebeat).  A sample FileBeat configuration file is included.
 
 ### Sending to Logstash
 To send events to directly Logstash, specify the `logstash` section with a `host` value.  The `host` should be in `host:port` format.  After that you can run the executable with the same parameters. 
@@ -47,8 +47,8 @@ Now it is writing to both the file and Logstash.
 Running `sqlxewriter -?` will display the help for the options.
 
 - `-log` - When running interactively, captures the application output to a log file INSTEAD of standard out.  The log files are located in the `log` subdirectory and named `sqlxewriter_YYYYMMDD.log` based on the start time.  Log files are automatically deleted after 7 days and that's not configurable yet. When running as a service, logs are always written to a file.
-- `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged.
-- `-loop` - Instead of polling each server once and exiting, it continues to loop and polls each server every minute.  
+- `-debug` - Enables additional debugging output.  If you enable this, it will log each poll of a server.  Otherwise no information is logged on each poll.
+- `-loop` - Instead of polling each server once and exiting, it continues to loop and polls each server every minute.  This is only needed when running interactively.  When running as a service, it always loops.
 - `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
 
 ### Running as a service
@@ -64,9 +64,10 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 
 ### Scaling up
 1. Changes to the `.toml` require a service restart to take effect unless you set `watch_config = true`.  This includes adding sources.
-1. The sample `sqlxewriter.toml` only reads 10 events per server per minute.  This should be set to unlimited (`rows = 0`) or some high number like 20,000 (`rows = 20000`)
-1. There are two sample Extended Event session scripts.  One captures logins and the other captures interesting events like errors, slow SQL, blocked procesess, mirroring events, and and writes to the error log.
+1. The sample `sqlxewriter.toml` only reads 1 event per server per minute.  This should be set to unlimited (`rows = 0`) or some high number like 20,000 (`rows = 20000`)
+1. There are two sample Extended Event session scripts.  One captures logins and the other captures interesting events like errors, slow SQL, blocked procesess, mirroring events, and writes to the error log.
 1. I suggest capturing the `system_health`, `AlwaysOn_health`, and these two sessions.
+1. The `sources` can be broken out into a separate file named `sqlxewriter_sources.toml`.  This makes the editing easier or allows the file to be generated from Puppet or some other tool. 
 
 
 <a name="whats-new"></a>What's New
@@ -74,7 +75,8 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 
 ### Release 1.4.X
 
-* Add some very limited macOS (darwin) support. You'll have to compile it yourself and trusted connections don't work.
+* Add some very limited macOS (darwin) support. You'll have to compile it yourself.
+* Updated the README and some samples
 
 ### Release 1.4.3
 
@@ -83,7 +85,7 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 
 ### Release 1.4
 
-* This application now reads past invalid offsets.  The most likely cause of invalid offsets is that this service stopped or the files rolled over so fast that the file and offset are no longer valid.  In both cases, the extended event files rolled over and the events no longer exist. Previously this application would log the error and wait so we could investigate and fix.  Meanwhile, more events were being missed.  Now it just logs the error and tries to find the next valid event for the extended event.
+* We now read past invalid offsets.  The most likely cause of invalid offsets is that this service stopped or the files rolled over so fast that the file and offset are no longer valid.  In both cases, the extended event files rolled over and the events no longer exist. Previously this application would log the error and wait so we could investigate and fix.  Meanwhile, more events were being missed.  Now it just logs the error and tries to find the next valid event for the extended event session.
 
 ### Release 1.3.2
 
@@ -413,7 +415,7 @@ Experimental support is included for Linux.  Please be aware of the following is
 
 1. I find that setting the `rows = 20000` in the `[defaults]` section works well.  It's enough rows that it catches up quickly if I pause the job.  
 
-2. The sources are processd in the order they are listed.  Each server is polled every minute.  It spreads out the servers evenly over the minute.
+2. The sources are processed in the order they are listed.  Each server is polled every minute.  It spreads out the servers evenly over the minute.
 
 3. I make some decisions around setting the severity level.  Failed jobs and job steps are errors.  SQL Server errors are errors.  I haven't gone much beyond that yet.
 
@@ -425,8 +427,9 @@ Experimental support is included for Linux.  Please be aware of the following is
 
 * The application is currently built with GO 1.14.2
 * The tests can be run with `go test .\...`
-* Building for Windows is best accomplished by running `goreleaser --rm-dist` (or adding `--snapshot` to test)
-* Building for Linux is best accomplished by running `./build.sh` from Linux.  I use WSL2 with Ubuntu 20.04.
-* SQLXEWriter can be built with `go build .\cmd\sqlxewriter`
-* XELogstash can be built with `go build .\cmd\xelogstash`
+
+* The builds write to a `deploy` directory
+  * Build for Windows by running `PSMake.cmd 1.1.1` (or the target version)
+  * Build for Linux by running `./build.sh 1.1.1` from Linux.  I use WSL2 with Ubuntu 20.04.  We use the ODBC driver which uses CGO.  Cross-platform builds don't work well.
+* SQLXEWriter can be built directly with `go build ./cmd/sqlxewriter`
 
