@@ -18,7 +18,7 @@
 
 
 ## <a name="getting-started"></a>Getting Started
-I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default.  
+I've found [Visual Studio Code](https://code.visualstudio.com/) to a very good tool to edit TOML files and view log files.  Plus it installs for only the local user by default. _If you use VSCode, copy the `.vscode` directory from the `samples` directory to the root of the project directory._
 
 The application uses a [TOML](https://en.wikipedia.org/wiki/TOML) file for configuration.  Two sample files are included. 
 

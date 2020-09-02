@@ -56,7 +56,6 @@ Copy-Item -Path README.html -Destination $target
 Copy-Item -Path LICENSE.txt -Destination $target
 Copy-Item -Path ".\samples\sqlxewriter.toml" -Destination $target
 Copy-Item -Path ".\samples" -Destination $target -Recurse
-Copy-Item -Path ".\internal\resources\.vscode" -Destination $target -Recurse
 
 $stdZip = "$($deploy)\sqlxewriter_$($sha1)_windows_x64.zip"
 If (Test-Path $stdZip) {
