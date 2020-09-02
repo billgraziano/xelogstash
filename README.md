@@ -73,10 +73,14 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### Release 1.4.X
+### Release 1.5
 
-* Add some very limited macOS (darwin) support. You'll have to compile it yourself.
-* Updated the README and some samples
+* Add limited macOS (darwin) support. You'll have to compile it yourself.
+* Add a `.vscode` directory in the samples with extensions and file mapping support
+* Fix the git commit information in the linux build
+* Fix the subdirectory in the linux build
+* Update the README for first-timers
+* Add the server name to the polling message (in addition to being in the field)
 
 ### Release 1.4.3
 

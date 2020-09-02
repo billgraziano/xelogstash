@@ -27,13 +27,12 @@ var (
 func main() {
 	var err error
 
-	// TODO get a flags package that allows / options too
 	svcFlag := flag.String("service", "", "Control the system service (install|uninstall)")
 	debug := flag.Bool("debug", false, "Enable debug logging")
 	trace := flag.Bool("trace", false, "Enable trace logging")
 	filelog := flag.Bool("log", false, "Force logging to JSON file")
-	//once := flag.Bool("once", false, "run once and exit (command-line only)")
 	loop := flag.Bool("loop", false, "continue polling until canceleld (command-line only)")
+	versionOnly := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
 	appdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -41,9 +40,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if len(sha1ver) > 7 {
-		sha1ver = sha1ver[:7]
-	}
+	// if len(sha1ver) > 7 {
+	// 	sha1ver = sha1ver[:7]
+	// }
 
 	// we are logging to a file
 	if !service.Interactive() || *filelog {
@@ -83,6 +82,9 @@ func main() {
 	}
 
 	log.Infof("start: version: %s; git: %s; build: %s", version, sha1ver, buildTime)
+	if *versionOnly {
+		return
+	}
 
 	defer func() {
 		err := recover()

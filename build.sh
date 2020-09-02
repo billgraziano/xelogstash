@@ -6,9 +6,9 @@ fi
 echo "Building..."
 GIT_COMMIT=$(git rev-list -1 HEAD)
 GIT_TAG=$(git describe --tags --dirty --always)
-BLD_TIME=$(date +%FT%T%Z)
+BLD_TIME=$(date +%FT%T%:z)
 VERSION=$1
-echo "GIT_COMMIT: $GIT_COMMIT"
+# echo "GIT_COMMIT: $GIT_COMMIT"
 echo "GIT_TAG:    $GIT_TAG"
 echo "BLD_TIME:   $BLD_TIME"
 echo "VERSION:    $VERSION"
@@ -30,7 +30,9 @@ go vet -all ./config ./log ./logstash ./seq ./status ./summary ./xe ./sink ./pkg
 go test ./cmd/xelogstash ./cmd/sqlxewriter ./config ./seq ./xe ./sink ./status ./pkg/...
 
 echo "Building sqlxewriter.exe..."
-go build -o $TARGET/sqlxewriter.exe -ldflags "-s -w -X main.version=$VERSION -X main.sha1ver=$GIT_COMMIT -X main.buildTime=$BLD_TIME -X main.builtBy=buildsh" ./cmd/sqlxewriter
+go build -o $TARGET/sqlxewriter.exe -ldflags "-s -w -X main.version=$VERSION -X main.sha1ver=$GIT_TAG -X main.buildTime=$BLD_TIME -X main.builtBy=buildsh" ./cmd/sqlxewriter
+./deploy/linux/sqlxewriter/sqlxewriter.exe -version 
+
 cp -r ./samples $TARGET
 cp ./LICENSE.txt $TARGET
 cp ./README.html $TARGET

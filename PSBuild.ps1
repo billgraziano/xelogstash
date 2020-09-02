@@ -50,6 +50,8 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
+.\Deploy\Windows\SQLXEWriter\SQLXEWriter.exe -version 
+
 Write-Output "Copying Files..."
 blackfriday-tool -css .\docs\style.css   -embed README.md "README.html"
 Copy-Item -Path README.html -Destination $target
