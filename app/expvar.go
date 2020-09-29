@@ -16,6 +16,7 @@ var (
 	//expWorker   = expvar.NewMap("workers").Init()
 )
 
+// ConfigureExpvar sets up the expvar variables
 func ConfigureExpvar() {
 
 	// configure monitoring

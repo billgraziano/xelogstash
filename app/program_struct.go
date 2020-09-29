@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Program holds the program configuration
 type Program struct {
 	SHA1      string
 	Version   string

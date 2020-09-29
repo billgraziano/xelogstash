@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" // pprof
 	"os"
 	"path/filepath"
 	"runtime"

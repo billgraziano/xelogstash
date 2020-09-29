@@ -237,23 +237,23 @@ func (p *Program) processSession(
 			if !ok {
 				return result, fmt.Errorf("Filter #%d is missing 'filter_action'", fnum+1)
 			}
-			filter_action := fmt.Sprintf("%v", fa)
+			filterAction := fmt.Sprintf("%v", fa)
 			for filterField, filterValue := range filter { // loop through the filtered fields
 				if filterField == "filter_action" {
 					continue
 				}
-				event_value, ok := event[filterField] // get the value for the field
-				if !ok {                              // if it doesn't exist, this filter can't match so break looping through fields
+				eventValue, ok := event[filterField] // get the value for the field
+				if !ok {                             // if it doesn't exist, this filter can't match so break looping through fields
 					matched = false
 					break
 				}
-				if event_value != filterValue { // this field doesn't match, next filter
+				if eventValue != filterValue { // this field doesn't match, next filter
 					matched = false
 					break
 				}
 			}
 			if matched {
-				action = filter_action
+				action = filterAction
 			}
 		}
 
