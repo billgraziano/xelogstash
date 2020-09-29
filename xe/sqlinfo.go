@@ -112,6 +112,11 @@ func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
 
 	var object, name, dt string
 
+	// This pattern of rows.open and rows.close may leak objects if we get errors
+	// Errors here should be very rare.  We don't have a good way to log them
+	// and we already have an error from the query itself.  Leaving it this way
+	// for now.
+
 	// Get the action types
 	query = "select name, type_name from sys.dm_xe_objects where object_type = 'action' order by type_name;"
 	rows, err := db.Query(query)

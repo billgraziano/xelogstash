@@ -317,7 +317,17 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 			// we just keep logging the error
 			err = errors.Wrap(err, fmt.Sprintf("checkdupes: fqdn: %s", src.FQDN))
 			log.Error(err)
+			if info.DB != nil {
+				err := info.DB.Close()
+				if err != nil {
+					log.Error(errors.Wrap(err, fmt.Sprintf("checkdupes: close: fqdn: %s", src.FQDN)))
+				}
+			}
 		} else { // we connected and got info
+			err = info.DB.Close()
+			if err != nil {
+				log.Error(errors.Wrap(err, fmt.Sprintf("checkdupes: close: fqdn: %s", src.FQDN)))
+			}
 			err = status.CheckDupeInstance(info.Domain, info.Server)
 			if err == nil {
 				return true // no dupe
