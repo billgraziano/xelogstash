@@ -73,6 +73,10 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release 1.5.1
+
+* Minor memory cleanup
+
 ### Release 1.5
 
 * Add limited macOS (darwin) support. You'll have to compile it yourself.
