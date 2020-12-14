@@ -40,7 +40,7 @@ func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 	query := `
 	SET NOCOUNT ON;
 	SELECT	@@SERVERNAME AS [ServerName]
-		,DEFAULT_DOMAIN() AS [DomainName]
+		,COALESCE(DEFAULT_DOMAIN(), ''_ AS [DomainName]
 		,CAST(SERVERPROPERTY('MachineName') as nvarchar(128)) AS [Computer]
 		,CAST(COALESCE(SERVERPROPERTY('ProductLevel'), '') as nvarchar(128)) AS ProductLevel
 		,COALESCE(CAST(SERVERPROPERTY('ProductMajorVersion') as NVARCHAR(128))  + '.' + CAST(SERVERPROPERTY('ProductMinorVersion') as NVARCHAR(128)),'') AS ProductRelease

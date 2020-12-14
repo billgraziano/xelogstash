@@ -245,7 +245,9 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 		base.Set("timestamp_local", j.TimestampLocal)
 		base.Set("timestamp_utc_calculated", j.TimestampUTC)
 
-		base.Set("mssql_domain", info.Domain)
+		if info.Domain != "" {
+			base.Set("mssql_domain", info.Domain)
+		}
 		base.Set("mssql_computer", info.Computer)
 		base.Set("mssql_server_name", info.Server)
 		base.Set("mssql_version", info.Version)

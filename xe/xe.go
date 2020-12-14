@@ -224,7 +224,9 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	event["xe_severity_value"] = severity
 	event["xe_severity_keyword"] = severity.String()
 
-	event.Set("mssql_domain", i.Domain)
+	if i.Domain != "" {
+		event.Set("mssql_domain", i.Domain)
+	}
 	event.Set("mssql_computer", i.Computer)
 	event.Set("mssql_server_name", i.Server)
 	event.Set("mssql_version", i.Version)
