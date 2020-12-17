@@ -108,7 +108,6 @@ func (ls *Logstash) Connect() (*net.TCPConn, error) {
 		return connection, errors.New("nil connection")
 	}
 
-
 	ls.Connection = connection
 	ls.Connection.SetKeepAlive(true)
 
@@ -178,7 +177,10 @@ func (ls *Logstash) Writeln(message string) error {
 		neterr, ok := err.(net.Error)
 		if ok && neterr.Timeout() {
 			ls.mu.Lock()
-			ls.Connection.Close()
+			if ls.Connection != nil {
+				// error ignored for now since we already got an error
+				ls.Connection.Close()
+			}
 			ls.Connection = nil
 			ls.mu.Unlock()
 			if err != nil {
