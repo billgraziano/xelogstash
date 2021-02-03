@@ -1,6 +1,6 @@
 module github.com/billgraziano/xelogstash
 
-go 1.13
+go 1.14
 
 require (
 	github.com/Showmax/go-fqdn v0.0.0-20180501083314-6f60894d629f
@@ -21,9 +21,10 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
+	github.com/mr-karan/doggo v0.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.3.4
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.3.5

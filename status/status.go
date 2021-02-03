@@ -5,14 +5,16 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/billgraziano/xelogstash/log"
+	// "github.com/billgraziano/xelogstash/log"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // key is used to define how a file is generated and preven duplicates
@@ -29,6 +31,8 @@ var mux sync.Mutex
 
 //ErrDup indicates a duplicate was found
 var ErrDup = errors.New("duplicate domain-instance-class-id")
+
+// ErrDupInstance indicates a duplicate instance domain combination was found
 var ErrDupInstance = errors.New("duplicate domain-instance")
 
 func init() {
@@ -131,9 +135,49 @@ func NewFile(domain, instance, class, id string) (File, error) {
 	return f, nil
 }
 
+// checkNullFile checks if the state file contains only 0x0's
+func (f *File) checkNullFile() error {
+	var err error
+	_, err = os.Stat(f.Name)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "os.stat")
+	}
+	bb, err := ioutil.ReadFile(f.Name)
+	if err != nil {
+		return errors.Wrap(err, "ioutil.readfile")
+	}
+	if len(bb) == 0 {
+		return nil
+	}
+
+	// if any byte isn't zero, exit
+	for _, b := range bb {
+		if b != 0 {
+			return nil
+		}
+	}
+
+	// file is all nulls
+	return errors.New(fmt.Sprintf("state file all nulls (replace with .0 file): %s", f.Name))
+
+	// delete the file - commented out because we don't automatically check the .0 file
+	// log.Warnf("state file all nulls: removing: %s", f.Name)
+	// err = os.Remove(f.Name)
+	// if err != nil {
+	// 	return errors.Wrap(err, "os.remove")
+	// }
+}
+
 // GetOffset returns the last file and offset for this file state
 func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err error) {
 
+	err = f.checkNullFile()
+	if err != nil {
+		return "", 0, StateReset, errors.Wrap(err, "checknulls")
+	}
 	var fp *os.File
 	_, err = os.Stat(f.Name)
 	if os.IsNotExist(err) {
@@ -245,6 +289,10 @@ func writeState(f *os.File, xeFileName string, offset int64, xestatus string) er
 	if err != nil {
 		return errors.Wrap(err, "file.write")
 	}
+	err = f.Sync()
+	if err != nil {
+		return errors.Wrap(err, "f.sync")
+	}
 	return nil
 }
 
@@ -253,12 +301,15 @@ func (f *File) Done(xeFileName string, offset int64, xestatus string) error {
 	var err error
 	err = f.Save(xeFileName, offset, xestatus)
 	if err != nil {
-		return errors.Wrap(err, "save")
+		return errors.Wrap(err, "f.save")
 	}
-
+	err = f.file.Sync()
+	if err != nil {
+		return errors.Wrap(err, "f.file.sync")
+	}
 	err = f.file.Close()
 	if err != nil {
-		return errors.Wrap(err, "close")
+		return errors.Wrap(err, "f.file.close")
 	}
 
 	if f.Name == "" {
@@ -296,6 +347,11 @@ func (f *File) Done(xeFileName string, offset int64, xestatus string) error {
 	err = writeState(newStatusFile, xeFileName, offset, xestatus)
 	if err != nil {
 		return errors.Wrap(err, "writestate")
+	}
+
+	err = newStatusFile.Sync()
+	if err != nil {
+		return errors.Wrap(err, "newstatusfile.sync")
 	}
 
 	err = newStatusFile.Close()
