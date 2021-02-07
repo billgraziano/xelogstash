@@ -32,7 +32,7 @@ type Rotator struct {
 	ts    string
 }
 
-// New returns a new Rotator
+// NewRotator returns a new Rotator
 func NewRotator(dir, prefix, extension string) *Rotator {
 	r := &Rotator{
 		Directory: dir,

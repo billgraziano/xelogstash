@@ -1,3 +1,6 @@
+
+
+{"application":"sqlxewriter.exe","level":"error","msg":"reopen error: retrying logstash: 10.10.128.220:5062 (#3) [logstash.writeln: ls.connection.close: close tcp 10.20.128.121:65036-\u003e10.10.128.220:5062: use of closed network connection]...","time":"2021-02-04T09:34:19.243245-06:00","version":"1.5.4","version_git":"v1.5.4"}
 # Fixes
 
   
