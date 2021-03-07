@@ -10,6 +10,7 @@ require (
 	github.com/billgraziano/mssqlh v0.2.0
 	github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/davidscholberg/go-durationfmt v0.0.0-20170122144659-64843a2083d3
 	github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc
 	github.com/dustin/go-humanize v1.0.0

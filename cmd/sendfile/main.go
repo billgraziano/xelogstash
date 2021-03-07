@@ -44,7 +44,7 @@ func main() {
 	// log.Info("token:", opts.Token)
 
 	var ls *logstash.Logstash
-	ls, err = logstash.NewHost(opts.Logstash, 180)
+	ls, err = logstash.NewHost(opts.Logstash, logstash.WithTimeout(180))
 	if err != nil {
 		log.Fatal("logstash.newhost:", err)
 	}

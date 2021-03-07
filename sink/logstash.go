@@ -22,11 +22,17 @@ type LogstashSink struct {
 
 // NewLogstashSink returns a new LogstashSink
 func NewLogstashSink(host string, timeout int) (*LogstashSink, error) {
-	ls, err := logstash.NewHost(host, timeout)
+	ls, err := logstash.NewHost(host, logstash.WithTimeout(timeout))
 	if err != nil {
 		return nil, errors.Wrap(err, "logstash.newhost")
 	}
-	lss := &LogstashSink{ls: ls}
+	lss := &LogstashSink{
+		mu:                  sync.RWMutex{},
+		ls:                  ls,
+		logger:              log.WithFields(log.Fields{}),
+		RetryAlertThreshold: 0,
+	}
+
 	return lss, nil
 }
 
@@ -39,7 +45,7 @@ func (lss *LogstashSink) Name() string {
 
 func (lss *LogstashSink) name() string {
 	if lss != nil {
-		return fmt.Sprintf("logstash: %s", lss.ls.Host)
+		return fmt.Sprintf("logstashsink: host: %s", lss.ls.Host)
 	}
 	return ""
 }
@@ -92,13 +98,10 @@ func (lss *LogstashSink) Open(ctx context.Context, ignore string) error {
 	bo, cancel := policy.Start(ctx)
 	defer cancel()
 	for backoff.Continue(bo) {
-
-		if lss.logger != nil {
-			log.Errorf("open error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
-		}
+		lss.logger.Errorf("logstashsink: open error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
 		err = lss.open(ignore)
 		if err == nil {
-			log.Infof("open succeeded: %s", lss.name())
+			lss.logger.Infof("logstashsink: open succeeded: %s", lss.name())
 			return nil
 		}
 
@@ -143,11 +146,7 @@ func (lss *LogstashSink) Write(ctx context.Context, name, event string) (int, er
 	for backoff.Continue(bo) {
 
 		if i > lss.RetryAlertThreshold {
-			if lss.logger != nil {
-				log.Errorf("write error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
-			} else {
-				log.Errorf("write error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
-			}
+			lss.logger.Errorf("logstashsink: write error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
 			errorLogged = true
 		}
 		lss.mu.Lock()
@@ -155,13 +154,9 @@ func (lss *LogstashSink) Write(ctx context.Context, name, event string) (int, er
 		xerr := lss.reopen()
 		if xerr != nil {
 			if i > lss.RetryAlertThreshold {
-				//log.Error(errors.Wrap(xerr, "lss.reopen"))
-				//log.Errorf("reopen error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
-				if lss.logger != nil {
-					log.Errorf("reopen error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
-				} else {
-					log.Errorf("reopen error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
-				}
+				//lss.logger.Error(errors.Wrap(xerr, "lss.reopen"))
+				//lss.logger.Errorf("reopen error: retrying %s (#%d) [%s]...", "lss==nil", i, err.Error())
+				lss.logger.Errorf("logstashsink: reopen error: retrying %s (#%d) [%s]...", lss.name(), i, err.Error())
 				errorLogged = true
 			}
 		}
@@ -172,7 +167,7 @@ func (lss *LogstashSink) Write(ctx context.Context, name, event string) (int, er
 		lss.mu.RUnlock()
 		if err == nil {
 			if errorLogged {
-				log.Infof("write succeeded: %s", lss.name())
+				lss.logger.Infof("logstashsink: write succeeded: %s", lss.name())
 			}
 			return n, nil
 		}
@@ -202,9 +197,8 @@ func (lss *LogstashSink) Reopen() error {
 }
 
 func (lss *LogstashSink) reopen() error {
-	if lss.logger != nil {
-		log.Trace("reopening...")
-	}
+	lss.logger.Trace("logstashsink: reopening...")
+
 	err := lss.close()
 	if err != nil {
 		return errors.Wrap(err, "lss.close")
@@ -228,5 +222,8 @@ func (lss *LogstashSink) Clean() error {
 
 // SetLogger sets the logger for the sink
 func (lss *LogstashSink) SetLogger(entry *log.Entry) {
+	lss.mu.Lock()
+	defer lss.mu.Unlock()
 	lss.logger = entry
+	lss.ls.Logger = entry
 }
