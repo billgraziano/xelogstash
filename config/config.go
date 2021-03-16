@@ -182,7 +182,7 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 		if err != nil {
 			return sinks, errors.Wrap(err, "sink.newlogstashsink")
 		}
-		lss.RetryAlertThreshold = c.Logstash.RetryAlertThreshold
+		//lss.RetryAlertThreshold = c.Logstash.RetryAlertThreshold
 		sinks = append(sinks, lss)
 	}
 

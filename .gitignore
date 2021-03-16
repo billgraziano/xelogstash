@@ -49,6 +49,11 @@ README.html
 bld.cmd
 run.sh
 
+architecture.md
+/sink/logstash_v2.md
+/sink/logstash_v3.md
+/sink/logstash_v4.md
+
 
 
 
