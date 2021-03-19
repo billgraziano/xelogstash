@@ -229,12 +229,26 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		contextLogger.Tracef("source: %s; polling (#%d)...", src.FQDN, counter)
 		result, err := p.ProcessSource(ctx, id, src)
 		if err != nil {
+			errmsg := ""
+			if result.Instance != "" {
+				errmsg += fmt.Sprintf("instance: %s;", result.Instance)
+			}
+			if result.Session != "" {
+				if errmsg != "" {
+					errmsg += " "
+				}
+				errmsg += fmt.Sprintf("session: %s;", result.Session)
+			}
+			if errmsg != "" {
+				errmsg += " "
+			}
+			errmsg += fmt.Sprintf("err: %s", err)
 			if errors.Cause(err) == xe.ErrNotFound || errors.Cause(err) == xe.ErrNoFileTarget {
 				if cfg.App.StrictSessions {
-					contextLogger.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+					contextLogger.Error(errmsg)
 				}
 			} else {
-				contextLogger.Errorf("instance: %s; session: %s; err: %s", result.Instance, result.Session, err)
+				contextLogger.Error(errmsg)
 			}
 		}
 
