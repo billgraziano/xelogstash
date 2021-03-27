@@ -232,7 +232,10 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 			errmsg := ""
 			if result.Instance != "" {
 				errmsg += fmt.Sprintf("instance: %s;", result.Instance)
+			} else {
+				errmsg += fmt.Sprintf("fqdn: %s;", src.FQDN)
 			}
+
 			if result.Session != "" {
 				if errmsg != "" {
 					errmsg += " "

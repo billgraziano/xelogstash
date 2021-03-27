@@ -16,7 +16,7 @@ func (ls *Logstash) Write(message string) error {
 	if err == nil {
 		return nil
 	}
-	ls.Logger.Error(errors.Wrap(err, "ls2: write"))
+	//ls.Logger.Error(errors.Wrap(err, "ls2: write"))
 
 	// do the retry stuff
 	ls.Lock()
@@ -32,7 +32,7 @@ func (ls *Logstash) write(message string) error {
 	message = fmt.Sprintf("%s\n", message)
 	messageBytes := []byte(message)
 	if trace {
-		ls.Logger.Tracef("ls2: ls.write.bytes-to-send: %d", len(messageBytes))
+		ls.Logger.Tracef("ls2.write.bytes-to-send: %d", len(messageBytes))
 	}
 
 	deadline := time.Now().Add(time.Duration(ls.Timeout) * time.Second)
@@ -56,6 +56,7 @@ func (ls *Logstash) writeloop(message string) error {
 	if err == nil {
 		return nil
 	}
+
 	ls.Logger.Error(errors.Wrap(err, "writeloop: ls.write"))
 
 	var policy = backoff.NewExponential(
@@ -70,25 +71,25 @@ func (ls *Logstash) writeloop(message string) error {
 	defer cancel()
 	for backoff.Continue(bo) {
 		i++
-		ls.Logger.Errorf("ls2: writeloop: retrying %s (#%d)", ls.Host, i)
+		ls.Logger.Errorf("writeloop: retrying %s (#%d)", ls.Host, i)
 
 		err = ls.close()
 		if err != nil {
-			ls.Logger.Error(errors.Wrap(err, "ls2: writeloop: ls.close"))
+			ls.Logger.Error(errors.Wrap(err, "writeloop: ls.close"))
 			continue
 		}
 		// open()
 		err = ls.open()
 		if err != nil {
-			ls.Logger.Error(errors.Wrap(err, "ls2: writeloop: ls.open"))
+			ls.Logger.Error(errors.Wrap(err, "writeloop: ls.open"))
 			continue
 		}
 		// write()
 		err = ls.write(message)
 		if err != nil {
-			ls.Logger.Error(errors.Wrap(err, "ls2: writeloop: ls.write"))
+			ls.Logger.Error(errors.Wrap(err, "writeloop: ls.write"))
 		} else { // write with no error means we break out of the loop
-			ls.Logger.Infof("ls2: write succeeded: %s", ls.Host)
+			ls.Logger.Infof("writeloop: write succeeded: %s", ls.Host)
 			break
 		}
 
