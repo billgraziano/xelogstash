@@ -144,16 +144,6 @@ func (p *Program) processSession(
 			}
 			//}
 
-			// do we have as many rows as we need?
-			if source.Rows > 0 && result.Rows >= source.Rows {
-				break
-			}
-
-			// do we have a cancel?
-			if ctx.Err() != nil {
-				break
-			}
-
 			// Flush all the sinks
 			for i := range p.Sinks {
 				snk := *p.Sinks[i]
@@ -164,6 +154,17 @@ func (p *Program) processSession(
 					return result, newError
 				}
 			}
+
+			// do we have as many rows as we need?
+			if source.Rows > 0 && result.Rows >= source.Rows {
+				break
+			}
+
+			// do we have a cancel?
+			if ctx.Err() != nil {
+				break
+			}
+
 		}
 
 		lastFileName = fileName
@@ -295,6 +296,9 @@ func (p *Program) processSession(
 		}
 
 		// Process all the destinations
+		// TODO Put all the events in an array
+		// TODO and write the array when the offset changes
+		// TODO and we save the state
 		for i := range p.Sinks {
 			snk := *p.Sinks[i]
 			_, err = snk.Write(ctx, eventName, rs)
