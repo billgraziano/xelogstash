@@ -270,6 +270,7 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
 			// simulate a slow stop
 			if p.ExtraDelay > 0 {
+				// #nosec G404
 				<-time.After(time.Millisecond * time.Duration(rand.Intn(p.ExtraDelay*1000)))
 			}
 			contextLogger.Debugf("source: %s 'program.run' received ctx.done", src.FQDN)

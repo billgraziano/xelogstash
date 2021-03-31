@@ -10,24 +10,28 @@ require (
 	github.com/billgraziano/mssqlh v0.2.0
 	github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/davidscholberg/go-durationfmt v0.0.0-20170122144659-64843a2083d3
 	github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/go-elasticsearch/v7 v7.4.1
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/goreleaser/goreleaser v0.142.0 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/kardianos/service v1.1.0
-	github.com/kr/pretty v0.2.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/lestrrat-go/backoff v1.0.0
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a
-	github.com/mr-karan/doggo v0.1.1 // indirect
+	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
 	github.com/sirupsen/logrus v1.7.0
+	github.com/smartystreets/assertions v1.0.0 // indirect
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/afero v1.3.4
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.3.5
 	github.com/tidwall/sjson v1.0.4
+	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
+	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 )

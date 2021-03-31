@@ -157,7 +157,7 @@ func (p *Program) processSession(
 			// Flush all the sinks
 			for i := range p.Sinks {
 				snk := *p.Sinks[i]
-				snk.Flush()
+				err = snk.Flush()
 				if err != nil {
 					newError := errors.Wrap(err, fmt.Sprintf("sink.flush: %s", snk.Name()))
 					log.Error(newError)

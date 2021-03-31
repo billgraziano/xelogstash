@@ -47,7 +47,7 @@ func NewClient(addresses []string, proxy, username, password string) (*elasticse
 			ResponseHeaderTimeout: 10 * time.Second,
 			DialContext:           (&net.Dialer{Timeout: 10 * time.Second}).DialContext,
 			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS11,
+				MinVersion: tls.VersionTLS12,
 			},
 		}
 	} else {
@@ -69,7 +69,7 @@ func NewClient(addresses []string, proxy, username, password string) (*elasticse
 			ResponseHeaderTimeout: time.Second,
 			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
 			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS11,
+				MinVersion: tls.VersionTLS12,
 			},
 		}
 	}
