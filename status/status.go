@@ -89,8 +89,10 @@ func CheckDupe(domain, instance, class, id string) error {
 
 // CheckDupeInstance checks to see if this instance has already been seen
 func CheckDupeInstance(domain, instance string) error {
-	if domain == "" || instance == "" {
-		return fmt.Errorf("invalid value: domain: %s; instance: %s;", domain, instance)
+	// Linux has empty domains so we allow that
+	// it means we can't have duplicate machine names acoss Linux instances
+	if instance == "" {
+		return errors.New("instance cannot be empty")
 	}
 	key := domain + ":" + instance
 	mux.Lock()

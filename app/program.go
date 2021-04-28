@@ -365,7 +365,7 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 			if err == nil {
 				return true // no dupe
 			}
-			log.Error(errors.Wrap(err, fmt.Sprintf("skipping duplicate: fqdn: %s; domain: %s; server: %s", src.FQDN, info.Domain, info.Server)))
+			log.Error(errors.Wrap(err, fmt.Sprintf("skipping duplicate: fqdn: '%s'; domain: '%s'; server: '%s'", src.FQDN, info.Domain, info.Server)))
 			return false
 		}
 
