@@ -70,7 +70,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 	}
 	defer safeClose(db, &err)
 
-	info, err := GetInstance(db, source.FQDN)
+	info, err := GetInstance(db, source.FQDN, source.ServerNameOverride, source.DomainNameOverride)
 	if err != nil {
 		return result, errors.Wrap(err, "getinstance")
 	}

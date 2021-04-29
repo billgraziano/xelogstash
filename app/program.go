@@ -214,6 +214,11 @@ func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 		}
 	}
 
+	if src.ServerNameOverride != "" || src.DomainNameOverride != "" {
+		logmsg := fmt.Sprintf("%s: source_name_override: '%s' domain_name_override: '%s'", src.FQDN, src.ServerNameOverride, src.DomainNameOverride)
+		contextLogger.Info(logmsg)
+	}
+
 	logmsg := fmt.Sprintf("%s: polling interval: %ds", src.FQDN, src.PollSeconds)
 	contextLogger.Info(logmsg)
 
@@ -343,7 +348,7 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 		if src.ODBCDriver != "" {
 			cxn.ODBCDriver = src.ODBCDriver
 		}
-		info, err := xe.GetSQLInfo(cxn.Driver, cxn.String())
+		info, err := xe.GetSQLInfo(cxn.Driver, cxn.String(), src.ServerNameOverride, src.DomainNameOverride)
 		if err != nil {
 			// if there was an error the server could be down
 			// or entered incorrectly

@@ -73,6 +73,16 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+
+### Release vNext 
+
+* Better handle errors when the state file is all NULLs
+* Upgrade GO to 1.16.3
+* Improve assorted logging messages
+* Big rewrite of logstash sink to improve reliability in the face of disappearing or non-responsive logstash servers
+* Retire TLS 1.1 if connecting to Elastic over HTTPS
+* Add support for `server_name_override` and `domain_name_override` in sources.  See below for details.
+
 ### Release 1.5.1
 
 * Minor memory cleanup
@@ -165,6 +175,8 @@ You can set the following Source fields (or Default fields)
 * `log_bad_xml` is boolean.  This will write the last bad XML parse to a file. 
 * `include_dbghelpdll_msg` is a boolean.  Some versions of SQL Server emit a message like `Using 'dbghelp.dll' version '4.0.5'`.  These are now excluded by default.  This setting adds those back in.
 
+* `server_name_override` allows you to override `@@SERVERNAME` and `SERVERPROPERTY('MachineName')` returned by a source.  This is useful for Linux servers inside containers that set long machine names and SQL Server only returns the first 15 characters.  This supports names longer than 15 characters.
+* `domain_name_override` allows you to override `DEFAULT_DOMAIN()` returned by a source.  This is useful for Linux servers that don't technically belong to a domain so they can appear to be in one.
 
 ## <a name="json"></a>Controlling the JSON
 The two fields `timestamp_field_name` and `payload_field_name` are available in the Source and Default sections.  The following examples best illustrate how they work.

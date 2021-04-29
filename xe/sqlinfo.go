@@ -52,7 +52,7 @@ type MapValueKey struct {
 }
 
 // GetSQLInfo gets basic SQL Server info and lookup values
-func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
+func GetSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info SQLInfo, err error) {
 	//func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	info.Fields = make(map[FieldTypeKey]string)
 	info.Actions = make(map[string]string)
@@ -87,6 +87,15 @@ func GetSQLInfo(driver, cxnstring string) (info SQLInfo, err error) {
 	if err != nil {
 		return info, errors.Wrap(err, "scan")
 	}
+
+	if serverOverride != "" {
+		info.Server = serverOverride
+		info.Computer = serverOverride
+	}
+	if domainOverride != "" {
+		info.Domain = domainOverride
+	}
+
 	var v string
 	switch info.ProductRelease {
 	case "15.0":

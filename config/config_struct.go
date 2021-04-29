@@ -28,7 +28,15 @@ type Config struct {
 
 // Source defines a source of extended event information
 type Source struct {
-	FQDN           string
+	FQDN               string
+	User               string `toml:"user"`
+	Password           string `toml:"password"`
+	Driver             string `toml:"driver"`
+	ODBCDriver         string `toml:"odbc_driver"`
+	ServerNameOverride string `toml:"server_name_override"`
+	DomainNameOverride string `toml:"domain_name_override"`
+	PollSeconds        int    `toml:"poll_seconds"`
+
 	Sessions       []string
 	IgnoreSessions bool `toml:"ignore_sessions"` // if true, skip XE sessions
 	Prefix         string
@@ -40,13 +48,6 @@ type Source struct {
 	StartAt        time.Time `toml:"start_at"`
 	StopAt         time.Time `toml:"stop_at"`
 	LookBackRaw    string    `toml:"look_back"`
-	lookback       time.Duration
-	PollSeconds    int    `toml:"poll_seconds"`
-	User           string `toml:"user"`
-	Password       string `toml:"password"`
-	Driver         string `toml:"driver"`
-	ODBCDriver     string `toml:"odbc_driver"`
-	// Trusted        bool   `toml:"trusted"`
 
 	Adds               map[string]string
 	Copies             map[string]string

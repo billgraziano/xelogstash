@@ -332,6 +332,12 @@ func (c *Config) setSourceDefaults() error {
 		if v.Password != "" {
 			n.Password = v.Password
 		}
+		if v.ServerNameOverride != "" {
+			n.ServerNameOverride = v.ServerNameOverride
+		}
+		if v.DomainNameOverride != "" {
+			n.DomainNameOverride = v.DomainNameOverride
+		}
 
 		if len(v.Sessions) > 0 {
 			n.Sessions = v.Sessions

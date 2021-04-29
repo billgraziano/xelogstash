@@ -44,7 +44,7 @@ func main() {
 	}
 
 	cxn := mssqlh.NewConnection(opts.Server, "", "", "master", "")
-	info, err := xe.GetSQLInfo("mssql", cxn.String())
+	info, err := xe.GetSQLInfo("mssql", cxn.String(), "", "")
 	if err != nil {
 		log.Fatal(err)
 	}

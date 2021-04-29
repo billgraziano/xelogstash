@@ -35,7 +35,7 @@ type SQLInfo struct {
 }
 
 // GetInstance returns the instance and domain name
-func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
+func GetInstance(db *sql.DB, session, serverOverride, domainOverride string) (info SQLInfo, err error) {
 
 	query := `
 	SET NOCOUNT ON;
@@ -51,6 +51,15 @@ func GetInstance(db *sql.DB, session string) (info SQLInfo, err error) {
 	if err != nil {
 		return info, errors.Wrap(err, "scan")
 	}
+
+	if serverOverride != "" {
+		info.Server = serverOverride
+		info.Computer = serverOverride
+	}
+	if domainOverride != "" {
+		info.Domain = domainOverride
+	}
+
 	var v string
 	switch info.ProductRelease {
 	case "15.0":
