@@ -7,11 +7,11 @@ require (
 	github.com/alexbrainman/odbc v0.0.0-20200426075526-f0492dfa1575
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
 	github.com/benbjohnson/clock v1.0.3
-	github.com/billgraziano/mssqlh v0.2.0
+	github.com/billgraziano/mssqlh v0.2.1
 	github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/davidscholberg/go-durationfmt v0.0.0-20170122144659-64843a2083d3
-	github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc
+	github.com/denisenkom/go-mssqldb v0.10.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/go-elasticsearch/v7 v7.4.1
 	github.com/fsnotify/fsnotify v1.4.9
@@ -25,13 +25,10 @@ require (
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
-	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/spf13/afero v1.3.4
+	github.com/spf13/afero v1.6.0
 	github.com/stretchr/testify v1.6.1
-	github.com/tidwall/gjson v1.3.5
+	github.com/tidwall/gjson v1.8.0
 	github.com/tidwall/sjson v1.0.4
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 )
