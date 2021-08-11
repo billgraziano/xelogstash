@@ -15,8 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const statementLength = 200
-
 // Event is a key value of entries for the XE event
 type Event map[string]interface{}
 
@@ -44,17 +42,6 @@ type XMLEventData struct {
 	TimeStamp    time.Time   `xml:"timestamp,attr"`
 	DataValues   []xmlData   `xml:"data"`
 	ActionValues []xmlAction `xml:"action"`
-}
-
-type dataTypeKey struct {
-	Object string
-	Name   string
-}
-
-// Reader is an object for parsing XE events
-type Reader struct {
-	actions map[string]string
-	fields  map[dataTypeKey]string
 }
 
 // Name returns the "name" attribute from the event
@@ -293,8 +280,6 @@ func (e *Event) parseErrorLogMessage() {
 		msg := strings.TrimSpace(strings.Join(ff[3:], " "))
 		e.Set("errorlog_message", msg)
 	}
-
-	return
 }
 
 // setDatabaseName sets the name if we have a database_id
@@ -466,7 +451,7 @@ func (e *Event) getDescription() string {
 		duration, exists := (*e)["duration"]
 		if exists {
 			t, _ = strconv.ParseInt(fmt.Sprintf("%d", duration), 10, 64)
-			dur = fmt.Sprintf("%s", roundDuration(time.Duration(t)*time.Millisecond))
+			dur = roundDuration(time.Duration(t) * time.Millisecond)
 		}
 		wt := e.GetString("wait_type")
 		sqltext := e.GetString("sql_text")
@@ -474,7 +459,7 @@ func (e *Event) getDescription() string {
 			if t > 0 {
 				s = fmt.Sprintf("(%s) %s", dur, wt)
 			} else {
-				s = fmt.Sprintf("%s", wt)
+				s = wt
 			}
 		}
 		if len(sqltext) > 200 {
@@ -493,7 +478,7 @@ func (e *Event) getDescription() string {
 	case "object_deleted":
 		return fmt.Sprintf("DELETE %s..%s (%s)", e.GetString("database_name"), e.GetString("object_name"), e.GetString("object_type"))
 	case "lock_deadlock_chain":
-		return fmt.Sprintf("%s", e.GetString("resource_description"))
+		return e.GetString("resource_description")
 	case "xml_deadlock_report":
 		return "xml_deadlock_report"
 	case "hadr_db_partner_set_sync_state":
