@@ -26,7 +26,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/afero v1.6.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.0
 	github.com/tidwall/sjson v1.0.4
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect

@@ -266,6 +266,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 		if len(description) > 0 {
 			base.Set("xe_description", description)
 		}
+		base.Set("xe_category", "agent")
 
 		// only save if we are doing all or failed and it isn't successful
 		if source.AgentJobs == config.JobsAll ||

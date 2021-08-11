@@ -5,6 +5,8 @@ import (
 	"encoding/xml"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var i SQLInfo
@@ -85,8 +87,7 @@ func TestBasicParse(t *testing.T) {
 	if ts.Day() != 8 {
 		t.Error("Wrong timestamp")
 	}
-
-	//t.Log(event.print())
+	assert.Equal(t, event.GetString("xe_category"), "login")
 }
 
 func TestJson(t *testing.T) {
@@ -137,6 +138,7 @@ func TestErrorLogEvent(t *testing.T) {
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
+	assert.Equal(t, event.GetString("xe_category"), "errorlog_written")
 }
 
 func TestErrorReportedEvent(t *testing.T) {
@@ -154,6 +156,7 @@ func TestErrorReportedEvent(t *testing.T) {
 	}
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
+	assert.Equal(t, event.GetString("xe_category"), "error_reported")
 	t.Log("JSON String: ", jsonString)
 }
 
@@ -199,6 +202,7 @@ func TestProcStatemt(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, event.GetString("xe_category"), "tsql")
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
@@ -245,6 +249,7 @@ func TestRPC(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, event.GetString("xe_category"), "tsql")
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
@@ -290,6 +295,7 @@ func TestBatchStatement(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, event.GetString("xe_category"), "tsql")
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
@@ -329,6 +335,7 @@ func TestBatchCompleted(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, event.GetString("xe_category"), "tsql")
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
@@ -379,6 +386,7 @@ func TestDeadlockChain(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, event.GetString("xe_category"), "deadlock")
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
@@ -454,6 +462,7 @@ func TestBlockedProcess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, event.GetString("xe_category"), "blocked_process_report")
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)

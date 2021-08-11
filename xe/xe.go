@@ -243,6 +243,11 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		event["xe_description"] = desc
 	}
 
+	category := event.getCategory()
+	if len(category) > 0 {
+		event["xe_category"] = category
+	}
+
 	if ed.Name == "error_reported" {
 		errnum, ok := event.GetInt64("error_number")
 		if ok {
@@ -358,6 +363,27 @@ func (e *Event) getSeverity() logstash.Severity {
 	return logstash.Info
 }
 
+// getCategroy assigns a category based on the event.
+// It groups TSQL, HADR, deadlocks, etc. together.
+func (e *Event) getCategory() string {
+	name := e.Name()
+	switch name {
+	case "sql_batch_completed", "rpc_completed", "sp_statement_completed", "sql_statement_completed":
+		return "tsql"
+	case "lock_deadlock_chain", "xml_deadlock_report":
+		return "deadlock"
+	case "hadr_db_partner_set_sync_state", "alwayson_ddl_executed", "availability_replica_manager_state_change", "availability_replica_state":
+		return "hadr"
+	case "agent_job", "agent_job_step":
+		return "agent"
+	case "wait_info", "wait_info_external":
+		return "wait"
+	default:
+		return name
+	}
+}
+
+// getDescription return a short human readable description of the event
 func (e *Event) getDescription() string {
 
 	/*
