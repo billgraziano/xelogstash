@@ -74,10 +74,11 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 ------------------------------------------
 
 
-### Release vNext 
+### Release 1.7.1 
 
+* Add `xe_category` field.  This defaults to the event name but groups similar events together. For example, all SQL events are in `tsql`, all HADR events are in `hadr`, `deadlock`, etc.  This should make it easier to filter events.
 * Better handle errors when the state file is all NULLs
-* Upgrade GO to 1.16.3
+* Upgrade GO to 1.16.5
 * Improve assorted logging messages
 * Big rewrite of logstash sink to improve reliability in the face of disappearing or non-responsive logstash servers
 * Retire TLS 1.1 if connecting to Elastic over HTTPS
@@ -366,6 +367,7 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_session_name`: name of the extended event session for this event
 * `xe_file_name`: name of the XE file for this event
 * `xe_file_offset`: file offset where we found this event
+* `xe_category`: defaults to the event name but groups similar events together. For example, all SQL events are in `tsql`, all HADR events are in `hadr`, `deadlock`, etc.
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from `@@SERVERNAME` of the source server.
 * `login_failed`: This field is populated when a login fails.  The easiest way to monitor failed logins in Kibana is filter for the existance of the `login_failed` field. Login errors are reported two ways and this tries to captures both.  That means you will typically see two errors in Kibana for each failed attempt.
   * For `errorlog_written`, if the errorlog written process is `logon` it populates this field with the error message.  That has the IP address of the client.  It also means that if you're capturing succesful logins in the error log, this will be wrong.  Successful logins should be caputred by extended events.
