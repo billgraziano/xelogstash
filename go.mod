@@ -27,7 +27,7 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/afero v1.6.0
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/gjson v1.8.0
+	github.com/tidwall/gjson v1.9.4
 	github.com/tidwall/sjson v1.0.4
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
