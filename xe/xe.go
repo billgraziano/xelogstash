@@ -381,6 +381,8 @@ func (e *Event) getDescription() string {
 	*/
 	name := e.Name()
 	switch name {
+	case "attention":
+		return e.getSQLDescription("sql_text")
 	case "login":
 		var msg string
 		acct := e.GetString("server_principal_name")
