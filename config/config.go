@@ -46,6 +46,16 @@ func Get(f, src, version, sha1ver string) (config Config, err error) {
 
 	config.MetaData = md
 
+	// Get the extra sources
+	// add the sources before config.decodekv fixes up the adds, etc.
+	if src != "" {
+		sources, err := sourcesFile(src)
+		if err != nil {
+			return config, errors.Wrap(err, "sourcesfile")
+		}
+		config.Sources = append(config.Sources, sources.Sources...)
+	}
+
 	err = config.decodekv(version, sha1ver)
 	if err != nil {
 		return config, errors.Wrap(err, "decodekv")
@@ -83,16 +93,6 @@ func Get(f, src, version, sha1ver string) (config Config, err error) {
 		return config, errors.Wrap(err, "config.defaults.validate")
 	}
 
-	// Get the extra sources
-	if src != "" {
-		sources, err := sourcesFile(src)
-		if err != nil {
-			return config, errors.Wrap(err, "sourcesfile")
-		}
-		for _, x := range sources.Sources {
-			config.Sources = append(config.Sources, x)
-		}
-	}
 	err = config.setSourceDefaults()
 	if err != nil {
 		return config, errors.Wrap(err, "config.setsourcedefaults")
@@ -281,6 +281,7 @@ func (c *Config) decodekv(version, sha1ver string) error {
 	return err
 }
 
+// buildmap converts key:value to a map[string]string and replaces variables
 func buildmap(a []string, version, sha1ver string) (map[string]string, error) {
 	m := make(map[string]string)
 	var err error

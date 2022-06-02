@@ -1,2 +1,0 @@
-goreleaser --rm-dist
-
