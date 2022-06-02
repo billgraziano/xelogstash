@@ -226,19 +226,18 @@ func (s *Source) validate() error {
 	return nil
 }
 
-func (c *Config) setLowerCase() {
-	// excluded events
-	for i := range c.Defaults.ExcludedEvents {
-		c.Defaults.ExcludedEvents[i] = strings.ToLower(c.Defaults.ExcludedEvents[i])
-	}
+// func (c *Config) setLowerCase() {
+// 	// excluded events
+// 	for i := range c.Defaults.ExcludedEvents {
+// 		c.Defaults.ExcludedEvents[i] = strings.ToLower(c.Defaults.ExcludedEvents[i])
+// 	}
 
-	for j := range c.Sources {
-		for i := range c.Sources[j].ExcludedEvents {
-			c.Sources[j].ExcludedEvents[i] = strings.ToLower(c.Sources[j].ExcludedEvents[i])
-		}
-	}
-
-}
+// 	for j := range c.Sources {
+// 		for i := range c.Sources[j].ExcludedEvents {
+// 			c.Sources[j].ExcludedEvents[i] = strings.ToLower(c.Sources[j].ExcludedEvents[i])
+// 		}
+// 	}
+// }
 
 func (c *Config) decodekv(version, sha1ver string) error {
 	var err error
