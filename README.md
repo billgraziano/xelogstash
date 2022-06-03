@@ -74,6 +74,12 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 ------------------------------------------
 
 
+### Release 1.7.3 
+
+* Updated dependencies
+* Fixed bug that didn't handle adds, moves, etc. in `sqlxewriter_sources.toml` files
+* Added support for `attention` events
+
 ### Release 1.7.1 
 
 * Add `xe_category` field.  This defaults to the event name but groups similar events together. For example, all SQL events are in `tsql`, all HADR events are in `hadr`, `deadlock`, etc.  This should make it easier to filter events.
@@ -447,7 +453,7 @@ Experimental support is included for Linux.  Please be aware of the following is
 
 ## <a name="building"></a>Building the Application
 
-* The application is currently built with GO 1.14.2
+* The application is currently built with GO 1.16.5
 * The tests can be run with `go test .\...`
 
 * The builds write to a `deploy` directory
