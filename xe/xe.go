@@ -485,6 +485,8 @@ func (e *Event) getDescription() string {
 		return "xml_deadlock_report"
 	case "hadr_db_partner_set_sync_state":
 		return fmt.Sprintf("%s: %s -> %s (%s)", e.GetString("database_name"), e.GetString("commit_policy"), e.GetString("commit_policy_target"), e.GetString("sync_state"))
+	case "hadr_trace_message":
+		return e.GetString("hadr_message")
 	case "blocked_process_report":
 		var s string
 		r := e.GetResourceUsageDesc()
