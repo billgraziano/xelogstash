@@ -98,6 +98,8 @@ func GetSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info 
 
 	var v string
 	switch info.ProductRelease {
+	case "16.0":
+		v = "SQL Server 2022"
 	case "15.0":
 		v = "SQL Server 2019"
 	case "14.0":

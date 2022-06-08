@@ -78,7 +78,7 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 * Fixed bug that didn't handle adds, moves, etc. in `sqlxewriter_sources.toml` files
 * Added support for `attention` events
 * Updated dependencies
-* WSL2 has broken talking to all five of my local SQL Server instances.  Because I can't test the Linux version I'm not going to release binaries.  Hopefully soon.
+* WSL2 has broken talking to all five of my local SQL Server instances.  Because I can't test the Linux version I'm not going to release binaries.  If you are running on Linux, you can [build your own executable](#building).
 
 
 ### Release 1.7.1 
