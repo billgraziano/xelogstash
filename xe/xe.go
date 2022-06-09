@@ -245,6 +245,8 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		}
 	}
 
+	event.SetExtraUnits()
+
 	return event, nil
 }
 
