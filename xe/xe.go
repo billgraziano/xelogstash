@@ -88,6 +88,20 @@ func (e *Event) GetInt64(key string) (int64, bool) {
 	return i64, true
 }
 
+// GetIntFromString returns an int64 from a string'd interface
+func (e *Event) GetIntFromString(key string) (int64, bool) {
+	v, exists := (*e)[key]
+	if !exists {
+		return 0, false
+	}
+	str := fmt.Sprintf("%v", v)
+	i64, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return i64, true
+}
+
 // CacheSize returns the number of items in the cache
 func (i *SQLInfo) CacheSize() int {
 	return len(i.Actions) + len(i.Fields)
@@ -245,7 +259,8 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		}
 	}
 
-	event.SetExtraUnits()
+	// writes_mb, cpu_time_sec, etc.
+	// event.SetExtraUnits()
 
 	return event, nil
 }
@@ -581,58 +596,36 @@ func (e *Event) GetTime(key string) time.Time {
 
 // GetResourceUsageDesc returns a compressed CPU, Reads, Writes, Duration field
 func (e *Event) GetResourceUsageDesc() string {
-	//var s string
 	var usage []string
-	//var err error
 	cpu, exists := (*e)["cpu_time"]
 	if exists {
-		t, _ := strconv.ParseInt(fmt.Sprintf("%d", cpu), 10, 64)
+		t, _ := strconv.ParseInt(fmt.Sprintf("%v", cpu), 10, 64)
 		usage = append(usage, fmt.Sprintf("CPU: %s", roundDuration(time.Duration(t)*time.Microsecond)))
 	}
 
 	lr, exists := (*e)["logical_reads"]
 	if exists {
-		t, _ := strconv.ParseInt(fmt.Sprintf("%d", lr), 10, 64)
+		t, _ := strconv.ParseInt(fmt.Sprintf("%v", lr), 10, 64)
 		t = t * 8192 // to bytes
 		if t > 0 {
 			v := uint64(t)
 			usage = append(usage, fmt.Sprintf("L: %s", humanize.Bytes(v)))
 		}
-		// if t > 10000 {
-		// 	t = t / 1000
-		// 	usage = append(usage, fmt.Sprintf("L: %sk", humanize.Comma(t)))
-		// } else {
-		// 	usage = append(usage, fmt.Sprintf("L: %s", humanize.Comma(t)))
-		// }
-
 	}
 
 	pr, exists := (*e)["physical_reads"]
 	if exists {
-		t, _ := strconv.ParseInt(fmt.Sprintf("%d", pr), 10, 64)
+		t, _ := strconv.ParseInt(fmt.Sprintf("%v", pr), 10, 64)
 		t = t * 8192 // to bytes
 		if t > 0 {
 			v := uint64(t)
 			usage = append(usage, fmt.Sprintf("P: %s", humanize.Bytes(v)))
 		}
-		// if t > 10000 {
-		// 	t = t / 1000
-		// 	usage = append(usage, fmt.Sprintf("P: %sk", humanize.Comma(t)))
-		// } else {
-		// 	usage = append(usage, fmt.Sprintf("P: %s", humanize.Comma(t)))
-		// }
-
 	}
 
 	w, exists := (*e)["writes"]
 	if exists {
-		t, _ := strconv.ParseInt(fmt.Sprintf("%d", w), 10, 64)
-		// if t > 10000 {
-		// 	t = t / 1000
-		// 	usage = append(usage, fmt.Sprintf("W: %sk", humanize.Comma(t)))
-		// } else {
-		// 	usage = append(usage, fmt.Sprintf("W: %s", humanize.Comma(t)))
-		// }
+		t, _ := strconv.ParseInt(fmt.Sprintf("%v", w), 10, 64)
 		t = t * 8192 // to bytes
 		if t > 0 {
 			v := uint64(t)
@@ -642,7 +635,7 @@ func (e *Event) GetResourceUsageDesc() string {
 
 	duration, exists := (*e)["duration"]
 	if exists {
-		t, _ := strconv.ParseInt(fmt.Sprintf("%d", duration), 10, 64)
+		t, _ := strconv.ParseInt(fmt.Sprintf("%v", duration), 10, 64)
 		usage = append(usage, fmt.Sprintf("D: %s", roundDuration(time.Duration(t)*time.Microsecond)))
 	}
 
