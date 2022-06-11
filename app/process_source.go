@@ -49,7 +49,7 @@ func (p *Program) ProcessSource(ctx context.Context, wid int, source config.Sour
 	if source.ODBCDriver != "" {
 		cxn.ODBCDriver = source.ODBCDriver
 	}
-	info, err := xe.GetSQLInfo(cxn.Driver, cxn.String(), source.ServerNameOverride, source.DomainNameOverride)
+	info, err := xe.NewSQLInfo(cxn.Driver, cxn.String(), source.ServerNameOverride, source.DomainNameOverride)
 	if err != nil {
 		textMessage = fmt.Sprintf("source: %s err: %v", source.FQDN, err)
 		contextLogger.Error(textMessage)

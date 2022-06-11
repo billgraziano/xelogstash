@@ -233,6 +233,13 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	event.Set("mssql_version", i.Version)
 	event.Set("mssql_product_version", i.ProductVersion)
 
+	if len(i.AvailibilityGroups) > 0 {
+		event.Set("mssql_ag", i.AvailibilityGroups)
+	}
+	if len(i.Listeners) > 0 {
+		event.Set("mssql_ag_listener", i.Listeners)
+	}
+
 	// enrich data
 	event.SetIfEmpty("server_instance_name", i.Server)
 	event.setDatabaseName(i)

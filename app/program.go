@@ -345,7 +345,7 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 		if src.ODBCDriver != "" {
 			cxn.ODBCDriver = src.ODBCDriver
 		}
-		info, err := xe.GetSQLInfo(cxn.Driver, cxn.String(), src.ServerNameOverride, src.DomainNameOverride)
+		info, err := xe.NewSQLInfo(cxn.Driver, cxn.String(), src.ServerNameOverride, src.DomainNameOverride)
 		if err != nil {
 			// if there was an error the server could be down
 			// or entered incorrectly

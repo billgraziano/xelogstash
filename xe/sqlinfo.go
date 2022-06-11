@@ -15,6 +15,9 @@ type SQLInfo struct {
 	Domain   string
 	Computer string
 
+	AvailibilityGroups []string
+	Listeners          []string
+
 	// ProductLevel holds "SP1"
 	ProductLevel string
 	// ProductRelease holds "13.0"
@@ -51,12 +54,14 @@ type MapValueKey struct {
 	MapKey int
 }
 
-// GetSQLInfo gets basic SQL Server info and lookup values
-func GetSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info SQLInfo, err error) {
+// NewSQLInfo gets basic SQL Server info and lookup values
+func NewSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info SQLInfo, err error) {
 	//func GetSQLInfo(fqdn string, user, password string) (info SQLInfo, err error) {
 	info.Fields = make(map[FieldTypeKey]string)
 	info.Actions = make(map[string]string)
 	info.MapValues = make(map[MapValueKey]string)
+	info.AvailibilityGroups = make([]string, 0)
+	info.Listeners = make([]string, 0)
 
 	db, err := dbx.Open(driver, cxnstring)
 	if err != nil {
@@ -187,7 +192,19 @@ func GetSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info 
 		return info, errors.Wrap(err, "info.getloginerrors")
 	}
 
-	return info, err
+	availGroups, err := stringArrayFromQuery(info.DB, "IF OBJECT_ID('sys.availability_groups') IS NOT NULL SELECT [name] FROM sys.availability_groups ORDER BY [name];")
+	if err != nil {
+		return info, errors.Wrap(err, "ag")
+	}
+	info.AvailibilityGroups = availGroups
+
+	listeners, err := stringArrayFromQuery(info.DB, "IF OBJECT_ID('sys.availability_group_listeners') IS NOT NULL select [dns_name] from sys.availability_group_listeners ORDER BY [dns_name];")
+	if err != nil {
+		return info, errors.Wrap(err, "ag")
+	}
+	info.Listeners = listeners
+
+	return info, nil
 }
 
 func (i *SQLInfo) getMapValues() error {
@@ -272,4 +289,29 @@ func (i *SQLInfo) getDatabases() error {
 		return errors.Wrap(err, "rows.close")
 	}
 	return nil
+}
+
+// stringArrayFromQuery runs a query and returns the rows as a string array
+func stringArrayFromQuery(db *sql.DB, query string) ([]string, error) {
+	rows, err := db.Query(query)
+	if err != nil {
+		return []string{}, err
+	}
+	result := make([]string, 0)
+	for rows.Next() {
+		var str string
+		err = rows.Scan(&str)
+		if err != nil {
+			return []string{}, err
+		}
+		result = append(result, str)
+	}
+	err = rows.Close()
+	if err != nil {
+		return []string{}, err
+	}
+	if rows.Err() != nil {
+		return []string{}, rows.Err()
+	}
+	return result, nil
 }
