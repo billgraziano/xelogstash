@@ -53,6 +53,43 @@ func (r *Record) ToJSONBytes() ([]byte, error) {
 	return jsonBytes, nil
 }
 
+//ProcessUpperLower converts fields to upper or lower case
+func ProcessUpperLower(json string, upper, lower []string) (string, error) {
+	var err error
+	for _, fld := range upper {
+		result := gjson.Get(json, fld)
+		if !result.Exists() {
+			continue
+		}
+		if result.Type != gjson.String {
+			continue
+		}
+		str := result.String()
+		str = strings.ToUpper(str)
+		json, err = sjson.Set(json, fld, str)
+		if err != nil {
+			return json, errors.Wrap(err, "sjson.set")
+		}
+	}
+
+	for _, fld := range lower {
+		result := gjson.Get(json, fld)
+		if !result.Exists() {
+			continue
+		}
+		if result.Type != gjson.String {
+			continue
+		}
+		str := result.String()
+		str = strings.ToLower(str)
+		json, err = sjson.Set(json, fld, str)
+		if err != nil {
+			return json, errors.Wrap(err, "sjson.set")
+		}
+	}
+	return json, nil
+}
+
 // ProcessMods applies adds, renames, and moves to a JSON string
 func ProcessMods(json string, adds, copies, moves map[string]string) (string, error) {
 	var err error

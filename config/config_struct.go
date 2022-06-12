@@ -57,9 +57,11 @@ type Source struct {
 	LogBadXML          bool     `toml:"log_bad_xml"`
 	IncludeDebugDLLMsg bool     `toml:"include_dbghelpdll_msg"`
 
-	RawAdds   []string `toml:"adds"`
-	RawCopies []string `toml:"copies"`
-	RawMoves  []string `toml:"moves"`
+	RawAdds         []string `toml:"adds"`
+	RawCopies       []string `toml:"copies"`
+	RawMoves        []string `toml:"moves"`
+	UppercaseFields []string `toml:"uppercase"`
+	LowercaseFields []string `toml:"lowercase"`
 }
 
 // App defines the application configuration

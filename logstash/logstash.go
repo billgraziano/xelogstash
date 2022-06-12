@@ -199,7 +199,7 @@ func (ls *Logstash) Writeln(message string) error {
 	ls.setTimeouts()
 	n, err = ls.Connection.Write(messageBytes) // used to be line 139
 	if trace {
-		fmt.Println(fmt.Sprintf("ls.connection.write.bytes-sent: %d", n))
+		fmt.Printf("ls.connection.write.bytes-sent: %d\n", n)
 	}
 	if trace && n != len(messageBytes) {
 		fmt.Printf("send bytes mismatch: wanted: %d; sent: %d\r\n", len(messageBytes), n)
@@ -209,7 +209,7 @@ func (ls *Logstash) Writeln(message string) error {
 	}
 	if err != nil {
 		if trace {
-			fmt.Println(fmt.Sprintf("ls.connection.write.err: %s", err.Error()))
+			fmt.Printf("ls.connection.write.err: %s\n", err.Error())
 		}
 		neterr, ok := err.(net.Error)
 		if ok && neterr.Timeout() {

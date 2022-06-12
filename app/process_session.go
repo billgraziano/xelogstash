@@ -289,6 +289,10 @@ func (p *Program) processSession(
 		if err != nil {
 			return result, errors.Wrap(err, "logstash.processmods")
 		}
+		rs, err = logstash.ProcessUpperLower(rs, source.UppercaseFields, source.LowercaseFields)
+		if err != nil {
+			return result, errors.Wrap(err, "logstash.processupperlower")
+		}
 
 		// strip newlines
 		if source.StripCRLF {

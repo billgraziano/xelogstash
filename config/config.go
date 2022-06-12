@@ -415,6 +415,9 @@ func (c *Config) setSourceDefaults() error {
 			// n.Renames = v.Renames
 		}
 
+		n.UppercaseFields = append(v.UppercaseFields, n.UppercaseFields...)
+		n.LowercaseFields = append(v.LowercaseFields, n.LowercaseFields...)
+
 		c.Sources[i] = n
 	}
 	return nil

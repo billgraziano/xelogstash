@@ -299,6 +299,10 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 			if err != nil {
 				return result, errors.Wrap(err, "logstash.processmods")
 			}
+			rs, err = logstash.ProcessUpperLower(rs, source.UppercaseFields, source.LowercaseFields)
+			if err != nil {
+				return result, errors.Wrap(err, "logstash.processupperlower")
+			}
 
 			// Process all the destinations
 			for i := range p.Sinks {
