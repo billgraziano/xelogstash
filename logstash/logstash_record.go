@@ -2,6 +2,7 @@ package logstash
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -53,41 +54,64 @@ func (r *Record) ToJSONBytes() ([]byte, error) {
 	return jsonBytes, nil
 }
 
-//ProcessUpperLower converts fields to upper or lower case
-func ProcessUpperLower(json string, upper, lower []string) (string, error) {
+// processCase handles converting a field to upper or lower case (or any string function)
+func processCase(src string, fld string, f func(string) string) (string, error) {
+	var err error
+	result := gjson.Get(src, fld)
+	if !result.Exists() {
+		return src, nil
+	}
+	switch result.Type {
+	case gjson.String:
+		str := result.String()
+		str = f(str)
+		out, err := sjson.Set(src, fld, str)
+		return out, err
+	case gjson.JSON:
+		if !result.IsArray() {
+			return src, nil
+		}
+		vals := result.Array()
+		for i := range vals {
+			key := fmt.Sprintf("%s.%d", fld, i)
+			r2 := gjson.Get(src, key)
+			if r2.Type != gjson.String {
+				return src, nil
+			}
+			str := r2.String()
+			str = f(str)
+			src, err = sjson.Set(src, key, str)
+			if err != nil {
+				return src, err
+			}
+		}
+		return src, nil
+
+	default:
+		// do nothing with other types
+		return src, nil
+	}
+}
+
+// ProcessUpperLower handles the fields that should be upper and lower case
+// It handles strings and string arrays
+func ProcessUpperLower(src string, upper, lower []string) (string, error) {
 	var err error
 	for _, fld := range upper {
-		result := gjson.Get(json, fld)
-		if !result.Exists() {
-			continue
-		}
-		if result.Type != gjson.String {
-			continue
-		}
-		str := result.String()
-		str = strings.ToUpper(str)
-		json, err = sjson.Set(json, fld, str)
+		src, err = processCase(src, fld, func(x string) string { return strings.ToUpper(x) })
 		if err != nil {
-			return json, errors.Wrap(err, "sjson.set")
+			return src, errors.Wrap(err, "processuppercase")
 		}
 	}
 
 	for _, fld := range lower {
-		result := gjson.Get(json, fld)
-		if !result.Exists() {
-			continue
-		}
-		if result.Type != gjson.String {
-			continue
-		}
-		str := result.String()
-		str = strings.ToLower(str)
-		json, err = sjson.Set(json, fld, str)
+		src, err = processCase(src, fld, func(x string) string { return strings.ToLower(x) })
 		if err != nil {
-			return json, errors.Wrap(err, "sjson.set")
+			return src, errors.Wrap(err, "processlowercase")
 		}
 	}
-	return json, nil
+
+	return src, nil
 }
 
 // ProcessMods applies adds, renames, and moves to a JSON string
