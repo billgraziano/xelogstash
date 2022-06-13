@@ -73,13 +73,18 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release 1.7.5 
+
+* Availability Groups are captured in `mssql_ag` and Listeners in `mssql_ag_listener`.  These are both multi-value fields.
+* Can specify fields to be upper or lower case. Use the `lowercase=["fld1", "fld2"]` to list the fields that should be lower case.  Use `uppercase` for uppercase.
+* `hadr_trace_message` events populate the `xe_description` field 
+
 ### Release 1.7.4
 
 * Fixed bug that didn't handle adds, moves, etc. in `sqlxewriter_sources.toml` files
 * Added support for `attention` events
 * Updated dependencies
-* WSL2 has broken talking to all five of my local SQL Server instances.  Because I can't test the Linux version I'm not going to release binaries.  If you are running on Linux, you can [build your own executable](#building).
-
+* WSL2 doesn't allow connections to local SQL Server instances (easily).  Because I can't test the Linux version I'm not going to release the binaries.  If you are running on Linux, you can [build your own executable](#building).
 
 ### Release 1.7.1 
 
@@ -319,6 +324,18 @@ The adds, moves, and copies also support a few "replacement" values.
 * `$(NOW)` is the time that sqlxewriter.exe wrote this value to a sink
 
 See the section below on derived fields for a description of the "mssql_" and "xe_" fields
+
+### Upper and Lower Case Fields
+SQL Server generally returns fields in a consistent case.  However I've started to see `@@SERVERNAME` returning lower case on some servers.  Since Elastic Search is case-sensitive this can be challenging. Additionally certain fields my better in upper or lower case.  Field case can be controlled using these fields:
+
+```toml
+uppercase = ["mssql.server_name", "mssql.server_princpal_name"]
+lowercase = ["global.host.name"]
+```
+
+These can be set in the `defaults` section of the TOML file and in each individual source.  The source specific entries are processed after the defaults.  
+
+These are processed after adds, moves, and copies.
 
 ## <a name="prefixes"></a>Prefixes and keeping your place
 
