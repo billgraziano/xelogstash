@@ -54,8 +54,9 @@ if ($LastExitCode -ne 0) {
 
 Write-Output "Copying Files..."
 blackfriday-tool -css .\docs\style.css   -embed README.md "README.html"
+blackfriday-tool -css .\docs\style.css   -embed LICENSE.md "LICENSE.html"
 Copy-Item -Path README.html -Destination $target
-Copy-Item -Path LICENSE.txt -Destination $target
+Copy-Item -Path LICENSE.html -Destination $target
 Copy-Item -Path ".\samples\sqlxewriter.toml" -Destination $target
 Copy-Item -Path ".\samples" -Destination $target -Recurse
 
