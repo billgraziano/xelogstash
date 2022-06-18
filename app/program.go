@@ -37,14 +37,14 @@ func (p *Program) Start(svc service.Service) error {
 
 	err = p.startPolling()
 	if err != nil {
-		log.Error(errors.Wrap(err, "startpolling"))
+		// log.Error(errors.Wrap(err, "startpolling"))
 		return errors.Wrap(err, "startpolling")
 	}
 
 	err = p.startWatching()
 	if err != nil {
 		log.Error(errors.Wrap(err, "startwatching"))
-		log.Error("reload on error probably disabled")
+		log.Error("reload on error is probably disabled")
 	}
 
 	log.Trace("app.start exiting")
@@ -66,10 +66,11 @@ func (p *Program) startPolling() (err error) {
 	if err != nil {
 		return errors.Wrap(err, "p.getconfig")
 	}
-	log.Infof("config file: %s", settings.FileName)
+	log.Infof("config file: %s (%s)", settings.ConfigFile, settings.ConfigFileMod.Format(time.RFC3339))
 	if settings.SourcesFile != "" {
-		log.Infof("sources file: %s", settings.SourcesFile)
+		log.Infof("sources file: %s (%s)", settings.SourcesFile, settings.SourcesFileMod.Format(time.RFC3339))
 	}
+
 	if len(p.Filters) > 0 {
 		log.Info(fmt.Sprintf("filters: %d", len(p.Filters)))
 	}

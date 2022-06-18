@@ -37,18 +37,27 @@ func sourcesFile(f string) (cfg Config, err error) {
 
 // Get the configuration from a configuration file
 func Get(f, src, version, sha1ver string) (config Config, err error) {
-	config.FileName = f
+	config.ConfigFile = f
 	config.SourcesFile = src
+	fi, err := os.Stat(f)
+	if err != nil {
+		return config, errors.Wrap(err, "config: os.stat")
+	}
+	config.ConfigFileMod = fi.ModTime()
 	md, err := toml.DecodeFile(f, &config)
 	if err != nil {
 		return config, errors.Wrap(err, "toml.decode")
 	}
-
 	config.MetaData = md
 
 	// Get the extra sources
 	// add the sources before config.decodekv fixes up the adds, etc.
 	if src != "" {
+		fi, err := os.Stat(src)
+		if err != nil {
+			return config, errors.Wrap(err, "sources: os.stat")
+		}
+		config.SourcesFileMod = fi.ModTime()
 		sources, err := sourcesFile(src)
 		if err != nil {
 			return config, errors.Wrap(err, "sourcesfile")

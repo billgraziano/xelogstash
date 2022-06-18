@@ -78,7 +78,8 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 * Capture Availability Groups in `mssql_ag` and Listeners in `mssql_ag_listener`.  These are both multi-value fields.
 * Fields can be upper or lower case. Use the `lowercase=["fld1", "fld2"]` to list the fields that should be lower case.  Use `uppercase` for uppercase.
 * `hadr_trace_message` events populate the `xe_description` field
-* Update license to Internal Use Only license 
+* Update license to Internal Use Only license
+* Log the time stamp of the configuration files
 
 ### Release 1.7.4
 
