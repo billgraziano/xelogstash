@@ -4,7 +4,6 @@ import (
 	"context"
 	"expvar"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -364,23 +363,23 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 	return result, nil
 }
 
-func jobToRecord(j jobResult) (r logstash.Record, err error) {
-	//r.Event = j
-	//r.Timestamp = j.Timestamp
+// func jobToRecord(j jobResult) (r logstash.Record, err error) {
+// 	//r.Event = j
+// 	//r.Timestamp = j.Timestamp
 
-	return r, err
-}
+// 	return r, err
+// }
 
-func parseAgentTime(d, t int) (time.Time, error) {
+// func parseAgentTime(d, t int) (time.Time, error) {
 
-	dt := strconv.Itoa(d)
-	tm := "000000" + strconv.Itoa(t)
-	tm = tm[len(tm)-6:]
-	// fmt.Println(dt, tm, dt+tm)
-	v, err := time.Parse("20060102150405", dt+tm)
+// 	dt := strconv.Itoa(d)
+// 	tm := "000000" + strconv.Itoa(t)
+// 	tm = tm[len(tm)-6:]
+// 	// fmt.Println(dt, tm, dt+tm)
+// 	v, err := time.Parse("20060102150405", dt+tm)
 
-	if err != nil {
-		return v, err
-	}
-	return v, nil
-}
+// 	if err != nil {
+// 		return v, err
+// 	}
+// 	return v, nil
+// }

@@ -43,11 +43,11 @@ func writeMemory(start time.Time, count int) {
 	log.Info(msg)
 }
 
-func sleep(ctx context.Context, dur time.Duration) {
-	select {
-	case <-ctx.Done():
-		return
-	case <-time.After(dur):
-		break
-	}
-}
+// func sleep(ctx context.Context, dur time.Duration) {
+// 	select {
+// 	case <-ctx.Done():
+// 		return
+// 	case <-time.After(dur):
+// 		break
+// 	}
+// }

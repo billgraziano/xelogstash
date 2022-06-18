@@ -151,10 +151,6 @@ func (p *Program) startPolling() (err error) {
 	return nil
 }
 
-func (p *Program) fileSave() {
-
-}
-
 // write a panic to time stamped file
 // func writePanic(msg string, buf []byte) error {
 // 	ts := time.Now().Format("20060102-150405.999")

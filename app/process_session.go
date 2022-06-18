@@ -236,7 +236,7 @@ func (p *Program) processSession(
 			matched := true
 			fa, ok := filter["filter_action"]
 			if !ok {
-				return result, fmt.Errorf("Filter #%d is missing 'filter_action'", fnum+1)
+				return result, fmt.Errorf("filter #%d is missing 'filter_action'", fnum+1)
 			}
 			filterAction := fmt.Sprintf("%v", fa)
 			for filterField, filterValue := range filter { // loop through the filtered fields
