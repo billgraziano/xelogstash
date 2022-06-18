@@ -75,23 +75,24 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 
 ### Release 1.7.5 
 
-* Availability Groups are captured in `mssql_ag` and Listeners in `mssql_ag_listener`.  These are both multi-value fields.
-* Can specify fields to be upper or lower case. Use the `lowercase=["fld1", "fld2"]` to list the fields that should be lower case.  Use `uppercase` for uppercase.
-* `hadr_trace_message` events populate the `xe_description` field 
+* Capture Availability Groups in `mssql_ag` and Listeners in `mssql_ag_listener`.  These are both multi-value fields.
+* Fields can be upper or lower case. Use the `lowercase=["fld1", "fld2"]` to list the fields that should be lower case.  Use `uppercase` for uppercase.
+* `hadr_trace_message` events populate the `xe_description` field
+* Update license to Internal Use Only license 
 
 ### Release 1.7.4
 
-* Fixed bug that didn't handle adds, moves, etc. in `sqlxewriter_sources.toml` files
-* Added support for `attention` events
-* Updated dependencies
-* WSL2 doesn't allow connections to local SQL Server instances (easily).  Because I can't test the Linux version I'm not going to release the binaries.  If you are running on Linux, you can [build your own executable](#building).
+* Fix bug that didn't handle adds, moves, etc. in `sqlxewriter_sources.toml` files
+* Add support for `attention` events
+* Update dependencies
+* WSL2 doesn't allow connections to local SQL Server instances (easily).  Since the Linux version can't be fully tested, this doesn't include the binaries.  If you are running on Linux, you will have to [build your own executable](#building).
 
 ### Release 1.7.1 
 
 * Add `xe_category` field.  This defaults to the event name but groups similar events together. For example, all SQL events are in `tsql`, all HADR events are in `hadr`, `deadlock`, etc.  This should make it easier to filter events.
 * Better handle errors when the state file is all NULLs
 * Upgrade GO to 1.16.5
-* Improve assorted logging messages
+* Improve logging messages
 * Big rewrite of logstash sink to improve reliability in the face of disappearing or non-responsive logstash servers
 * Retire TLS 1.1 if connecting to Elastic over HTTPS
 * Add support for `server_name_override` and `domain_name_override` in sources.  See below for details.
