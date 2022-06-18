@@ -11,11 +11,11 @@ import (
 
 	"github.com/billgraziano/mssqlh"
 	"github.com/billgraziano/xelogstash/pkg/metric"
-	"github.com/billgraziano/xelogstash/sink"
-	"github.com/billgraziano/xelogstash/status"
-	"github.com/billgraziano/xelogstash/xe"
+	"github.com/billgraziano/xelogstash/pkg/sink"
+	"github.com/billgraziano/xelogstash/pkg/status"
+	"github.com/billgraziano/xelogstash/pkg/xe"
 
-	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/config"
 	"github.com/kardianos/service"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

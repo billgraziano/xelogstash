@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/billgraziano/mssqlh"
-	"github.com/billgraziano/xelogstash/log"
-	"github.com/billgraziano/xelogstash/logstash"
-	"github.com/billgraziano/xelogstash/xe"
+	"github.com/billgraziano/xelogstash/pkg/log"
+	"github.com/billgraziano/xelogstash/pkg/logstash"
+	"github.com/billgraziano/xelogstash/pkg/xe"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 )

@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	// "github.com/billgraziano/xelogstash/log"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

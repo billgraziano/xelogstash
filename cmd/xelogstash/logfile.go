@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/billgraziano/xelogstash/log"
+	"github.com/billgraziano/xelogstash/pkg/log"
 	"github.com/pkg/errors"
 )
 

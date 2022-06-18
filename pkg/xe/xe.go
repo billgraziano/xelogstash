@@ -11,7 +11,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 
-	"github.com/billgraziano/xelogstash/logstash"
+	"github.com/billgraziano/xelogstash/pkg/logstash"
 	"github.com/pkg/errors"
 )
 

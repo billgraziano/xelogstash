@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/billgraziano/mssqlh"
-	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/status"
-	"github.com/billgraziano/xelogstash/xe"
+	"github.com/billgraziano/xelogstash/pkg/config"
+	"github.com/billgraziano/xelogstash/pkg/status"
+	"github.com/billgraziano/xelogstash/pkg/xe"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

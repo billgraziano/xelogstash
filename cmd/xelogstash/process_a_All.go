@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/billgraziano/xelogstash/xe"
+	"github.com/billgraziano/xelogstash/pkg/xe"
 
-	"github.com/billgraziano/xelogstash/app"
-	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/app"
+	"github.com/billgraziano/xelogstash/pkg/config"
 	"github.com/billgraziano/xelogstash/pkg/format"
-	"github.com/billgraziano/xelogstash/sink"
+	"github.com/billgraziano/xelogstash/pkg/sink"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/dustin/go-humanize/english"
 	"github.com/pkg/errors"

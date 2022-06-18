@@ -1,6 +1,6 @@
 package app
 
-import "github.com/billgraziano/xelogstash/config"
+import "github.com/billgraziano/xelogstash/pkg/config"
 
 // Result holds the result from a source or session process
 type Result struct {

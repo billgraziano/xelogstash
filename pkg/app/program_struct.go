@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/config"
 
-	"github.com/billgraziano/xelogstash/sink"
+	"github.com/billgraziano/xelogstash/pkg/sink"
 	log "github.com/sirupsen/logrus"
 )
 

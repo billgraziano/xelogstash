@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/toml"
-	"github.com/billgraziano/xelogstash/sink"
+	"github.com/billgraziano/xelogstash/pkg/sink"
 )
 
 // Config defines the configuration read from the TOML file

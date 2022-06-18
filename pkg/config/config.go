@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/billgraziano/xelogstash/sink"
+	"github.com/billgraziano/xelogstash/pkg/sink"
 
 	"github.com/Showmax/go-fqdn"
 

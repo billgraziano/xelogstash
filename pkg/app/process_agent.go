@@ -10,10 +10,10 @@ import (
 	"github.com/billgraziano/xelogstash/pkg/dbx"
 
 	"github.com/billgraziano/mssqlh"
-	"github.com/billgraziano/xelogstash/config"
-	"github.com/billgraziano/xelogstash/logstash"
+	"github.com/billgraziano/xelogstash/pkg/config"
+	"github.com/billgraziano/xelogstash/pkg/logstash"
 	"github.com/billgraziano/xelogstash/pkg/metric"
-	"github.com/billgraziano/xelogstash/status"
+	"github.com/billgraziano/xelogstash/pkg/status"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

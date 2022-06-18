@@ -16,13 +16,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/billgraziano/xelogstash/app"
+	"github.com/billgraziano/xelogstash/pkg/app"
 
 	singleinstance "github.com/allan-simon/go-singleinstance"
-	"github.com/billgraziano/xelogstash/config"
+	"github.com/billgraziano/xelogstash/pkg/config"
 	"github.com/billgraziano/xelogstash/pkg/metric"
-	"github.com/billgraziano/xelogstash/sink"
-	"github.com/billgraziano/xelogstash/summary"
+	"github.com/billgraziano/xelogstash/pkg/sink"
+	"github.com/billgraziano/xelogstash/pkg/summary"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

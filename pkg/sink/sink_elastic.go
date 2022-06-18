@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/billgraziano/xelogstash/eshelper"
+	"github.com/billgraziano/xelogstash/pkg/eshelper"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

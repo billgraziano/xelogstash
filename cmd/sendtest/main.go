@@ -4,8 +4,7 @@ import (
 	"os"
 	"time"
 
-	// "github.com/billgraziano/xelogstash/log"
-	"github.com/billgraziano/xelogstash/logstash"
+	"github.com/billgraziano/xelogstash/pkg/logstash"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

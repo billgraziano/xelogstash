@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/billgraziano/xelogstash/app"
-	"github.com/billgraziano/xelogstash/sink"
+	"github.com/billgraziano/xelogstash/pkg/app"
+	"github.com/billgraziano/xelogstash/pkg/sink"
 	"github.com/kardianos/service"
 	"github.com/shiena/ansicolor"
 
@@ -21,7 +21,7 @@ var (
 	sha1ver   = "dev"
 	version   = "dev"
 	buildTime string
-	builtBy   = "dev"
+	//builtBy   = "dev"
 )
 
 func main() {
