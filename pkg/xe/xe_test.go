@@ -57,7 +57,30 @@ func TestXMLParsing(t *testing.T) {
 	}
 }
 
+func TestHiddenTimestamp(t *testing.T) {
+	// This has a timestamp data value
+	badEvent := `<event name="memory_broker_ring_buffer_recorded" package="sqlos" timestamp="2022-06-16T15:47:10.547Z">
+	<data name="id"><value>0</value></data><data name="timestamp"><value>1382495</value></data>
+	<data name="delta_time"><value>994</value></data><data name="memory_ratio"><value>51</value></data><data name="new_target"><value>646</value></data>
+	<data name="overall"><value>20685</value></data><data name="rate"><value>0</value></data><data name="currently_predicated"><value>1120</value></data>
+	<data name="currently_allocated"><value>1120</value></data><data name="previously_allocated"><value>1120</value></data>
+	<data name="broker"><value><![CDATA[MEMORYBROKER_FOR_CACHE]]></value></data><data name="notification"><value><![CDATA[SHRINK]]></value></data>
+	<data name="call_stack"><value><![CDATA[]]></value></data>
+	</event>`
+
+	assert := assert.New(t)
+	event, err := Parse(&i, badEvent)
+	assert.NoError(err)
+	assert.Equal(16, event.Timestamp().Day())
+
+	ts, exists := event["memory_broker_ring_buffer_recorded_timestamp"]
+	assert.True(exists)
+	// it's really a uint64 but we didn't load real data and actions so everything is a string
+	assert.Equal("1382495", ts)
+}
+
 func TestBasicParse(t *testing.T) {
+	assert := assert.New(t)
 	event, err := Parse(&i, loginEventData)
 	if err != nil {
 		t.Error(err)
@@ -87,7 +110,10 @@ func TestBasicParse(t *testing.T) {
 	if ts.Day() != 8 {
 		t.Error("Wrong timestamp")
 	}
-	assert.Equal(t, event.GetString("xe_category"), "login")
+	assert.Equal("login", event.GetString("xe_category"))
+
+	ts = event.Timestamp()
+	assert.Equal(8, ts.Day())
 }
 
 func TestJson(t *testing.T) {

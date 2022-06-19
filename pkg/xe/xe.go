@@ -60,9 +60,9 @@ func (e *Event) Name() string {
 
 // Timestamp returns the "timestamp" attribute from the event
 // It returns the zero value if it doesn't exist
-func (e *Event) Timestamp() time.Time {
+func (e Event) Timestamp() time.Time {
 	zero := time.Time{}
-	i, ok := (*e)["timestamp"]
+	i, ok := e["timestamp"]
 	if !ok {
 		return zero
 	}
@@ -186,18 +186,27 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 	if err != nil {
 		return event, errors.Wrap(err, "unmarshall")
 	}
-	event["name"] = ed.Name
-	event["timestamp"] = ed.TimeStamp
 
 	for _, d := range ed.DataValues {
 		dataValue := i.getDataValue(ed.Name, d, eventData)
-		event[d.Name] = dataValue
+		// some events have their own timestamp field
+		// we use the event name underscore timestamp in this case
+		// memory_broker_ring_buffer_recorded_timestamp
+		if d.Name == "timestamp" {
+			key := ed.Name + "_" + d.Name
+			event[key] = dataValue
+		} else {
+			event[d.Name] = dataValue
+		}
 	}
 
 	for _, a := range ed.ActionValues {
 		actionValue := i.getActionValue(a, eventData)
 		event[a.Name] = actionValue
 	}
+
+	event["name"] = ed.Name
+	event["timestamp"] = ed.TimeStamp
 
 	if ed.Name == "xml_deadlock_report" {
 		xmldeadlockreport, err := getInnerXML(eventData, "xml_report")
