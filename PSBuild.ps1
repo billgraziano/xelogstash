@@ -33,13 +33,13 @@ if ($LastExitCode -ne 0) {
     exit
 }
 
-go vet -all .\config .\log .\logstash .\seq .\status .\summary .\xe .\sink .\pkg\...
+go vet -all .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
 
 Write-Output "Running go test..."
-go test .\cmd\xelogstash ./cmd/sqlxewriter .\config .\seq .\xe .\sink .\status .\pkg\...
+go test .\cmd\xelogstash ./cmd/sqlxewriter .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
