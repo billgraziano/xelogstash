@@ -73,7 +73,7 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### Release 1.7.5 
+### Release 1.7.6
 
 * Capture Availability Groups in `mssql_ag` and Listeners in `mssql_ag_listener`.  These are both multi-value fields.
 * Fields can be upper or lower case. Use the `lowercase=["fld1", "fld2"]` to list the fields that should be lower case.  Use `uppercase` for uppercase.
