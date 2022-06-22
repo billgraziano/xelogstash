@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/billgraziano/xelogstash/pkg/sink"
+	"github.com/billgraziano/xelogstash/pkg/sink/sampler"
 
 	"github.com/Showmax/go-fqdn"
 
@@ -193,6 +194,18 @@ func (c *Config) GetSinks() ([]sink.Sinker, error) {
 		}
 		//lss.RetryAlertThreshold = c.Logstash.RetryAlertThreshold
 		sinks = append(sinks, lss)
+	}
+
+	// Add any SamplerSink
+	if c.Sampler != nil {
+		sc := *c.Sampler
+		dur := sc.Duration.Duration
+		exec, err := os.Executable()
+		if err != nil {
+			return sinks, errors.Wrap(err, "os.executable")
+		}
+		ss := sampler.New(filepath.Dir(exec), dur)
+		sinks = append(sinks, ss)
 	}
 
 	return sinks, nil

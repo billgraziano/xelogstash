@@ -17,6 +17,7 @@ type Config struct {
 	Elastic  ElasticConfig `toml:"elastic"`
 	FileSink *FileSink     `toml:"filesink"`
 	Logstash *Logstash     `toml:"logstash"`
+	Sampler  *Sampler      `toml:"sampler"`
 	MetaData toml.MetaData
 
 	ConfigFile     string
@@ -122,6 +123,21 @@ type FileSink struct {
 type Logstash struct {
 	Host                string `toml:"host"`
 	RetryAlertThreshold int    `toml:"retry_alert_threshold"`
+}
+
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
+}
+
+// Sampler configures a SamplerSink
+type Sampler struct {
+	Duration duration
 }
 
 type Filter map[string]interface{}

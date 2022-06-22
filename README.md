@@ -73,6 +73,10 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release vNext 
+
+* Add a sampler sink.  This writes sample events and is primarily used during devlopment.
+
 ### Release 1.7.6
 
 * Capture Availability Groups in `mssql_ag` and Listeners in `mssql_ag_listener`.  These are both multi-value fields.
@@ -446,6 +450,16 @@ event_index_map = [
 * `auto_create_indexes` controls whether the application tries to create indexes.  
 * `default_index` is the index where events will be written unless overridden by the event index map.
 * `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
+
+### Sampler Sink
+This is configured using the `sampler` section.  This writes sample events for review. It is primarily used in development.  It writes one file per extended event type.  The files are located in `./sinks/sampler`.  
+
+```toml
+[sampler]
+duration = "1m"
+```
+
+This will write an event type every one minute.  The duration is a sequence of decimal numbers, each with a unit suffix, without spaces.  Valid units are "h", "m", "s".  Examples include "10m", "1h30m", "1m", "10s".
 
 ## <a name="linux"></a>Linux Support
 

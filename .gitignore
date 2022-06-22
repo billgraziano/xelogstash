@@ -20,6 +20,7 @@
 /xestate/*
 /deploy/
 /events/
+/sinks/*
 *.log
 # *.json
 *.pprof
