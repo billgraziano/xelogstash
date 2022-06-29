@@ -328,10 +328,18 @@ func (p *Program) processSession(
 	if err != nil {
 		sqlerr, ok := err.(mssql.Error)
 		if !ok {
-			return result, errors.Wrap(err, "rows.err")
+			return result, errors.Wrap(err, "rows.err: cast.sqlerr")
 		}
-		// invalid offset in file -- set the reset
-		if sqlerr.Number == 25722 {
+		// log the error
+		errormsg := fmt.Sprintf("Msg: %d, Level: %d, State: %d, Line: %d, %s", sqlerr.Number, sqlerr.Class, sqlerr.State, sqlerr.LineNo, sqlerr.Message)
+		log.Errorf("[%d] Source: %s (%s) %s", wid, info.Server, session.Name, errormsg)
+
+		// Need to review all these errors individually
+		//
+		// select * from sys.messages
+		// where language_id = 1033
+		// and message_id between 25717 and 25730
+		if sqlerr.Number >= 25717 && sqlerr.Number <= 25723 {
 			if len(lastFileName) > 0 {
 				saveErr := sf.Done(lastFileName, lastFileOffset, status.StateReset)
 				if saveErr != nil {
@@ -341,7 +349,7 @@ func (p *Program) processSession(
 				}
 			}
 		}
-		return result, errors.Wrap(err, "rows.err")
+		return result, errors.Wrap(err, "session: rows.err")
 	}
 
 	if gotRows /* && !source.Test */ {
