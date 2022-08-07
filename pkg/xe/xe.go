@@ -15,6 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Regex to match error numbers in the ERRORLOG file
+var errorMessageErrorRegex = regexp.MustCompile(`Error:\s(?P<error_number>\d+),\sSeverity:\s(?P<severity>\d+),\sState:\s(?P<state>\d+)`)
+
 // Event is a key value of entries for the XE event
 type Event map[string]interface{}
 
@@ -298,20 +301,40 @@ func (e *Event) parseErrorLogMessage() {
 
 	process := strings.ToLower(strings.TrimSpace(ff[2]))
 	e.Set("errorlog_process", process)
+	var msg string
 	switch process {
 	case "logon":
 		if len(ff) >= 13 {
-			msg := strings.TrimSpace(strings.Join(ff[3:9], " "))
+			msg = strings.TrimSpace(strings.Join(ff[3:9], " "))
 			msg += " " + strings.TrimSpace(strings.Join(ff[12:], " "))
 			e.Set("errorlog_message", msg)
 
 			// create the login_failed event
 			e.Set("login_failed", msg)
+		} else { // if we couldn't process the event, save something
+			msg = strings.TrimSpace(strings.Join(ff[3:], " "))
+			e.Set("errorlog_message", msg)
 		}
 
 	default:
-		msg := strings.TrimSpace(strings.Join(ff[3:], " "))
+		msg = strings.TrimSpace(strings.Join(ff[3:], " "))
 		e.Set("errorlog_message", msg)
+	}
+
+	// See if this is an error with an error number
+	// If so, we will set the error fields
+	errorMatch := errorMessageErrorRegex.FindStringSubmatch(msg)
+	if errorMatch != nil {
+		for i, name := range errorMessageErrorRegex.SubexpNames() {
+			if i != 0 && name != "" {
+				val, err := strconv.Atoi(errorMatch[i])
+				// if it isn't a nubmer, just skip it
+				if err != nil {
+					continue
+				}
+				e.Set(name, int64(val))
+			}
+		}
 	}
 }
 

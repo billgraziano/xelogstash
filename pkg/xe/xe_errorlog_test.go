@@ -9,11 +9,14 @@ import (
 func TestParseErrorLog(t *testing.T) {
 	assert := assert.New(t)
 	type test struct {
-		raw  string
-		dt   string
-		tm   string
-		proc string
-		msg  string
+		raw   string
+		dt    string
+		tm    string
+		proc  string
+		msg   string
+		err   int64
+		sev   int64
+		state int64
 	}
 	tt := []test{
 		{
@@ -38,25 +41,35 @@ func TestParseErrorLog(t *testing.T) {
 			msg:  "BACKUP DATABASE successfully processed 27154 pages in 0.207 seconds (1024.833 MB/sec).",
 		},
 		{
-			raw:  "2020-07-12 15:29:10.11 Logon       Error: 18456, Severity: 14, State: 5.  2020-07-12 15:29:10.11 Logon       Login failed for user 'asdfasfd'. Reason: Could not find a login matching the name provided. [CLIENT: 192.168.7.40]  ",
-			dt:   "2020-07-12",
-			tm:   "15:29:10.11",
-			proc: "logon",
-			msg:  "Error: 18456, Severity: 14, State: 5. Login failed for user 'asdfasfd'. Reason: Could not find a login matching the name provided. [CLIENT: 192.168.7.40]",
+			raw:   "2020-07-12 15:29:10.11 Logon       Error: 18456, Severity: 14, State: 5.  2020-07-12 15:29:10.11 Logon       Login failed for user 'asdfasfd'. Reason: Could not find a login matching the name provided. [CLIENT: 192.168.7.40]  ",
+			dt:    "2020-07-12",
+			tm:    "15:29:10.11",
+			proc:  "logon",
+			msg:   "Error: 18456, Severity: 14, State: 5. Login failed for user 'asdfasfd'. Reason: Could not find a login matching the name provided. [CLIENT: 192.168.7.40]",
+			err:   18456,
+			sev:   14,
+			state: 5,
 		},
 		{
-			raw:  "2020-07-12 15:29:10.11 Logon       Error: 18456, Severity: 14, State: 5.  2020-07-12 15:29:10.11 Logon       Login",
-			dt:   "2020-07-12",
-			tm:   "15:29:10.11",
-			proc: "logon",
-			msg:  "Error: 18456, Severity: 14, State: 5. Login",
+			raw:   "2020-07-12 15:29:10.11 Logon       Error: 18456, Severity: 14, State: 5.  2020-07-12 15:29:10.11 Logon       Login",
+			dt:    "2020-07-12",
+			tm:    "15:29:10.11",
+			proc:  "logon",
+			msg:   "Error: 18456, Severity: 14, State: 5. Login",
+			err:   18456,
+			sev:   14,
+			state: 5,
 		},
 		{
-			raw:  "2020-07-12 15:29:10.11 Logon       Error: 18456, Severity: 14, State: 5.  2020-07-12 15:29:10.11 Logon",
-			dt:   "2020-07-12",
-			tm:   "15:29:10.11",
-			proc: "logon",
-			msg:  "",
+			// This originally failed.  But I think we should set what we can here
+			raw:   "2020-07-12 15:29:10.11 Logon       Error: 18456, Severity: 99, State: 5.  2020-07-12 15:29:10.11 Logon",
+			dt:    "2020-07-12",
+			tm:    "15:29:10.11",
+			proc:  "logon",
+			msg:   "Error: 18456, Severity: 99, State: 5. 2020-07-12 15:29:10.11 Logon",
+			err:   18456,
+			sev:   99,
+			state: 5,
 		},
 		// Test is broken
 		// Need to figure out the language and work backwords to extract the text
@@ -77,5 +90,16 @@ func TestParseErrorLog(t *testing.T) {
 		assert.Equal(tc.tm, e.GetString("errorlog_time"))
 		assert.Equal(tc.proc, e.GetString("errorlog_process"))
 		assert.Equal(tc.msg, e.GetString("errorlog_message"))
+		if tc.err != 0 {
+			num, ok := e.GetInt64("error_number")
+			assert.True(ok)
+			assert.Equal(tc.err, num)
+			sev, ok := e.GetInt64("severity")
+			assert.True(ok)
+			assert.Equal(tc.sev, sev)
+			state, ok := e.GetInt64("state")
+			assert.True(ok)
+			assert.Equal(tc.state, state)
+		}
 	}
 }
