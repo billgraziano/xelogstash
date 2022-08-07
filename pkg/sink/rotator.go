@@ -124,7 +124,7 @@ func (r *Rotator) Sync() error {
 // Clean removes old files
 func (r *Rotator) Clean() error {
 	r.mu.Lock()
-	defer r.mu.Lock()
+	defer r.mu.Unlock()
 
 	return r.clean()
 }
