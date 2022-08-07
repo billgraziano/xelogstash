@@ -76,7 +76,7 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 ### Release vNext 
 
 * Improve `errorlog_written` parsing to populate any `error_number`, `severity`, or `state`
-* Add a `sampler` sink (see below).  This writes sample events.  It is primarily used during devlopment to work on JSON format.
+* Add a `sampler` sink (see below).  This writes sample events.  It is primarily used during devlopment or pre-deployment to work on JSON format.
 * Improve handling bad offsets in event files.  Try to read past to the next good event in more conditions.
 * File Sink: Clean up old event files at the start
 
@@ -492,6 +492,7 @@ Experimental support is included for Linux.  Please be aware of the following is
 
 * The application is currently built with GO 1.16.5
 * The tests can be run with `go test .\...`
+* Security scanning can be down by `gosec -severity medium ./...`
 
 * The builds write to a `deploy` directory
   * Build for Windows by running `PSMake.cmd 1.1.1` (or the target version)
