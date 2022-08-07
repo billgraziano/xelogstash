@@ -177,7 +177,7 @@ func (p *Program) processSession(
 		if err != nil {
 			log.Error(errors.Wrap(err, "xe.parse"))
 			if source.LogBadXML {
-				err = ioutil.WriteFile("bad_xml.log", []byte(eventData), 0666)
+				err = ioutil.WriteFile("bad_xml.log", []byte(eventData), 0600)
 				if err != nil {
 					log.Error(errors.Wrap(err, "write bad xml: ioutil.writefile"))
 				}

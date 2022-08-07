@@ -12,7 +12,7 @@ import (
 	_ "expvar"
 	"fmt"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" //#nosec G108 -- pprof only exposed on localhost if http_metrics is true
 	"runtime"
 	"time"
 

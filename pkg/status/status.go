@@ -182,7 +182,7 @@ func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err 
 	var fp *os.File
 	_, err = os.Stat(f.Name)
 	if os.IsNotExist(err) {
-		fp, err = os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		fp, err = os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			return "", 0, StateReset, errors.Wrap(err, "create")
 		}
@@ -192,7 +192,7 @@ func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err 
 		return "", 0, StateReset, errors.Wrap(err, "stat")
 	}
 
-	readonly, err := os.OpenFile(f.Name, os.O_RDONLY, 0666)
+	readonly, err := os.OpenFile(f.Name, os.O_RDONLY, 0600)
 	if err != nil {
 		return "", 0, StateReset, errors.Wrap(err, "openreadonly")
 	}
@@ -227,7 +227,7 @@ func (f *File) GetOffset() (fileName string, offset int64, xestatus string, err 
 	}
 
 	// TODO close & reopen the file
-	fp, err = os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	fp, err = os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return "", 0, StateReset, errors.Wrap(err, "openappend")
 	}
@@ -340,7 +340,7 @@ func (f *File) Done(xeFileName string, offset int64, xestatus string) error {
 	}
 
 	// Write the new file
-	newStatusFile, err := os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	newStatusFile, err := os.OpenFile(f.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return errors.Wrap(err, "create")
 	}

@@ -118,13 +118,13 @@ func PrintSamples() error {
 		return errors.Wrap(err, "os.executable")
 	}
 	exeDir := filepath.Dir(executable)
-	fileName := filepath.Join(exeDir, "samples.xe.json")
+	fileName := filepath.Clean(filepath.Join(exeDir, "samples.xe.json"))
 
-	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return errors.Wrap(err, "os.openfile")
 	}
-	defer file.Close()
+	defer file.Close() //#nosec G307
 
 	for _, v := range results {
 		//json, err := json.Unmarshal(v.Sample)

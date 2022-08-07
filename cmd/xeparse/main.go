@@ -51,11 +51,12 @@ func main() {
 
 	for _, f := range files {
 		fi := filepath.Join(dirname, f.Name())
+		fi = filepath.Clean(fi)
 		if filepath.Ext(fi) != ".xml" {
 			continue
 		}
 		log.Info("file:", fi)
-		b, err := ioutil.ReadFile(fi)
+		b, err := ioutil.ReadFile(fi) //#nosec G304 -- file doesn't come from user input 
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -87,7 +88,7 @@ func main() {
 		basefile := strings.TrimSuffix(fi, filepath.Ext(fi))
 		newfile := basefile + ".json"
 		//outfile := filepath.Join(dirname, newfile)
-		err = ioutil.WriteFile(newfile, out.Bytes(), 0666)
+		err = ioutil.WriteFile(newfile, out.Bytes(), 0600)
 		if err != nil {
 			log.Fatal(err)
 		}

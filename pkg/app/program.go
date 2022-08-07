@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	_ "net/http/pprof" // pprof
+	_ "net/http/pprof" //#nosec G108 -- pprof only exposed on localhost if http_metrics is true
 	"runtime"
 	"time"
 

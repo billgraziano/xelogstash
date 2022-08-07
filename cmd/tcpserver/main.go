@@ -70,7 +70,7 @@ func main() {
 
 	var connCount int
 
-	l, err := net.Listen("tcp", listen)
+	l, err := net.Listen("tcp", listen) //#nosec G102 -- dev server only
 	if err != nil {
 		log.Fatal(err)
 	}

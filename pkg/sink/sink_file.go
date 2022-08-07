@@ -117,7 +117,7 @@ func (fs *FileSink) open(id string) error {
 	}
 
 	fqfile := filepath.Join(eventDir, fileName)
-	lf, err := os.OpenFile(fqfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	lf, err := os.OpenFile(filepath.Clean(fqfile), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		return errors.Wrap(err, "os.openfile")
 	}

@@ -87,7 +87,7 @@ func run(server, session string, maxRows int, parse, format bool) {
 	log.Info(fmt.Sprintf("session: %s (%s)", xeSession.Name, xeSession.WildCard))
 	query := fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", xeSession.WildCard)
 	start := time.Now()
-	rows, err := info.DB.Query(query)
+	rows, err := info.DB.Query(query) // #nosec G201 -- string doeesn't come from user
 	if err != nil {
 		log.Fatal(err)
 	}
