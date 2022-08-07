@@ -121,6 +121,14 @@ func (r *Rotator) Sync() error {
 	return r.sync()
 }
 
+// Clean removes old files
+func (r *Rotator) Clean() error {
+	r.mu.Lock()
+	defer r.mu.Lock()
+
+	return r.clean()
+}
+
 func (r *Rotator) getts() string {
 	if r.Hourly {
 		return r.clock.Now().Format("20060102_15")
@@ -147,13 +155,13 @@ func (r *Rotator) rotate() error {
 	return nil
 }
 
+// clean loops through all matching files, and purge the old ones
 func (r *Rotator) clean() error {
-	// loop through all matching files, and purge the old ones
-
-	// check if the directory exists
 	var err error
-
 	exists, err := afero.DirExists(r.fs, r.Directory)
+	if err != nil {
+		return errors.Wrap(err, "afero.direxists")
+	}
 	if !exists {
 		return nil
 	}

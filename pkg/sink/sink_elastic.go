@@ -158,14 +158,14 @@ func (es *ElasticSink) Flush() error {
 	// return nil
 }
 
-func (es *ElasticSink) flush() error {
-	// err := eshelper.WriteElasticBuffer(es.client, es.buf)
-	// if err != nil {
-	// 	return errors.Wrap(err, "eshelper.writeelasticbuffer")
-	// }
-	// es.buf.Reset()
-	return nil
-}
+// func (es *ElasticSink) flush() error {
+// 	// err := eshelper.WriteElasticBuffer(es.client, es.buf)
+// 	// if err != nil {
+// 	// 	return errors.Wrap(err, "eshelper.writeelasticbuffer")
+// 	// }
+// 	// es.buf.Reset()
+// 	return nil
+// }
 
 // Close the ElasticSink
 func (es *ElasticSink) Close() error {

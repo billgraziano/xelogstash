@@ -16,7 +16,6 @@ import (
 type FileSink struct {
 	file           *os.File
 	id             string
-	fileName       string
 	Directory      string
 	RetentionHours int
 	// sync.RWMutex

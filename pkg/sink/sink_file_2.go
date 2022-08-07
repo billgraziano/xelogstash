@@ -28,7 +28,7 @@ func (fs *OneFile) Name() string {
 	} else {
 		n = fmt.Sprintf("%s_YYYYMMDD_.%s", fs.r.Prefix, fs.r.Extension)
 	}
-	name := fmt.Sprintf("files: %s (keep: %s)", filepath.Join(fs.r.Directory, n), fs.r.Retention.String())
+	name := fmt.Sprintf("file: %s (keep: %s)", filepath.Join(fs.r.Directory, n), fs.r.Retention.String())
 	return name
 	// return fmt.Sprintf("files: %s\\%s_YYYYMMDD_.%s (keep: %s)", fs.r.Directory, fs.r.Prefix, fs.r.Extension, fs.r.Retention.String())
 }
@@ -65,7 +65,7 @@ func (fs *OneFile) Flush() error {
 
 // Clean up any old artifacts.  This is done in the Rotator.
 func (fs *OneFile) Clean() error {
-	return nil
+	return fs.r.Clean()
 }
 
 // Reopen is a noop at this point
