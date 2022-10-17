@@ -173,7 +173,7 @@ func (p *Program) processSession(
 		first = false
 
 		var event xe.Event
-		event, err = xe.Parse(&info, eventData)
+		event, err = xe.Parse(&info, eventData, p.BetaFeatures)
 		if err != nil {
 			log.Error(errors.Wrap(err, "xe.parse"))
 			if source.LogBadXML {

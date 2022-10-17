@@ -56,13 +56,13 @@ func main() {
 			continue
 		}
 		log.Info("file:", fi)
-		b, err := ioutil.ReadFile(fi) //#nosec G304 -- file doesn't come from user input 
+		b, err := ioutil.ReadFile(fi) //#nosec G304 -- file doesn't come from user input
 		if err != nil {
 			log.Fatal(err)
 		}
 		x := string(b)
 
-		event, err := xe.Parse(&info, x)
+		event, err := xe.Parse(&info, x, false)
 		if err != nil {
 			log.Fatal(err)
 		}

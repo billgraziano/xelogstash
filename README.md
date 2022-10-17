@@ -12,6 +12,7 @@
 2. [Application Settings](#app-settings)
 3. [Derived Fields](#derived-fields)
 3. [Sinks](#sinks)
+3. [Beta Features](#beta)
 4. [Linux Support](#linux)
 4. [Other Notes](#notes)
 4. [Building](#building)
@@ -73,12 +74,14 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### Release vNext 
+### Release 1.7.8
 
-* Improve `errorlog_written` parsing to populate any `error_number`, `severity`, or `state`
-* Add a `sampler` sink (see below).  This writes sample events.  It is primarily used during devlopment or pre-deployment to work on JSON format.
+* Improve `errorlog_written` event parsing to populate any `error_number`, `severity`, or `state` that it can parse out
+* Add a `sampler` sink (see below).  This writes sample events.  It is primarily used during development or pre-deployment to work on JSON format.
 * Improve handling bad offsets in event files.  Try to read past to the next good event in more conditions.
 * File Sink: Clean up old event files at the start
+* Additional testing against SQL Server on Linux, SQL Server 2022 CTP2, and SQL Server running in Docker
+* Set `beta_features` to `true` in the `app` settings section to add the following calculated fields: `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`.  See the [Beta Features](#beta) section for more details.
 
 ### Release 1.7.6
 
@@ -464,6 +467,15 @@ duration = "1m"
 
 This will write an event type every one minute.  The duration is a sequence of decimal numbers, each with a unit suffix, without spaces.  Valid units are "h", "m", "s".  Examples include "10m", "1h30m", "1m", "10s".
 
+## <a name="beta"></a>Beta Features
+Enabling `beta_features` in the `app` section will enable certain beta features:
+
+```toml
+[app]
+beta_features = true
+```
+As of 1.7.8, this adds the following calculated fields: `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`.
+
 ## <a name="linux"></a>Linux Support
 
 Experimental support is included for Linux.  Please be aware of the following issues:
@@ -491,8 +503,8 @@ Experimental support is included for Linux.  Please be aware of the following is
 ## <a name="building"></a>Building the Application
 
 * The application is currently built with GO 1.16.5
-* The tests can be run with `go test .\...`
-* Security scanning can be down by `gosec -severity medium ./...`
+* The tests can be run with `go test ./...`
+* Security scanning can be done by `gosec -severity medium ./...`
 
 * The builds write to a `deploy` directory
   * Build for Windows by running `PSMake.cmd 1.1.1` (or the target version)

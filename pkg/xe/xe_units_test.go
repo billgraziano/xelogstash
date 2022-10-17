@@ -1,6 +1,8 @@
 package xe
 
 import (
+	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,35 +32,35 @@ func TestUnits(t *testing.T) {
 
 `
 	assert := assert.New(t)
-	event, err := Parse(&i, rawEvent)
+	event, err := Parse(&i, rawEvent, true)
 	assert.NoError(err)
-	//assert.Equal(24, len(event))
-	assert.Equal(19, len(event))
+	assert.Equal(23, len(event)) // writes_mb is less than the amount
+	// assert.Equal(19, len(event))
 
-	// dur, ok := event.GetInt64("duration_sec")
-	// assert.True(ok)
-	// assert.Equal(int64(123), dur)
+	dur, ok := event.GetInt64("duration_sec")
+	assert.True(ok)
+	assert.Equal(int64(123), dur)
 
-	// pr, ok := event.GetInt64("physical_reads_mb")
-	// assert.True(ok)
-	// assert.Equal(int64(1), pr)
+	pr, ok := event.GetInt64("physical_reads_mb")
+	assert.True(ok)
+	assert.Equal(int64(1), pr)
 
-	// lr, ok := event.GetInt64("logical_reads_mb")
-	// assert.True(ok)
-	// assert.Equal(int64(7), lr)
+	lr, ok := event.GetInt64("logical_reads_mb")
+	assert.True(ok)
+	assert.Equal(int64(7), lr)
 
-	// wr, ok := event.GetInt64("writes_mb")
-	// assert.True(ok)
-	// assert.Equal(int64(0), wr)
+	_, ok = event.GetInt64("writes_mb")
+	assert.False(ok)
+	//assert.Equal(int64(0), wr)
 
-	// // Print the map if it fails
-	// keys := make([]string, 0, len(event))
-	// for k := range event {
-	// 	keys = append(keys, k)
-	// }
-	// sort.Strings(keys)
+	// Print the map if it fails
+	keys := make([]string, 0, len(event))
+	for k := range event {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
 
-	// for _, k := range keys {
-	// 	fmt.Printf("%25s:  value: %v\n", k, event[k])
-	// }
+	for _, k := range keys {
+		fmt.Printf("%25s:  value: %v\n", k, event[k])
+	}
 }

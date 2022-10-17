@@ -129,6 +129,10 @@ func (p *Program) startPolling() (err error) {
 		log.Info("verbose: true")
 		p.Verbose = settings.App.Verbose
 	}
+	if settings.App.BetaFeatures {
+		log.Info("beta_features: true")
+		p.BetaFeatures = settings.App.BetaFeatures
+	}
 
 	// launch the polling go routines
 	log.Tracef("loop: %t", p.Loop)

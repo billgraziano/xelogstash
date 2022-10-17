@@ -46,4 +46,6 @@ type Program struct {
 	Sinks []*sink.Sinker
 
 	Filters []config.Filter
+
+	BetaFeatures bool // Enable beta features for testing
 }

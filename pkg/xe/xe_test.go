@@ -69,7 +69,7 @@ func TestHiddenTimestamp(t *testing.T) {
 	</event>`
 
 	assert := assert.New(t)
-	event, err := Parse(&i, badEvent)
+	event, err := Parse(&i, badEvent, false)
 	assert.NoError(err)
 	assert.Equal(16, event.Timestamp().Day())
 
@@ -81,7 +81,7 @@ func TestHiddenTimestamp(t *testing.T) {
 
 func TestBasicParse(t *testing.T) {
 	assert := assert.New(t)
-	event, err := Parse(&i, loginEventData)
+	event, err := Parse(&i, loginEventData, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -117,7 +117,7 @@ func TestBasicParse(t *testing.T) {
 }
 
 func TestJson(t *testing.T) {
-	event, err := Parse(&i, loginEventData)
+	event, err := Parse(&i, loginEventData, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -152,7 +152,7 @@ func TestErrorLogEvent(t *testing.T) {
 		</event>
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -171,7 +171,7 @@ func TestErrorReportedEvent(t *testing.T) {
 
 	rawXML := `<event name="error_reported" package="sqlserver" timestamp="2018-04-19T16:21:25.541Z"><data name="error_number"><value>208</value></data><data name="severity"><value>16</value></data><data name="state"><value>1</value></data><data name="user_defined"><value>false</value></data><data name="category"><value>2</value><text><![CDATA[SERVER]]></text></data><data name="destination"><value>0x00000002</value><text><![CDATA[USER]]></text></data><data name="is_intercepted"><value>false</value></data><data name="message"><value><![CDATA[Invalid object name 'sys.xe_object_columns'.]]></value></data><action name="sql_text" package="sqlserver"><value><![CDATA[select * from sys.xe_object_columns ]]></value></action><action name="server_principal_name" package="sqlserver"><value><![CDATA[MicrosoftAccount\graz]]></value></action><action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action><action name="is_system" package="sqlserver"><value>false</value></action><action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action><action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action><action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action><action name="collect_system_time" package="package0"><value>2018-04-19T16:21:25.540Z</value></action></event>`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -219,7 +219,7 @@ func TestProcStatemt(t *testing.T) {
 		<action name="collect_system_time" package="package0"><value>2018-04-14T14:11:11.558Z</value></action></event>
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -266,7 +266,7 @@ func TestRPC(t *testing.T) {
 	</event>
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -312,7 +312,7 @@ func TestBatchStatement(t *testing.T) {
 
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -352,7 +352,7 @@ func TestBatchCompleted(t *testing.T) {
 	<action name="collect_system_time" package="package0"><value>2018-04-14T16:33:39.593Z</value></action></event>
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -403,7 +403,7 @@ func TestDeadlockChain(t *testing.T) {
 		</event>
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -479,7 +479,7 @@ func TestBlockedProcess(t *testing.T) {
 	</event>
 	`
 
-	event, err := Parse(&i, rawXML)
+	event, err := Parse(&i, rawXML, false)
 	if err != nil {
 		t.Error(err)
 	}

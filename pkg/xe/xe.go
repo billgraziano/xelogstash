@@ -180,7 +180,7 @@ func (i *SQLInfo) getActionValue(a xmlAction, eventData string) interface{} {
 }
 
 // Parse converts event data into an Event
-func Parse(i *SQLInfo, eventData string) (Event, error) {
+func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 
 	event := make(Event)
 
@@ -278,8 +278,10 @@ func Parse(i *SQLInfo, eventData string) (Event, error) {
 		}
 	}
 
-	// writes_mb, cpu_time_sec, etc.
-	// event.SetExtraUnits()
+	if beta {
+		// writes_mb, cpu_time_sec, etc.
+		event.SetExtraUnits()
+	}
 
 	return event, nil
 }

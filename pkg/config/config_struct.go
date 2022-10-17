@@ -78,6 +78,7 @@ type App struct {
 	Verbose        bool   // Enables logging wrote x events at the info level
 	StrictSessions bool   `toml:"strict_sessions"` // true - log session errors
 	WatchConfig    bool   `toml:"watch_config"`
+	BetaFeatures   bool   `toml:"beta_features"`
 
 	// Enables a web server on :8080 with basic metrics
 	HTTPMetrics     bool `toml:"http_metrics"`

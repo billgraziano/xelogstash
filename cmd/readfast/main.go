@@ -117,7 +117,7 @@ func run(server, session string, maxRows int, parse, format bool) {
 			fileCount++
 		}
 		if parse {
-			event, err := xe.Parse(&info, eventData)
+			event, err := xe.Parse(&info, eventData, false)
 			if err != nil {
 				log.Fatal(err)
 			}
