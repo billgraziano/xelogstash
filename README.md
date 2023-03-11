@@ -475,6 +475,7 @@ Enabling `beta_features` in the `app` section will enable certain beta features:
 beta_features = true
 ```
 As of 1.7.8, this adds the following calculated fields: `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`.
+These fields are only added if the quantity at or above the threshold.  For example, `cpu_time_sec` is only added if the CPU time is at least 1 second (1 million microseconds).
 
 ## <a name="linux"></a>Linux Support
 
