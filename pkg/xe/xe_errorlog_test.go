@@ -71,6 +71,28 @@ func TestParseErrorLog(t *testing.T) {
 			sev:   99,
 			state: 5,
 		},
+		{
+			// Testing for getting the date right with TZ issues
+			raw:   "2020-07-12 00:29:10.11 Logon       Error: 18456, Severity: 99, State: 5.  2020-07-12 15:29:10.11 Logon",
+			dt:    "2020-07-12",
+			tm:    "00:29:10.11",
+			proc:  "logon",
+			msg:   "Error: 18456, Severity: 99, State: 5. 2020-07-12 15:29:10.11 Logon",
+			err:   18456,
+			sev:   99,
+			state: 5,
+		},
+		{
+			// Testing for getting the date right with TZ issues
+			raw:   "2020-07-12 23:29:10.11 Logon       Error: 18456, Severity: 99, State: 5.  2020-07-12 15:29:10.11 Logon",
+			dt:    "2020-07-12",
+			tm:    "23:29:10.11",
+			proc:  "logon",
+			msg:   "Error: 18456, Severity: 99, State: 5. 2020-07-12 15:29:10.11 Logon",
+			err:   18456,
+			sev:   99,
+			state: 5,
+		},
 		// Test is broken
 		// Need to figure out the language and work backwords to extract the text
 		// {

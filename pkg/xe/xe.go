@@ -39,7 +39,7 @@ type xmlAction struct {
 	Type  xmlDataType `xml:"type"`
 }
 
-//XMLEventData holds the root for XE XML data
+// XMLEventData holds the root for XE XML data
 type XMLEventData struct {
 	Name         string      `xml:"name,attr"`
 	TimeStamp    time.Time   `xml:"timestamp,attr"`
@@ -298,6 +298,7 @@ func (e *Event) parseErrorLogMessage() {
 	if len(ff) < 4 {
 		return
 	}
+	// TODO verify these are valid date and time fields
 	e.Set("errorlog_date", strings.TrimSpace(ff[0]))
 	e.Set("errorlog_time", strings.TrimSpace(ff[1]))
 
@@ -715,7 +716,7 @@ func getInnerXML(eventData string, dataName string) (string, error) {
 	return "", nil
 }
 
-//ToJSON marshalls to a byte array
+// ToJSON marshalls to a byte array
 func (e *Event) ToJSON() (string, error) {
 	jsonBytes, err := json.Marshal(e)
 	if err != nil {
