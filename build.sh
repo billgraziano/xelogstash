@@ -33,9 +33,10 @@ echo "Building sqlxewriter.exe..."
 go build -o $TARGET/sqlxewriter.exe -ldflags "-s -w -X main.version=$VERSION -X main.sha1ver=$GIT_TAG -X main.buildTime=$BLD_TIME -X main.builtBy=buildsh" ./cmd/sqlxewriter
 ./deploy/linux/sqlxewriter/sqlxewriter.exe -version 
 
-cp -r ./samples $TARGET
-cp ./LICENSE.txt $TARGET
-cp ./README.html $TARGET
+cp -r ./samples     $TARGET
+# cp ./LICENSE.txt $TARGET
+cp ./LICENSE.html   $TARGET
+cp ./README.html    $TARGET
 cp ./samples/sqlxewriter.toml $TARGET
 
 TAR_FILE=$DEPLOY/sqlxewriter_${GIT_TAG}_linux_x64.tar.gz
