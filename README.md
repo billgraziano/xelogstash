@@ -74,6 +74,12 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release vNext (1.7.9)
+This doesn't really exist yet unless you compile it.
+* Update to GO 1.19
+* Update all dependencies
+* The username and password fields for Defaults, Sources, and the Elastic Sink  can be set to an environment variable. That looks like this: `password="$(env:VARIABLE_NAME)"`.
+
 ### Release 1.7.8
 
 * Improve `errorlog_written` event parsing to populate any `error_number`, `severity`, or `state` that it can parse out
@@ -183,10 +189,10 @@ The `[defaults]` section applies to all sources (but can be overridden by the so
 You can set the following Source fields (or Default fields)
 
 * `fqdn` is the name to connect to for the server.  It can be a host name, a hostname,port, a host\instance name, a static DNS, or an IP.  This value is just dropped into the connection string.
-* `user` and `password`.  If you leave this blank or don't specify them it will connect using a trusted connection.  
+* `user` and `password`.  If you leave this blank or don't specify them it will connect using a trusted connection.  You can set these to an environment variable by `password="$(env:VARIABLE_NAME)"`.  
 * `driver` and `odbc_driver` allow different database drivers.  Normally these values are not needed.
   * `driver` is can be either "mssql" (default) or "odbc".  "mssql" is a native GO driver that handles everything except trusted connections on Linux.
-  * `odbc_driver` sets the ODBC driver if using ODBC.  The default is "ODBC Driver 13 for SQL Server".  This value must match exactly (case-sensitive) to a driver on the system if using ODBC.
+  * `odbc_driver` sets the ODBC driver if using ODBC.  The default is the highest installed ODBC driver.  This is likely "ODBC Driver 18 for SQL Server".  This value must match exactly (case-sensitive) to a driver on the system if using ODBC.
 * `sessions` is a list of sessions to process.
 * `ignore_sessions` says to not process any sessions for this source.  This is mainly useful if you have a list of default sessions but some old SQL Server 2008 boxes that you want to ignore the sessions completely so you can just get the failed agent jobs.
 * `rows` is how many events to try and process per session.  It will read this many events and then continue reading until the offset changes.  Omitting this value or setting it to zero will process all rows since it last ran.
@@ -452,7 +458,7 @@ event_index_map = [
 ```
 
 * `addressess` specifies one or more addresses for the Elastic servers.
-* `username` and `password` provide authentication.
+* `username` and `password` provide authentication.  You can set these to an environment variable by `password="$(env:VARIABLE_NAME)"`.
 * `auto_create_indexes` controls whether the application tries to create indexes.  
 * `default_index` is the index where events will be written unless overridden by the event index map.
 * `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
