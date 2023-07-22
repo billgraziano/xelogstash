@@ -2,15 +2,12 @@ module github.com/billgraziano/xelogstash
 
 go 1.19
 
-// replace github.com/billgraziano/mssqlh => C:\Users\graz\go\src\github.com\billgraziano\mssqlh
-// replace github.com/billgraziano/mssqlh => /mnt/c/Users/graz/go/src/github.com/billgraziano/mssqlh
-
 require (
 	github.com/Showmax/go-fqdn v1.0.0
 	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2
 	github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37
 	github.com/benbjohnson/clock v1.3.5
-	github.com/billgraziano/mssqlh v1.0.1
+	github.com/billgraziano/mssqlh v1.0.2
 	github.com/billgraziano/toml v0.0.0-20180511235737-bae4b1adb8fa
 	github.com/davidscholberg/go-durationfmt v0.0.0-20170122144659-64843a2083d3
 	github.com/denisenkom/go-mssqldb v0.12.3
@@ -42,5 +39,6 @@ require (
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

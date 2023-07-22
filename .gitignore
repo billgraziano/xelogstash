@@ -49,6 +49,7 @@ README.html
 
 bld.cmd
 run.sh
+LinuxBuild.ps1
 
 architecture.md
 /sink/logstash_v2.md
