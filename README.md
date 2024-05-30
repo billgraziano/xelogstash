@@ -52,7 +52,7 @@ Running `sqlxewriter -?` will display the help for the options.
 - `-loop` - Instead of polling each server once and exiting, it continues to loop and polls each server every minute.  This is only needed when running interactively.  When running as a service, it always loops.
 - `-service action` - The two action values are `install` and `uninstall`.  This installs or uninstalls this executable as a service and exits.
 
-### Running as a service
+### Running as a Windows service
 In order to run this as a service in Windows, complete the following steps
 
 1. From an Administrative command prompt, run `sqlxewriter -service install`.  This will install as a service named `sqlxewriter`.  You can find it in the list of services as "XEvent Writer for SQL Server".
@@ -62,6 +62,15 @@ In order to run this as a service in Windows, complete the following steps
 1. When it comes time to update the service, just stop the service and replace the executable.
 
 A similar process should work for Linux.  This uses [github.com/kardianos/service](https://github.com/kardianos/service).  Additional documentation may be found there.
+
+### Running as Linux Service or Container
+My experience here is very limited.  Feedback is appreciated.
+
+* This will likely run from the command-line
+* Use the `-loop` flag to run continuously
+* Consider using `-log` to write logs to a log file
+* It should respect CPU quotas after 1.7.9
+* The username and password fields for Defaults, Sources, and the Elastic Sink can be set to an environment variable. That looks like this in the configuration file: `password="$(env:VARIABLE_NAME)"`
 
 ### Scaling up
 1. Changes to the `.toml` require a service restart to take effect unless you set `watch_config = true`.  This includes adding sources.
@@ -74,8 +83,12 @@ A similar process should work for Linux.  This uses [github.com/kardianos/servic
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### Release vNext (1.7.9)
-This doesn't really exist yet unless you compile it.
+### vNext 
+These are commits that aren't in a release or tag yet.
+* When running in a container, it should set GOMAXPROCS to the cpu quota
+
+### Tag 1.7.9
+This is a tag only.
 * Update to GO 1.19
 * Update all dependencies
 * The username and password fields for Defaults, Sources, and the Elastic Sink  can be set to an environment variable. That looks like this: `password="$(env:VARIABLE_NAME)"`.

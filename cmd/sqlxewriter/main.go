@@ -13,6 +13,7 @@ import (
 	"github.com/billgraziano/xelogstash/pkg/sink"
 	"github.com/kardianos/service"
 	"github.com/shiena/ansicolor"
+	"go.uber.org/automaxprocs/maxprocs"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -145,6 +146,14 @@ func main() {
 		}
 		log.Infof("action %s: sucessful", *svcFlag)
 		return
+	}
+
+	// Set GOMAXPROCS if we are running in a container
+	fn := log.Infof
+	undo, err := maxprocs.Set(maxprocs.Logger(fn))
+	defer undo()
+	if err != nil {
+		log.Errorf("maxprocs: failed to set GOMAXPROCS: %v", err)
 	}
 
 	log.Tracef("loop: %t", *loop)
