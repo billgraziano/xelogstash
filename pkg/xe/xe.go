@@ -16,8 +16,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Regex to match error numbers in the ERRORLOG file
 var errorMessageErrorRegex = regexp.MustCompile(`Error:\s(?P<error_number>\d+),\sSeverity:\s(?P<severity>\d+),\sState:\s(?P<state>\d+)`)
+var spaceRegex = regexp.MustCompile(`\s+`)
+var clientRegex = regexp.MustCompile(`\[CLIENT: (?P<errorlog_client>[^][]*)]`)
+var processLogon = "logon"
 
 // Event is a key value of entries for the XE event
 type Event map[string]interface{}
@@ -289,45 +291,20 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 
 func (e *Event) parseErrorLogMessage() {
 	rawMsg := e.GetString("message")
-	space := regexp.MustCompile(`\s+`)
-	rawMsg = space.ReplaceAllString(rawMsg, " ")
-	if rawMsg == "" {
+	e.Set("errorlog_raw", left(rawMsg, 8000, "..."))
+
+	// I'm not really sure I want to do this
+	// I think it will replace multiple spaces inside quotes
+	// but it seems to work so far
+	rawMsg = spaceRegex.ReplaceAllString(rawMsg, " ")
+	if rawMsg == "" || rawMsg == " " { // we have no message
 		return
-	}
-
-	ff := strings.Split(rawMsg, " ")
-	if len(ff) < 4 {
-		return
-	}
-	// TODO verify these are valid date and time fields
-	e.Set("errorlog_date", strings.TrimSpace(ff[0]))
-	e.Set("errorlog_time", strings.TrimSpace(ff[1]))
-
-	process := strings.ToLower(strings.TrimSpace(ff[2]))
-	e.Set("errorlog_process", process)
-	var msg string
-	switch process {
-	case "logon":
-		if len(ff) >= 13 {
-			msg = strings.TrimSpace(strings.Join(ff[3:9], " "))
-			msg += " " + strings.TrimSpace(strings.Join(ff[12:], " "))
-			e.Set("errorlog_message", msg)
-
-			// create the login_failed event
-			e.Set("login_failed", msg)
-		} else { // if we couldn't process the event, save something
-			msg = strings.TrimSpace(strings.Join(ff[3:], " "))
-			e.Set("errorlog_message", msg)
-		}
-
-	default:
-		msg = strings.TrimSpace(strings.Join(ff[3:], " "))
-		e.Set("errorlog_message", msg)
 	}
 
 	// See if this is an error with an error number
 	// If so, we will set the error fields
-	errorMatch := errorMessageErrorRegex.FindStringSubmatch(msg)
+	foundError := false
+	errorMatch := errorMessageErrorRegex.FindStringSubmatch(rawMsg)
 	if errorMatch != nil {
 		for i, name := range errorMessageErrorRegex.SubexpNames() {
 			if i != 0 && name != "" {
@@ -336,9 +313,45 @@ func (e *Event) parseErrorLogMessage() {
 				if err != nil {
 					continue
 				}
+				foundError = true
 				e.Set(name, int64(val))
 			}
 		}
+	}
+
+	// see if we have a [CLIENT: 10.10.128.85] phrase in the message
+	clientMatch := clientRegex.FindStringSubmatch(rawMsg)
+	if clientMatch != nil {
+		for i, name := range clientRegex.SubexpNames() {
+			if i != 0 && name != "" {
+				val := clientMatch[i]
+				val = left(val, 100, "...") // just in case
+				e.Set(name, val)
+			}
+		}
+	}
+
+	// Start trying to figure out just the message part
+	ff := strings.Split(rawMsg, " ")
+	if len(ff) < 4 {
+		e.Set("errorlog_message", left(rawMsg, 8000, "..."))
+		return
+	}
+	timestampAndProcess := strings.Join(ff[0:3], " ")
+
+	process := strings.ToLower(strings.TrimSpace(ff[2]))
+	e.Set("errorlog_process", left(process, 100, "..."))
+	msg := strings.TrimSpace(strings.Join(ff[3:], " "))
+
+	// Logon repeats the timestamp and process
+	// so we will remove it
+	if process == processLogon {
+		msg = strings.Replace(msg, timestampAndProcess, "", -1)
+	}
+	e.Set("errorlog_message", left(msg, 8000, "..."))
+
+	if foundError && process == processLogon {
+		e.Set("login_failed", left(msg, 8000, "..."))
 	}
 }
 
