@@ -75,7 +75,7 @@ My experience here is very limited.  Feedback is appreciated.
 ### Scaling up
 1. Changes to the `.toml` require a service restart to take effect unless you set `watch_config = true`.  This includes adding sources.
 1. The sample `sqlxewriter.toml` only reads 1 event per server per minute.  This should be set to unlimited (`rows = 0`) or some high number like 20,000 (`rows = 20000`)
-1. There are two sample Extended Event session scripts.  One captures logins and the other captures interesting events like errors, slow SQL, blocked procesess, mirroring events, and writes to the error log.
+1. There are two sample Extended Event session scripts.  One captures logins and the other captures interesting events like errors, slow SQL, blocked processes, mirroring events, and writes to the error log.
 1. I suggest capturing the `system_health`, `AlwaysOn_health`, and these two sessions.
 1. The `sources` can be broken out into a separate file named `sqlxewriter_sources.toml`.  This makes the editing easier or allows the file to be generated from Puppet or some other tool. 
 
@@ -85,7 +85,8 @@ My experience here is very limited.  Feedback is appreciated.
 
 ### vNext 
 These are commits that aren't in a release or tag yet.
-* When running in a container, it should set GOMAXPROCS to the cpu quota
+* When running in a container, it should set GOMAXPROCS to the CPU quota
+* Truncating strings should better handle Unicode characters
 
 ### Tag 1.7.9
 This is a tag only.
@@ -133,17 +134,17 @@ This is a tag only.
 
 ### Release 1.5
 
-* Add limited macOS (darwin) support. You'll have to compile it yourself.
+* Add limited macOS (Darwin) support. You'll have to compile it yourself.
 * Add a `.vscode` directory in the samples with extensions and file mapping support
-* Fix the git commit information in the linux build
-* Fix the subdirectory in the linux build
+* Fix the git commit information in the Linux build
+* Fix the subdirectory in the Linux build
 * Update the README for first-timers
 * Add the server name to the polling message (in addition to being in the field)
 
 ### Release 1.4.3
 
 * Improves support for trusted connections in Linux.  See [Linux Support](#linux) for more details.
-* Added the `login_failed` column.  This is populated for errorlog_written (logon) events and error_reported events whose error number indicates a login failed event.  Filter Kibana for the existance of this field.  See below for more details.
+* Added the `login_failed` column.  This is populated for `errorlog_written` (logon) events and error_reported events whose error number indicates a login failed event.  Filter Kibana for the existence of this field.  See below for more details.
 
 ### Release 1.4
 
@@ -152,7 +153,7 @@ This is a tag only.
 ### Release 1.3.2
 
 * Clean up leaking connection pool for invalid servers
-* Update what gets written into the variable substitions for GIT based on using GORELEASER.  See "Replacements" further down.
+* Update what gets written into the variable substitutions for GIT based on using GORELEASER.  See "Replacements" further down.
 
 ### Release 1.3.1
 
@@ -269,7 +270,7 @@ payload_field_name = "mssql"
 ```
 
 ## <a name="adds"></a>Add, Copies, and Moves
-Adds, moves, and copies give you the opptunity to modify the generated JSON.  All three are arrays with a format of "string1:string2".  
+Adds, moves, and copies give you the opportunity to modify the generated JSON.  All three are arrays with a format of "string1:string2".  
 
 > Note: For these values, any Source overwrites the Default at _the individual key level_.  If both the default and source try to add a key for "environment", it will use the value from the Source.  But if the Default adds a key for "datacenter" and the Source adds a key for "environment", it will add both keys.  Copies and Moves are handled the same way.
 
@@ -424,8 +425,8 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_file_offset`: file offset where we found this event
 * `xe_category`: defaults to the event name but groups similar events together. For example, all SQL events are in `tsql`, all HADR events are in `hadr`, `deadlock`, etc.
 * `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from `@@SERVERNAME` of the source server.
-* `login_failed`: This field is populated when a login fails.  The easiest way to monitor failed logins in Kibana is filter for the existance of the `login_failed` field. Login errors are reported two ways and this tries to captures both.  That means you will typically see two errors in Kibana for each failed attempt.
-  * For `errorlog_written`, if the errorlog written process is `logon` it populates this field with the error message.  That has the IP address of the client.  It also means that if you're capturing succesful logins in the error log, this will be wrong.  Successful logins should be caputred by extended events.
+* `login_failed`: This field is populated when a login fails.  The easiest way to monitor failed logins in Kibana is filter for the existence of the `login_failed` field. Login errors are reported two ways and this tries to captures both.  That means you will typically see two errors in Kibana for each failed attempt.
+  * For `errorlog_written`, if the errorlog written process is `logon` it populates this field with the error message.  That has the IP address of the client.  It also means that if you're capturing successful logins in the error log, this will be wrong.  Successful logins should be captured by extended events.
   * For `error_reported`, if the error number is one whose text has "login failed", then we populate the field with the error message.
 
 
@@ -474,7 +475,7 @@ event_index_map = [
 * `username` and `password` provide authentication.  You can set these to an environment variable by `password="$(env:VARIABLE_NAME)"`.
 * `auto_create_indexes` controls whether the application tries to create indexes.  
 * `default_index` is the index where events will be written unless overridden by the event index map.
-* `event_index_map` allows mapping different events to different indexs.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
+* `event_index_map` allows mapping different events to different indexes.  In the example above, all the events except `login` will go to the `dev-sql` index.  The `login` events will go to the `dev-login` index.  I often split login event into their own index.
 
 ### Sampler Sink
 This is configured using the `sampler` section.  This writes sample events for review. It is primarily used in development.  It writes one file per extended event type.  The files are located in `./sinks/sampler`.  
