@@ -90,9 +90,10 @@ These are commits that aren't in a release or tag yet.
 * Handling error log message is significantly improved
   * Save the raw message in `errorlog_raw`
   * Don't capture `errorlog_date` and `errorlog_time`.  The date was being forced to UTC which is often wrong.
-  * Search the error log for any message in the form of "[CLIENT: 10.10.1.1]" and save the client in `errorlog_client`
   * Parse error strings for any event, not just login failures.  These are stored in `error_number`, `severity`, and `state`.
   * Trim most strings to 8000 characters.  A few such as `errorlog_process` are trimmed to a shorter length.
+* For `errorlog_written` and `error_reported` events, if it finds text like "[CLIENT: 10.10.1.1]", it will save the address in `xe_client_address`
+* Update new builds to GO 1.22.5
 
 ### Tag 1.7.9
 This is a tag only.

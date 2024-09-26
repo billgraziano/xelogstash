@@ -18,7 +18,7 @@ import (
 
 var errorMessageErrorRegex = regexp.MustCompile(`Error:\s(?P<error_number>\d+),\sSeverity:\s(?P<severity>\d+),\sState:\s(?P<state>\d+)`)
 var spaceRegex = regexp.MustCompile(`\s+`)
-var clientRegex = regexp.MustCompile(`\[CLIENT: (?P<errorlog_client>[^][]*)]`)
+var clientAddressRegex = regexp.MustCompile(`\[CLIENT: (?P<xe_client_address>[^][]*)]`)
 var processLogon = "logon"
 
 // Event is a key value of entries for the XE event
@@ -272,13 +272,7 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 	}
 
 	if ed.Name == "error_reported" {
-		errnum, ok := event.GetInt64("error_number")
-		if ok {
-			_, ok = i.LoginErrors[errnum]
-			if ok {
-				event["login_failed"] = desc
-			}
-		}
+		event.parseErrorReported(i, desc)
 	}
 
 	if beta {
@@ -287,6 +281,31 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 	}
 
 	return event, nil
+}
+
+func (e *Event) parseErrorReported(i *SQLInfo, desc string) {
+	// get the error number and see if it is a login error
+	errnum, ok := e.GetInt64("error_number")
+	if ok {
+		_, ok = i.LoginErrors[errnum]
+		if ok {
+			e.Set("login_failed", desc)
+		}
+	}
+
+	// see if we have a [CLIENT: 10.10.128.85] phrase in the message
+	rawMsg := e.GetString("message")
+	clientMatch := clientAddressRegex.FindStringSubmatch(rawMsg)
+	if clientMatch != nil {
+		// name is set in the regex
+		for i, name := range clientAddressRegex.SubexpNames() {
+			if i != 0 && name != "" {
+				val := clientMatch[i]
+				val = left(val, 100, "...") // just in case
+				e.Set(name, val)
+			}
+		}
+	}
 }
 
 func (e *Event) parseErrorLogMessage() {
@@ -320,9 +339,9 @@ func (e *Event) parseErrorLogMessage() {
 	}
 
 	// see if we have a [CLIENT: 10.10.128.85] phrase in the message
-	clientMatch := clientRegex.FindStringSubmatch(rawMsg)
+	clientMatch := clientAddressRegex.FindStringSubmatch(rawMsg)
 	if clientMatch != nil {
-		for i, name := range clientRegex.SubexpNames() {
+		for i, name := range clientAddressRegex.SubexpNames() {
 			if i != 0 && name != "" {
 				val := clientMatch[i]
 				val = left(val, 100, "...") // just in case

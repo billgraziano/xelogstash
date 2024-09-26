@@ -82,7 +82,7 @@ func TestParseErrorLog(t *testing.T) {
 		assert.Equal(tc.raw, e.GetString("errorlog_raw"))
 		assert.Equal(tc.proc, e.GetString("errorlog_process"))
 		assert.Equal(tc.msg, e.GetString("errorlog_message"))
-		assert.Equal(tc.client, e.GetString("errorlog_client"))
+		assert.Equal(tc.client, e.GetString("xe_client_address"))
 		if tc.err != 0 {
 			num, ok := e.GetInt64("error_number")
 			assert.True(ok)
