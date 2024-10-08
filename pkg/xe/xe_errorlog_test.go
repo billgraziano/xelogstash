@@ -73,6 +73,18 @@ func TestParseErrorLog(t *testing.T) {
 			client: "<local machine>",
 			msg:    "Error: 18456, Severity: 14, State: 5.  Login failed for user 'hjkhkj'. Reason: Could not find a login matching the name provided. [CLIENT: <local machine>]",
 		},
+		{
+			raw:    "2024-07-19 07:39:20.95 Logon       Error: 18456, Severity: 14, State: 5.  2024-07-19 07:39:20.95 Logon       Login failed for user 'hjkhkj'. Reason: Could not find a login matching the name provided. [CLIENT: 10.10.32.1]",
+			proc:   "logon",
+			client: "10.10.32.1",
+			msg:    "Error: 18456, Severity: 14, State: 5.  Login failed for user 'hjkhkj'. Reason: Could not find a login matching the name provided. [CLIENT: 10.10.32.1]",
+		},
+		{
+			raw:    "2024-07-19 07:39:20.95 Logon       Error: 18456, Severity: 14, State: 5.  2024-07-19 07:39:20.95 Logon       Login failed for user 'hjkhkj'. Reason: Could not find a login matching the name provided. [CLIENT: ::1]",
+			proc:   "logon",
+			client: "::1",
+			msg:    "Error: 18456, Severity: 14, State: 5.  Login failed for user 'hjkhkj'. Reason: Could not find a login matching the name provided. [CLIENT: ::1]",
+		},
 	}
 
 	for _, tc := range tt {

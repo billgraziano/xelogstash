@@ -60,7 +60,7 @@ Copy-Item -Path LICENSE.html -Destination $target
 Copy-Item -Path ".\samples\sqlxewriter.toml" -Destination $target
 Copy-Item -Path ".\samples" -Destination $target -Recurse
 
-$stdZip = "$($deploy)\sqlxewriter_$($sha1)_windows_x64.zip"
+$stdZip = "$($deploy)\sqlxewriter_$($version)_windows_x64.zip"
 If (Test-Path $stdZip) {
     Remove-Item $stdZip
 }

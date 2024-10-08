@@ -83,26 +83,24 @@ My experience here is very limited.  Feedback is appreciated.
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### vNext 
-These are commits that aren't in a release or tag yet.
-* When running in a container, it should set GOMAXPROCS to the CPU quota
-* Truncating strings should better handle Unicode characters
-* Handling error log message is significantly improved
+### Release 1.8
+* When running in a container, GOMAXPROCS is set to the CPU quota
+* Truncating strings better handles Unicode characters
+* Handling `errorlog_written` messages is significantly improved
   * Save the raw message in `errorlog_raw`
   * Don't capture `errorlog_date` and `errorlog_time`.  The date was being forced to UTC which is often wrong.
-  * Parse error strings for any event, not just login failures.  These are stored in `error_number`, `severity`, and `state`.
+  * Parse error strings for any error event, not just login failures.  These are stored in `error_number`, `severity`, and `state`.
   * Trim most strings to 8000 characters.  A few such as `errorlog_process` are trimmed to a shorter length.
-* For `errorlog_written` and `error_reported` events, if it finds text like "[CLIENT: 10.10.1.1]", it will save the address in `xe_client_address`
+* For `errorlog_written` and `error_reported` events, if it finds text like `[CLIENT: 10.10.1.1]`, it will save the address in `xe_client_address`
 * Update new builds to GO 1.22.5
 
 ### Tag 1.7.9
 This is a tag only.
 * Update to GO 1.19
 * Update all dependencies
-* The username and password fields for Defaults, Sources, and the Elastic Sink  can be set to an environment variable. That looks like this: `password="$(env:VARIABLE_NAME)"`.
+* The username and password fields for Defaults, Sources, and the Elastic Sink can be set to an environment variable. That looks like this: `password="$(env:VARIABLE_NAME)"`.
 
 ### Release 1.7.8
-
 * Improve `errorlog_written` event parsing to populate any `error_number`, `severity`, or `state` that it can parse out
 * Add a `sampler` sink (see below).  This writes sample events.  It is primarily used during development or pre-deployment to work on JSON format.
 * Improve handling bad offsets in event files.  Try to read past to the next good event in more conditions.
