@@ -2,7 +2,6 @@ package sink
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -130,15 +129,19 @@ func (fs *FileSink) Clean() error {
 	var err error
 
 	cutoff := time.Duration(fs.RetentionHours) * time.Hour
-	files, err := ioutil.ReadDir(fs.Directory)
+	files, err := os.ReadDir(fs.Directory)
 	if err != nil {
-		return errors.Wrap(err, "ioutil.readdir")
+		return errors.Wrap(err, "os.readdir")
 	}
 	pattern := fmt.Sprintf("xelogstash_%s_\\d{8}_\\d{2}\\.json", fs.id)
 	re := regexp.MustCompile(pattern)
 	now := time.Now()
 
-	for _, fi := range files {
+	for _, di := range files {
+		fi, err := di.Info()
+		if err != nil {
+			return err
+		}
 		if fi.IsDir() {
 			continue
 		}

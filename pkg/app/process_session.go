@@ -4,7 +4,7 @@ import (
 	"context"
 	"expvar"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
@@ -182,9 +182,9 @@ func (p *Program) processSession(
 		if err != nil {
 			log.Error(errors.Wrap(err, "xe.parse"))
 			if source.LogBadXML {
-				err = ioutil.WriteFile("bad_xml.log", []byte(eventData), 0600)
+				err = os.WriteFile("bad_xml.log", []byte(eventData), 0600)
 				if err != nil {
-					log.Error(errors.Wrap(err, "write bad xml: ioutil.writefile"))
+					log.Error(errors.Wrap(err, "write bad xml: os.writefile"))
 				}
 			}
 			// count the error, fail if more than X?

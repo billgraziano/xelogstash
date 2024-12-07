@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -48,8 +47,8 @@ func cleanOldLogFiles(days int) error {
 	exe = filepath.Base(exe)
 	exe = strings.TrimSuffix(exe, path.Ext(exe))
 
-	log.Debug("cleanoldlogfiles.ioutil.readdir...")
-	files, err := ioutil.ReadDir(".")
+	log.Debug("cleanoldlogfiles.os.readdir...")
+	files, err := os.ReadDir(".")
 	if err != nil {
 		return errors.Wrap(err, "readdir")
 	}

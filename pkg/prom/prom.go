@@ -26,7 +26,7 @@ var (
 	BytesWritten = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "sqlxewriter_event_write_bytes",
-			Help: "Total bytes written of JSON written to a sink",
+			Help: "Total bytes of JSON written to a sink",
 		},
 		[]string{"event", "server"},
 	)

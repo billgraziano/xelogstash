@@ -157,15 +157,6 @@ func (p *Program) startPolling() (err error) {
 	return nil
 }
 
-// write a panic to time stamped file
-// func writePanic(msg string, buf []byte) error {
-// 	ts := time.Now().Format("20060102-150405.999")
-// 	file := fmt.Sprintf("panic-%s.log", ts)
-// 	header := []byte(fmt.Sprintf("panic: %s\n\n", msg))
-// 	body := append(header, buf...)
-// 	return ioutil.WriteFile(file, body, 0700)
-// }
-
 func (p *Program) run(ctx context.Context, id int, cfg config.Config) {
 
 	defer func() {

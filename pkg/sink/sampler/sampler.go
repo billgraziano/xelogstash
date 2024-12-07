@@ -101,5 +101,5 @@ func (s *Sampler) Flush() error  { return nil }
 
 func (s *Sampler) SetLogger(entry *log.Entry) { s.logger = entry }
 
-//var _ io.WriteCloser = (*Sampler)(nil)
+// var _ io.WriteCloser = (*Sampler)(nil)
 var _ sink.Sinker = (*Sampler)(nil)

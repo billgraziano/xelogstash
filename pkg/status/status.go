@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -28,7 +27,7 @@ var sources map[string]bool
 var instances map[string]bool
 var mux sync.Mutex
 
-//ErrDup indicates a duplicate was found
+// ErrDup indicates a duplicate was found
 var ErrDup = errors.New("duplicate domain-instance-class-id")
 
 // ErrDupInstance indicates a duplicate instance domain combination was found
@@ -146,9 +145,9 @@ func (f *File) checkNullFile() error {
 	if err != nil {
 		return errors.Wrap(err, "os.stat")
 	}
-	bb, err := ioutil.ReadFile(f.Name)
+	bb, err := os.ReadFile(f.Name)
 	if err != nil {
-		return errors.Wrap(err, "ioutil.readfile")
+		return errors.Wrap(err, "os.readfile")
 	}
 	if len(bb) == 0 {
 		return nil

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 
@@ -49,9 +48,9 @@ func main() {
 		log.Fatal("logstash.newhost:", err)
 	}
 
-	f, err := ioutil.ReadFile(opts.File)
+	f, err := os.ReadFile(opts.File)
 	if err != nil {
-		log.Fatal("ioutil.readfile:", err)
+		log.Fatal("os.readfile:", err)
 	}
 
 	log.Info(fmt.Sprintf("file bytes: %d", len(f)))
