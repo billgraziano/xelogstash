@@ -11,10 +11,12 @@ import (
 	"github.com/billgraziano/xelogstash/pkg/config"
 	"github.com/billgraziano/xelogstash/pkg/logstash"
 	"github.com/billgraziano/xelogstash/pkg/metric"
+	"github.com/billgraziano/xelogstash/pkg/prom"
 	"github.com/billgraziano/xelogstash/pkg/status"
 	"github.com/billgraziano/xelogstash/pkg/xe"
 	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -24,6 +26,9 @@ func (p *Program) processSession(
 	info xe.SQLInfo,
 	source config.Source,
 	sessionid int) (result Result, err error) {
+
+	// get the server label once at the beginning
+	promServerLabel := prom.ServerLabel(info.Domain, info.Server)
 
 	result.Session = source.Sessions[sessionid]
 	result.Source = source
@@ -183,13 +188,14 @@ func (p *Program) processSession(
 				}
 			}
 			// count the error, fail if more than X?
-
 			continue
 		}
 
+		eventName := event.Name()
+		prom.EventsRead.With(prometheus.Labels{"event": eventName, "server": promServerLabel}).Inc()
+
 		// is this an event we are skipping?
 		// TODO Lower this into the Parse function
-		eventName := event.Name()
 		if containsString(source.ExcludedEvents, eventName) {
 			continue
 		}
@@ -316,6 +322,9 @@ func (p *Program) processSession(
 		result.Rows++
 		totalCount.Add(1)
 		expvar.Get("app:eventsWritten").(metric.Metric).Add(1)
+		prom.EventsWritten.With(prometheus.Labels{"event": eventName, "server": promServerLabel}).Inc()
+		prom.BytesWritten.With(prometheus.Labels{"event": eventName, "server": promServerLabel}).Add(float64(len(rs)))
+
 		eventCount.Add(eventName, 1)
 		serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), result.Session)
 		serverCount.Add(serverKey, 1)

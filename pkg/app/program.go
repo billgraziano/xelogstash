@@ -14,6 +14,7 @@ import (
 	"github.com/billgraziano/xelogstash/pkg/sink"
 	"github.com/billgraziano/xelogstash/pkg/status"
 	"github.com/billgraziano/xelogstash/pkg/xe"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/billgraziano/xelogstash/pkg/config"
 	"github.com/kardianos/service"
@@ -34,6 +35,7 @@ func (p *Program) Start(svc service.Service) error {
 
 	ConfigureExpvar()
 	http.Handle("/debug/metrics", metric.Handler(metric.Exposed))
+	http.Handle("/metrics", promhttp.Handler())
 
 	err = p.startPolling()
 	if err != nil {
@@ -387,9 +389,10 @@ func (p *Program) checkdupes(ctx context.Context, src config.Source) bool {
 func (p *Program) enableHTTP(port int) error {
 	addr := fmt.Sprintf(":%d", port)
 
-	log.Infof("pprof available at http://localhost:%d/debug/pprof", port)
-	log.Infof("expvars available at http://localhost:%d/debug/vars", port)
-	log.Infof("metrics available at http://localhost:%d/debug/metrics", port)
+	log.Infof("pprof at http://localhost:%d/debug/pprof", port)
+	log.Infof("expvars at http://localhost:%d/debug/vars", port)
+	log.Infof("metric graphs at http://localhost:%d/debug/metrics", port)
+	log.Infof("prometheus metrics at http://localhost:%d/metrics,", port)
 
 	p.Server = &http.Server{
 		Addr:    addr,
