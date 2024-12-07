@@ -132,7 +132,7 @@ func (es *ElasticSink) Write(ctx context.Context, name, event string) (int, erro
 	if err != nil {
 		return n, errors.Wrap(err, "es.buf.write-meta")
 	}
-	b.Write(espayload)
+	_, err = b.Write(espayload)
 	if err != nil {
 		return n, errors.Wrap(err, "es.buf.write-payload")
 	}
