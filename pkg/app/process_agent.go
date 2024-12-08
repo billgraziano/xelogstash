@@ -78,7 +78,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 	result.Instance = info.Server
 
 	// get the PrometheusLabel once at the beginning
-	promServerLabel := prom.ServerLabel(info.Domain, info.Server)
+	promServerLabel := prom.ServerLabel(info.Server)
 
 	err = status.SwitchV2(wid, source.Prefix, info.Domain, info.Server, status.ClassAgentJobs, result.Session)
 	if err != nil {
@@ -180,7 +180,7 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 		if err != nil {
 			return result, errors.Wrap(err, "rows.scan")
 		}
-		prom.EventsRead.With(prometheus.Labels{"event": j.Name, "server": promServerLabel}).Inc()
+		prom.EventsRead.With(prometheus.Labels{"event": j.Name, "domain": strings.ToLower(info.Domain), "server": promServerLabel}).Inc()
 
 		j.TimestampUTC, err = time.Parse(time.RFC3339Nano, tsutc)
 		if err != nil {
@@ -326,8 +326,8 @@ func (p *Program) processAgentJobs(ctx context.Context, wid int, source config.S
 			result.Rows++
 			totalCount.Add(1)
 			expvar.Get("app:eventsWritten").(metric.Metric).Add(1)
-			prom.EventsWritten.With(prometheus.Labels{"event": j.Name, "server": promServerLabel}).Inc()
-			prom.BytesWritten.With(prometheus.Labels{"event": j.Name, "server": promServerLabel}).Add(float64(len(rs)))
+			prom.EventsWritten.With(prometheus.Labels{"event": j.Name, "domain": strings.ToLower(info.Domain), "server": promServerLabel}).Inc()
+			prom.BytesWritten.With(prometheus.Labels{"event": j.Name, "domain": strings.ToLower(info.Domain), "server": promServerLabel}).Add(float64(len(rs)))
 			eventCount.Add(j.Name, 1)
 			serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), "agent_jobs")
 			serverCount.Add(serverKey, 1)

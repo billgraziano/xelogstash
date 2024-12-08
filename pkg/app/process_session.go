@@ -28,7 +28,7 @@ func (p *Program) processSession(
 	sessionid int) (result Result, err error) {
 
 	// get the server label once at the beginning
-	promServerLabel := prom.ServerLabel(info.Domain, info.Server)
+	promServerLabel := prom.ServerLabel(info.Server)
 
 	result.Session = source.Sessions[sessionid]
 	result.Source = source
@@ -192,7 +192,7 @@ func (p *Program) processSession(
 		}
 
 		eventName := event.Name()
-		prom.EventsRead.With(prometheus.Labels{"event": eventName, "server": promServerLabel}).Inc()
+		prom.EventsRead.With(prometheus.Labels{"event": eventName, "domain": strings.ToLower(info.Domain), "server": promServerLabel}).Inc()
 
 		// is this an event we are skipping?
 		// TODO Lower this into the Parse function
@@ -322,8 +322,8 @@ func (p *Program) processSession(
 		result.Rows++
 		totalCount.Add(1)
 		expvar.Get("app:eventsWritten").(metric.Metric).Add(1)
-		prom.EventsWritten.With(prometheus.Labels{"event": eventName, "server": promServerLabel}).Inc()
-		prom.BytesWritten.With(prometheus.Labels{"event": eventName, "server": promServerLabel}).Add(float64(len(rs)))
+		prom.EventsWritten.With(prometheus.Labels{"event": eventName, "domain": strings.ToLower(info.Domain), "server": promServerLabel}).Inc()
+		prom.BytesWritten.With(prometheus.Labels{"event": eventName, "domain": strings.ToLower(info.Domain), "server": promServerLabel}).Add(float64(len(rs)))
 
 		eventCount.Add(eventName, 1)
 		serverKey := fmt.Sprintf("%s-%s-%s", info.Domain, strings.Replace(info.Server, "\\", "-", -1), result.Session)

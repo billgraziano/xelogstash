@@ -83,6 +83,11 @@ My experience here is very limited.  Feedback is appreciated.
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### Release 1.8.1
+* [Prometheus](https://prometheus.io/) metrics are available at `/metrics`. This includes events read, events written and bytes of JSON written. These events are per domain, event, and server.    It also include GO runtimes metrics.
+* Remove various GO deprecated functions
+* Cleaned up issues identified by [StaticCheck](https://staticcheck.dev/)
+
 ### Release 1.8
 * When running in a container, GOMAXPROCS is set to the CPU quota
 * Truncating strings better handles Unicode characters

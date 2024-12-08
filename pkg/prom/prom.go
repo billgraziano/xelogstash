@@ -6,13 +6,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// TODO labels: event, domain, server (computer__instance), computer, instance
+
 var (
 	EventsRead = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "sqlxewriter_event_read_total",
 			Help: "Total number of extended events read from SQL Server",
 		},
-		[]string{"event", "server"},
+		[]string{"event", "domain", "server"},
 	)
 
 	EventsWritten = prometheus.NewCounterVec(
@@ -20,7 +22,7 @@ var (
 			Name: "sqlxewriter_event_write_total",
 			Help: "Total number of extended events written to a sink",
 		},
-		[]string{"event", "server"},
+		[]string{"event", "domain", "server"},
 	)
 
 	BytesWritten = prometheus.NewCounterVec(
@@ -28,7 +30,7 @@ var (
 			Name: "sqlxewriter_event_write_bytes",
 			Help: "Total bytes of JSON written to a sink",
 		},
-		[]string{"event", "server"},
+		[]string{"event", "domain", "server"},
 	)
 )
 
@@ -38,15 +40,13 @@ func init() {
 	prometheus.MustRegister(BytesWritten)
 }
 
-// ServerLabel returns a string in the format
-// domain_computer[_instance] in lower case
-func ServerLabel(domain, server string) string {
+// ServerLabel accepts @@SERVERNAME in COMPUTER[\\INSTANCE]
+// and returns computer[__instance] in lower case
+func ServerLabel(server string) string {
 	var label string
-	if domain != "" {
-		label += domain + "_"
-	}
+
 	if server != "" {
-		label += strings.Join(strings.Split(server, "\\"), "_")
+		label += strings.Join(strings.Split(server, "\\"), "__")
 	}
 	return strings.ToLower(label)
 }
