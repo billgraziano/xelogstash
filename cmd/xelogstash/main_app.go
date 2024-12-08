@@ -25,7 +25,6 @@ import (
 	"github.com/billgraziano/xelogstash/pkg/summary"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -56,7 +55,7 @@ func runApp() error {
 
 		log.SetOutput(logger)
 		log.SetFormatter(&formatter{
-			fields: logrus.Fields{
+			fields: log.Fields{
 				"version":     version,
 				"version_git": sha1ver,
 			},
@@ -105,8 +104,7 @@ func runApp() error {
 		settings.App.Workers = runtime.NumCPU()
 	}
 
-	var logMessage string
-	logMessage = fmt.Sprintf("app-start: workers %d; default rows: %d", settings.App.Workers, settings.Defaults.Rows)
+	logMessage := fmt.Sprintf("app-start: workers %d; default rows: %d", settings.App.Workers, settings.Defaults.Rows)
 	log.Info(logMessage)
 
 	// check the lock file

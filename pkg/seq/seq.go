@@ -43,14 +43,13 @@ func Get() string {
 
 	x := int64(seq.ts<<32 | seq.sequence)
 
-	var s string
-	s = encoder.EncodeInt64(x)
+	s := encoder.EncodeInt64(x)
 	seq.sequence++
 	return s
 }
 
 func getSeconds() int {
-	d := time.Now().Sub(epoch)
+	d := time.Since(epoch)
 	s := d.Seconds()
 	if s > float64(math.MaxInt32) {
 		return math.MaxInt32

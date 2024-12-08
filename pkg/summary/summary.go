@@ -134,13 +134,13 @@ func PrintSamples() error {
 		if err != nil {
 			return errors.Wrap(err, "json.indent")
 		}
-		if _, err = file.Write([]byte(fmt.Sprintf("------------------------------------------------------\r\n"))); err != nil {
+		if _, err = file.Write([]byte("------------------------------------------------------\r\n")); err != nil {
 			return errors.Wrap(err, "file.write")
 		}
 		if _, err = file.Write([]byte(fmt.Sprintf("| EVENT: %-44s|\r\n", v.Event))); err != nil {
 			return errors.Wrap(err, "file.write")
 		}
-		if _, err = file.Write([]byte(fmt.Sprintf("------------------------------------------------------\r\n"))); err != nil {
+		if _, err = file.Write([]byte("------------------------------------------------------\r\n")); err != nil {
 			return errors.Wrap(err, "file.write")
 		}
 		if _, err = file.Write([]byte(fmt.Sprintf("%s\r\n\r\n", out.String()))); err != nil {

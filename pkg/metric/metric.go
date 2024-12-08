@@ -51,7 +51,6 @@ func NewHistogram(frames ...string) Metric {
 type timeseries struct {
 	sync.Mutex
 	now      time.Time
-	size     int
 	interval time.Duration
 	total    metric
 	samples  []metric
@@ -358,7 +357,7 @@ func newTimeseries(builder func() metric, frame string) *timeseries {
 		totalDuration = interval * 15
 	}
 	n := int(totalDuration / interval)
-	samples := make([]metric, n, n)
+	samples := make([]metric, n)
 	for i := 0; i < n; i++ {
 		samples[i] = builder()
 	}

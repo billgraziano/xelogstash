@@ -122,7 +122,7 @@ path:last-child { stroke: black; }
 
 func path(samples []interface{}, keys ...string) []string {
 	var min, max float64
-	paths := make([]string, len(keys), len(keys))
+	paths := make([]string, len(keys))
 	for i := 0; i < len(samples); i++ {
 		s := samples[i].(map[string]interface{})
 		for _, k := range keys {

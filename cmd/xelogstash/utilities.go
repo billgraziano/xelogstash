@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -46,23 +45,23 @@ import (
 // }
 
 // resolves a host name and port to an IP address and port
-func resolveIP(hostAndPort string) (addr *net.TCPAddr, err error) {
-	addr, err = net.ResolveTCPAddr("tcp", hostAndPort)
-	if err != nil {
-		return addr, errors.Wrap(err, "resolveTCPAddr")
-	}
-	return addr, nil
-}
+// func resolveIP(hostAndPort string) (addr *net.TCPAddr, err error) {
+// 	addr, err = net.ResolveTCPAddr("tcp", hostAndPort)
+// 	if err != nil {
+// 		return addr, errors.Wrap(err, "resolveTCPAddr")
+// 	}
+// 	return addr, nil
+// }
 
-func containsString(array []string, search string) bool {
-	s := strings.ToLower(search)
-	for _, v := range array {
-		if s == strings.ToLower(v) {
-			return true
-		}
-	}
-	return false
-}
+// func containsString(array []string, search string) bool {
+// 	s := strings.ToLower(search)
+// 	for _, v := range array {
+// 		if s == strings.ToLower(v) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func getDefaultConfigFileName() (fn string, err error) {
 	var s string

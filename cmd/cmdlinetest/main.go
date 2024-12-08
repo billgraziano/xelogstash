@@ -69,6 +69,6 @@ func runone() {
 	if errStdout != nil || errStderr != nil {
 		log.Fatal("failed to capture stdout or stderr\n")
 	}
-	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	outStr, errStr := stdoutBuf.String(), stderrBuf.String()
 	fmt.Printf("\nout:\n%s\nerr:\n%s\n", outStr, errStr)
 }
