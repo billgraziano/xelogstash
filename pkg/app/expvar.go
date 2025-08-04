@@ -33,7 +33,7 @@ func ConfigureExpvar() {
 	expvar.Get("go:sys").(metric.Metric).Add(float64(m.Sys) / 1000000)
 
 	go func() {
-		for range time.Tick(5 * time.Second) {
+		for range time.Tick(60 * time.Second) {
 			m := &runtime.MemStats{}
 			runtime.ReadMemStats(m)
 			expvar.Get("go:numgoroutine").(metric.Metric).Add(float64(runtime.NumGoroutine()))
