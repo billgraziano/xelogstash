@@ -12,7 +12,6 @@ import (
 var i SQLInfo
 
 func init() {
-
 	i = SQLInfo{
 		Server:         "D30",
 		Domain:         "WORKGROUP",
@@ -21,7 +20,6 @@ func init() {
 		ProductRelease: "Test",
 		Version:        "13.0",
 	}
-
 }
 
 var loginEventData = `
@@ -55,6 +53,18 @@ func TestXMLParsing(t *testing.T) {
 	if ed.TimeStamp.Day() != 8 {
 		t.Error("Bad Date Parse", ed.TimeStamp)
 	}
+}
+
+func TestGetInt64(t *testing.T) {
+	assert := assert.New(t)
+	event := Event{
+		"k1": int64(123),
+	}
+	assert.Equal(1, len(event))
+
+	i64, ok := event.GetInt64("k1")
+	assert.True(ok)
+	assert.Equal(int64(123), i64)
 }
 
 func TestHiddenTimestamp(t *testing.T) {
@@ -165,6 +175,73 @@ func TestErrorLogEvent(t *testing.T) {
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
 	assert.Equal(t, event.GetString("xe_category"), "errorlog_written")
+}
+
+func TestDataFileSizeChange(t *testing.T) {
+	rawXML := `<event name="database_file_size_change" package="sqlserver" timestamp="2025-08-04T14:57:03.862Z">
+  <data name="duration">
+    <value>3000</value>
+  </data>
+  <data name="database_id">
+    <value>45</value>
+  </data>
+  <data name="file_id">
+    <value>1</value>
+  </data>
+  <data name="file_type">
+    <value>0</value>
+    <text>Data file</text>
+  </data>
+  <data name="is_automatic">
+    <value>false</value>
+  </data>
+  <data name="total_size_kb">
+    <value>9216</value>
+  </data>
+  <data name="size_change_kb">
+    <value>1024</value>
+  </data>
+  <data name="file_name">
+    <value>FileSizeTest_Data</value>
+  </data>
+  <data name="database_name">
+    <value />
+  </data>
+  <action name="sql_text" package="sqlserver">
+    <value>ALTER DATABASE [FileSizeTest] MODIFY FILE ( NAME = N'FileSizeTest', SIZE = 9216KB )</value>
+  </action>
+  <action name="server_principal_name" package="sqlserver">
+    <value>D40\graz</value>
+  </action>
+  <action name="server_instance_name" package="sqlserver">
+    <value>D40\SQL2016</value>
+  </action>
+  <action name="database_name" package="sqlserver">
+    <value>FileSizeTest</value>
+  </action>
+  <action name="client_hostname" package="sqlserver">
+    <value>D40</value>
+  </action>
+  <action name="client_app_name" package="sqlserver">
+    <value>SQL Server Management Studio</value>
+  </action>
+</event>`
+
+	event, err := Parse(&i, rawXML, false)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Raw Event: ", event)
+	jsonBytes, err := json.Marshal(event)
+	if err != nil {
+		t.Error(err)
+	}
+	// t.Log(jsonBytes)
+	jsonString := string(jsonBytes)
+	t.Log("JSON String: ", jsonString)
+	assert.Equal(t, "database_file_size_change", event.GetString("xe_category"))
+	assert.Equal(t, "FileSizeTest: FileSizeTest_Data: 1024 KB (3ms)", event.GetString("xe_description"))
+
 }
 
 func TestErrorReportedEvent(t *testing.T) {

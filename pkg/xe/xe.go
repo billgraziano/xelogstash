@@ -79,7 +79,7 @@ func (e Event) Timestamp() time.Time {
 	return ts
 }
 
-// GetInt64 returns an integer value
+// GetInt64 returns an integer value.  The raw map value must be an int64.
 func (e *Event) GetInt64(key string) (int64, bool) {
 	raw, ok := (*e)[key]
 	if !ok {
@@ -601,6 +601,25 @@ func (e *Event) getDescription() string {
 		return e.GetString("shutdown_option")
 	case "sp_server_diagnostics_component_result":
 		return fmt.Sprintf("(%s:%s) %s", e.GetString("component"), e.GetString("state"), e.GetString("data"))
+	case "database_file_size_change":
+		var str string
+		dbname := e.GetString("database_name")
+		if len(dbname) > 0 {
+			str += fmt.Sprintf("%s: ", dbname)
+		}
+		fileName := e.GetString("file_name")
+		if len(fileName) > 0 {
+			str += fmt.Sprintf("%s: ", fileName)
+		}
+		chg, ok := e.GetIntFromString("size_change_kb")
+		if ok {
+			str += fmt.Sprintf("%d KB", chg)
+		}
+		durtn, ok := e.GetIntFromString("duration")
+		if ok {
+			str += fmt.Sprintf(" (%dms)", durtn/1000)
+		}
+		return str
 	}
 
 	return ""
