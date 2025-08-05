@@ -83,6 +83,10 @@ My experience here is very limited.  Feedback is appreciated.
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
+### vNext 
+These are features that aren't in a binary yet
+* Support `database_file_size_change` events
+
 ### Release 1.8.1
 * [Prometheus](https://prometheus.io/) metrics are available at `/metrics`. This includes events read, events written and bytes of JSON written. These events are per domain, event, and server.    It also include GO runtimes metrics.
 * Remove various GO deprecated functions
