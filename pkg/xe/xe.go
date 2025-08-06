@@ -611,9 +611,10 @@ func (e *Event) getDescription() string {
 		if len(fileName) > 0 {
 			str += fmt.Sprintf("%s: ", fileName)
 		}
-		chg, ok := e.GetIntFromString("size_change_kb")
+		change_kb, ok := e.GetIntFromString("size_change_kb")
 		if ok {
-			str += fmt.Sprintf("%d KB", chg)
+			change, units := kbtombstring(change_kb)
+			str += fmt.Sprintf("%d %s", change, units)
 		}
 		durtn, ok := e.GetIntFromString("duration")
 		if ok {
@@ -623,6 +624,18 @@ func (e *Event) getDescription() string {
 	}
 
 	return ""
+}
+
+// kbtombstring accepts KB (1024 type) and returns either KB or MB
+// if it is an even multiple of 1024
+func kbtombstring(kb int64) (int64, string) {
+	units := "KB"
+	change := kb
+	if change >= 1024 && change%1024 == 0 {
+		units = "MB"
+		change = change / 1024
+	}
+	return change, units
 }
 
 func (e *Event) getSQLDescription(name ...string) string {

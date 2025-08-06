@@ -383,13 +383,12 @@ func (p *Program) enableHTTP(port int) error {
 	log.Infof("pprof at http://localhost:%d/debug/pprof", port)
 	log.Infof("expvars at http://localhost:%d/debug/vars", port)
 	log.Infof("metric graphs at http://localhost:%d/debug/metrics", port)
-	log.Infof("prometheus metrics at http://localhost:%d/metrics,", port)
+	log.Infof("prometheus metrics at http://localhost:%d/metrics", port)
 
 	p.Server = &http.Server{
 		Addr:    addr,
 		Handler: http.DefaultServeMux,
 	}
-	//
 
 	go func() {
 		serverErr := p.Server.ListenAndServe()

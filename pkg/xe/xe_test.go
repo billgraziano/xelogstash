@@ -240,10 +240,32 @@ func TestDataFileSizeChange(t *testing.T) {
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
 	assert.Equal(t, "database_file_size_change", event.GetString("xe_category"))
-	assert.Equal(t, "FileSizeTest: FileSizeTest_Data: 1024 KB (3ms)", event.GetString("xe_description"))
-
+	assert.Equal(t, "FileSizeTest: FileSizeTest_Data: 1 MB (3ms)", event.GetString("xe_description"))
 }
 
+func TestKBToMB(t *testing.T) {
+	assert := assert.New(t)
+	type test struct {
+		kb     int64
+		change int64
+		units  string
+	}
+	tests := []test{
+		{10, 10, "KB"},
+		{1023, 1023, "KB"},
+		{1024, 1, "MB"},
+		{1025, 1025, "KB"},
+		{2047, 2047, "KB"},
+		{2048, 2, "MB"},
+		{2049, 2049, "KB"},
+	}
+	for _, tc := range tests {
+		chg, units := kbtombstring(tc.kb)
+		assert.Equal(tc.change, chg)
+		assert.Equal(tc.units, units)
+	}
+
+}
 func TestErrorReportedEvent(t *testing.T) {
 
 	rawXML := `<event name="error_reported" package="sqlserver" timestamp="2018-04-19T16:21:25.541Z"><data name="error_number"><value>208</value></data><data name="severity"><value>16</value></data><data name="state"><value>1</value></data><data name="user_defined"><value>false</value></data><data name="category"><value>2</value><text><![CDATA[SERVER]]></text></data><data name="destination"><value>0x00000002</value><text><![CDATA[USER]]></text></data><data name="is_intercepted"><value>false</value></data><data name="message"><value><![CDATA[Invalid object name 'sys.xe_object_columns'.]]></value></data><action name="sql_text" package="sqlserver"><value><![CDATA[select * from sys.xe_object_columns ]]></value></action><action name="server_principal_name" package="sqlserver"><value><![CDATA[MicrosoftAccount\graz]]></value></action><action name="server_instance_name" package="sqlserver"><value><![CDATA[D30\SQL2016]]></value></action><action name="is_system" package="sqlserver"><value>false</value></action><action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action><action name="client_hostname" package="sqlserver"><value><![CDATA[D30]]></value></action><action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action><action name="collect_system_time" package="package0"><value>2018-04-19T16:21:25.540Z</value></action></event>`
