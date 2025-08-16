@@ -67,7 +67,10 @@ ADD EVENT sqlserver.database_mirroring_state_change(
     ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_hostname,sqlserver.client_pid,sqlserver.database_name,sqlserver.is_system,sqlserver.server_instance_name,sqlserver.server_principal_name,sqlserver.sql_text)),
 
 ADD EVENT sqlserver.errorlog_written(
-    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_hostname,sqlserver.client_pid,sqlserver.database_name,sqlserver.is_system,sqlserver.server_instance_name,sqlserver.server_principal_name,sqlserver.sql_text))
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_hostname,sqlserver.client_pid,sqlserver.database_name,sqlserver.is_system,sqlserver.server_instance_name,sqlserver.server_principal_name,sqlserver.sql_text)),
+
+ADD EVENT sqlserver.database_file_size_change(SET collect_database_name=(1)
+    ACTION(sqlserver.client_app_name,sqlserver.client_hostname,sqlserver.database_name,sqlserver.server_instance_name,sqlserver.server_principal_name,sqlserver.sql_text))
 
 ADD TARGET package0.event_file(
 	SET filename=N'logstash_events',max_file_size=(10), max_rollover_files=(20)  )

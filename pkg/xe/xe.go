@@ -206,9 +206,21 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 		}
 	}
 
+	// Certain values can have both "data' and "action" values.  A common one is database_name.
+	// The specific case is database file growth.  A tempdb file growth may be triggered by a transaction
+	// running in a different database.  The "data" value will be tempdb while the "action" value will
+	// be the database where the query ran.
+	//
+	// If we have both, we will append _action to the end of the key name instead of overwriting the
+	// other value
 	for _, a := range ed.ActionValues {
 		actionValue := i.getActionValue(a, eventData)
-		event[a.Name] = actionValue
+		name := a.Name
+		_, exists := event[name]
+		if exists {
+			name = name + "_action"
+		}
+		event[name] = actionValue
 	}
 
 	event["name"] = ed.Name
@@ -602,25 +614,26 @@ func (e *Event) getDescription() string {
 	case "sp_server_diagnostics_component_result":
 		return fmt.Sprintf("(%s:%s) %s", e.GetString("component"), e.GetString("state"), e.GetString("data"))
 	case "database_file_size_change":
-		var str string
+		// DB: DatabaseValue File: FileSizeTest_Data: 1 MB (3ms)
+		parts := make([]string, 0)
 		dbname := e.GetString("database_name")
 		if len(dbname) > 0 {
-			str += fmt.Sprintf("%s: ", dbname)
+			parts = append(parts, fmt.Sprintf("DB: %s", dbname))
 		}
 		fileName := e.GetString("file_name")
 		if len(fileName) > 0 {
-			str += fmt.Sprintf("%s: ", fileName)
+			parts = append(parts, fmt.Sprintf("File: %s", fileName))
 		}
 		change_kb, ok := e.GetIntFromString("size_change_kb")
 		if ok {
 			change, units := kbtombstring(change_kb)
-			str += fmt.Sprintf("%d %s", change, units)
+			parts = append(parts, fmt.Sprintf("%d %s", change, units))
 		}
 		durtn, ok := e.GetIntFromString("duration")
 		if ok {
-			str += fmt.Sprintf(" (%dms)", durtn/1000)
+			parts = append(parts, fmt.Sprintf("(%dms)", durtn/1000))
 		}
-		return str
+		return strings.Join(parts, " ")
 	}
 
 	return ""

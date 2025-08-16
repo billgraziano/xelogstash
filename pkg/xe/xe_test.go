@@ -240,7 +240,83 @@ func TestDataFileSizeChange(t *testing.T) {
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
 	assert.Equal(t, "database_file_size_change", event.GetString("xe_category"))
-	assert.Equal(t, "FileSizeTest: FileSizeTest_Data: 1 MB (3ms)", event.GetString("xe_description"))
+	assert.Equal(t, "File: FileSizeTest_Data 1 MB (3ms)", event.GetString("xe_description"))
+}
+
+func TestDataFileSizeChangeDatabaseAction(t *testing.T) {
+	assert := assert.New(t)
+	rawXML := `
+	<event name="database_file_size_change" package="sqlserver" timestamp="2025-08-13T15:46:20.267Z">
+		<data name="duration">
+			<value>40000</value>
+		</data>
+		<data name="database_id">
+			<value>2</value>
+		</data>
+		<data name="file_id">
+			<value>2</value>
+		</data>
+		<data name="file_type">
+			<value>1</value>
+			<text>Log file</text>
+		</data>
+		<data name="is_automatic">
+			<value>true</value>
+		</data>
+		<data name="total_size_kb">
+			<value>73728</value>
+		</data>
+		<data name="size_change_kb">
+			<value>65536</value>
+		</data>
+		<data name="file_name">
+			<value>templog</value>
+		</data>
+		<data name="database_name">
+			<value>tempdb</value>
+		</data>
+		<action name="sql_text" package="sqlserver">
+			<value>
+				SELECT 1
+			</value>
+		</action>
+		<action name="server_instance_name" package="sqlserver">
+			<value>SRV01</value>
+		</action>
+		<action name="database_name" package="sqlserver">
+			<value>UserDB</value>
+		</action>
+		<action name="client_hostname" package="sqlserver">
+			<value>CLIENT01</value>
+		</action>
+		<action name="client_app_name" package="sqlserver">
+			<value>Microsoft SQL Server Management Studio - Query</value>
+		</action>
+	</event>
+	`
+
+	event, err := Parse(&i, rawXML, false)
+	if err != nil {
+		t.Error(err)
+	}
+	dbv, ok := event["database_name"]
+	assert.True(ok)
+	assert.Equal("tempdb", dbv)
+
+	dba, ok := event["database_name_action"]
+	assert.True(ok)
+	assert.Equal("UserDB", dba)
+
+	t.Log("Raw Event: ", event)
+	jsonBytes, err := json.Marshal(event)
+	if err != nil {
+		t.Error(err)
+	}
+	// t.Log(jsonBytes)
+	jsonString := string(jsonBytes)
+	t.Log("JSON String: ", jsonString)
+	assert.Equal("database_file_size_change", event.GetString("xe_category"))
+	assert.Equal("DB: tempdb File: templog 64 MB (40ms)", event.GetString("xe_description"))
 }
 
 func TestKBToMB(t *testing.T) {
