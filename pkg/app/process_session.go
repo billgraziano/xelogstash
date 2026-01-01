@@ -8,13 +8,14 @@ import (
 	"regexp"
 	"strings"
 
+	mssql "github.com/microsoft/go-mssqldb"
+
 	"github.com/billgraziano/xelogstash/pkg/config"
 	"github.com/billgraziano/xelogstash/pkg/logstash"
 	"github.com/billgraziano/xelogstash/pkg/metric"
 	"github.com/billgraziano/xelogstash/pkg/prom"
 	"github.com/billgraziano/xelogstash/pkg/status"
 	"github.com/billgraziano/xelogstash/pkg/xe"
-	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
