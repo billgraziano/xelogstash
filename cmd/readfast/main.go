@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/billgraziano/mssqlh"
@@ -22,22 +23,20 @@ func main() {
 	var server, session string
 	var rows int
 	var parse bool
+	var allocs bool
 	// var format bool
 	flag.StringVar(&server, "server", "localhost", "server to connect to")
 	flag.StringVar(&session, "session", "system_health", "extended event session name")
 	flag.IntVar(&rows, "rows", 0, "maximum rows to read")
 	flag.BoolVar(&parse, "parse", false, "parse the event XML data")
-	//flag.BoolVar(&format, "format", false, "format the event")
+	flag.BoolVar(&allocs, "allocs", false, "print out the heap allocations")
 	flag.Parse()
-	// if format {
-	// 	parse = true
-	// }
 	log.Info(fmt.Sprintf("parameters: server: %s  session: %s", server, session))
 	log.Info(fmt.Sprintf("parameters: rows: %s  parse: %v", humanize.Comma(int64(rows)), parse))
-	run(server, session, rows, parse, false)
+	run(server, session, rows, parse, false, allocs)
 }
 
-func run(server, session string, maxRows int, parse, format bool) {
+func run(server, session string, maxRows int, parse, format bool, allocs bool) {
 	// 	mapping := `
 	// 	root.mssql = this
 	// 	root.mssql.test = "abc"
@@ -165,6 +164,26 @@ func run(server, session string, maxRows int, parse, format bool) {
 	}
 
 	log.Info("done.")
+	// runtime.GC()
+	if allocs {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+
+		fmt.Printf("Total allocations: %d bytes (%.2f MB)\n",
+			m.TotalAlloc, float64(m.TotalAlloc)/(1024*1024))
+		fmt.Printf("Mallocs: %d\n", m.Mallocs)
+		fmt.Printf("alloc bytes/row: %d\n", m.TotalAlloc/uint64(totalRows))
+		fmt.Printf("allocations/row: %d\n", m.Mallocs/uint64(totalRows))
+	}
+	/*
+		D40\SQL2016 (system_health)
+		alloc bytes/row: 24794
+		allocations/row: 372
+
+		D40\SQL2016 (logstgash_events)
+		alloc bytes/row: 31181
+		allocations/row: 371
+	*/
 }
 
 func safeClose(c io.Closer, err *error) {
