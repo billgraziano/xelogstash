@@ -18,20 +18,17 @@ type SQLInfo struct {
 	AvailibilityGroups []string
 	Listeners          []string
 
-	// ProductLevel holds "SP1"
-	ProductLevel string
-	// ProductRelease holds "13.0"
-	ProductRelease string
-	// Version holds "SQL Server 2013"
-	Version string
-	// ProductVersion holds "13.0.5101.9"
-	ProductVersion string
+	ProductLevel   string // ProductLevel holds "SP1"
+	ProductRelease string // ProductRelease holds "13.0"
+	Version        string // Version holds "SQL Server 2013"
+	ProductVersion string // ProductVersion holds "13.0.5101.9"
 
-	Fields      map[FieldTypeKey]string
-	Actions     map[string]string
-	MapValues   map[MapValueKey]string
-	Databases   map[int64]*Database
-	LoginErrors map[int64]bool
+	Fields       map[FieldTypeKey]string
+	Actions      map[string]string
+	MapValues    map[MapValueKey]string
+	Databases    map[int64]*Database
+	LoginErrors  map[int64]bool
+	LoggedErrors Set[int64]
 
 	DB *sql.DB
 }
@@ -62,6 +59,7 @@ func NewSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info 
 	info.MapValues = make(map[MapValueKey]string)
 	info.AvailibilityGroups = make([]string, 0)
 	info.Listeners = make([]string, 0)
+	info.LoggedErrors = NewSet[int64]() // roughly 1300 logged errrors as of SQL 2022
 
 	db, err := dbx.Open(driver, cxnstring)
 	if err != nil {
@@ -192,6 +190,11 @@ func NewSQLInfo(driver, cxnstring, serverOverride, domainOverride string) (info 
 		return info, errors.Wrap(err, "info.getloginerrors")
 	}
 
+	err = info.getLoggedErrors()
+	if err != nil {
+		return info, errors.Wrap(err, "info.getloggederrors")
+	}
+
 	availGroups, err := stringArrayFromQuery(info.DB, "IF OBJECT_ID('sys.availability_groups') IS NOT NULL SELECT [name] FROM sys.availability_groups ORDER BY [name];")
 	if err != nil {
 		return info, errors.Wrap(err, "ag")
@@ -260,6 +263,30 @@ func (i *SQLInfo) getLoginErrors() error {
 			return errors.Wrap(err, "mapvalue-scan")
 		}
 		i.LoginErrors[id] = true
+	}
+	return nil
+}
+
+func (i *SQLInfo) getLoggedErrors() error {
+	query := `
+		SELECT	message_id 
+		FROM	sys.messages
+		WHERE	is_event_logged = 1 
+		AND language_id IN (SELECT msglangid FROM sys.syslanguages WHERE langid = @@LANGID) 
+	`
+	rows, err := i.DB.Query(query)
+	if err != nil {
+		return errors.Wrap(err, "mapvalue-query")
+	}
+	defer rows.Close()
+	var id int64
+
+	for rows.Next() {
+		err = rows.Scan(&id)
+		if err != nil {
+			return errors.Wrap(err, "mapvalue-scan")
+		}
+		i.LoggedErrors.Add(id)
 	}
 	return nil
 }

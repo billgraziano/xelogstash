@@ -21,9 +21,6 @@ var spaceRegex = regexp.MustCompile(`\s+`)
 var clientAddressRegex = regexp.MustCompile(`\[CLIENT: (?P<xe_client_address>[^][]*)]`)
 var processLogon = "logon"
 
-// Event is a key value of entries for the XE event
-type Event map[string]interface{}
-
 type xmlDataType struct {
 	Name string `xml:"name,attr"`
 }
@@ -48,64 +45,6 @@ type XMLEventData struct {
 	TimeStamp    time.Time   `xml:"timestamp,attr"`
 	DataValues   []xmlData   `xml:"data"`
 	ActionValues []xmlAction `xml:"action"`
-}
-
-// Name returns the "name" attribute from the event
-// It returns an empty string if not found or not a string
-func (e *Event) Name() string {
-	i, ok := (*e)["name"]
-	if !ok {
-		return ""
-	}
-	s, ok := i.(string)
-	if !ok {
-		return ""
-	}
-	return s
-}
-
-// Timestamp returns the "timestamp" attribute from the event
-// It returns the zero value if it doesn't exist
-func (e Event) Timestamp() time.Time {
-	zero := time.Time{}
-	i, ok := e["timestamp"]
-	if !ok {
-		return zero
-	}
-	ts, ok := i.(time.Time)
-	if !ok {
-		return zero
-	}
-	return ts
-}
-
-// GetInt64 returns an integer value.  The raw map value must be an int64.
-func (e *Event) GetInt64(key string) (int64, bool) {
-	raw, ok := (*e)[key]
-	if !ok {
-		return 0, false
-	}
-
-	i64, ok := raw.(int64)
-	if !ok {
-		return 0, false
-	}
-
-	return i64, true
-}
-
-// GetIntFromString returns an int64 from a string'd interface
-func (e *Event) GetIntFromString(key string) (int64, bool) {
-	v, exists := (*e)[key]
-	if !exists {
-		return 0, false
-	}
-	str := fmt.Sprintf("%v", v)
-	i64, err := strconv.ParseInt(str, 10, 64)
-	if err != nil {
-		return 0, false
-	}
-	return i64, true
 }
 
 // CacheSize returns the number of items in the cache
@@ -251,6 +190,15 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 	severity := event.getSeverity()
 	event["xe_severity_value"] = severity
 	event["xe_severity_keyword"] = severity.String()
+
+	// if there's an error number, and that number has is_error_logged set,
+	// then add that field
+	errnum, ok := event.ErrorNumber()
+	if ok {
+		if i.LoggedErrors.Contains(errnum) {
+			event["xe_is_event_logged"] = true
+		}
+	}
 
 	if i.Domain != "" {
 		event.Set("mssql_domain", i.Domain)
