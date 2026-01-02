@@ -87,6 +87,7 @@ My experience here is very limited.  Feedback is appreciated.
 These are features that aren't in a binary yet
 * Support `database_file_size_change` events
 * Update dependencies and GO version
+* If an event has an error number, and that error number is `is_event_logged=1` then set `xe_is_event_logged=true`
 
 ### Release 1.8.1
 * [Prometheus](https://prometheus.io/) metrics are available at `/metrics`. This includes events read, events written and bytes of JSON written. These events are per domain, event, and server.    It also include GO runtimes metrics.
