@@ -62,6 +62,8 @@ func GetInstance(db *sql.DB, session, serverOverride, domainOverride string) (in
 
 	var v string
 	switch info.ProductRelease {
+	case "17.0":
+		v = "SQL Server 2025"
 	case "16.0":
 		v = "SQL Server 2022"
 	case "15.0":
