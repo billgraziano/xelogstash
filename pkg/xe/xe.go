@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -64,6 +65,7 @@ func (i *SQLInfo) getDataValue(object string, x xmlData, eventData string) inter
 	return getValue(x.Name, dt, x.Value, eventData)
 }
 
+// getValue takes the field name, data type, and string value and returns a native GO type.
 func getValue(name, datatype, value, eventData string) interface{} {
 	var newValue interface{}
 
@@ -90,6 +92,8 @@ func getValue(name, datatype, value, eventData string) interface{} {
 		newValue, _ = strconv.ParseUint(value, 10, 32)
 	case "uint64":
 		newValue, _ = strconv.ParseUint(value, 10, 64)
+	case "binary_data": // this hex-encoded string
+		newValue = "0x" + value
 	case "xml":
 		xmlData, err := getInnerXML(eventData, name)
 		if err != nil {
@@ -112,10 +116,6 @@ func (i *SQLInfo) getActionValue(a xmlAction, eventData string) interface{} {
 	}
 	var newValue interface{}
 	newValue = a.Value
-	// hardcode some hacks
-	if a.Name == "query_hash" {
-		return newValue // leave as string
-	}
 	newValue = getValue(a.Name, dt, a.Value, eventData)
 
 	return newValue
@@ -152,7 +152,17 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 	//
 	// If we have both, we will append _action to the end of the key name instead of overwriting the
 	// other value
+	//
+	// If the handles or hashes are zero, skip them
+	zeroValueActionsToSkip := []string{"plan_handle", "query_hash", "query_hash_signed", "query_plan_hash", "query_plan_hash_signed"}
+
 	for _, a := range ed.ActionValues {
+		// check for zero values
+		if slices.Contains(zeroValueActionsToSkip, a.Name) {
+			if strings.Trim(a.Value, "0") == "" { // plan_handle is a long string of zeroes
+				continue
+			}
+		}
 		actionValue := i.getActionValue(a, eventData)
 		name := a.Name
 		_, exists := event[name]

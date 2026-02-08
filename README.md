@@ -88,6 +88,9 @@ These are features that aren't in a binary yet
 * Support `database_file_size_change` events
 * Update dependencies and GO version
 * If an event has an error number, and that error number is `is_event_logged=1` then set `xe_is_event_logged=true`.  This is useful to know if we can create an alert for an event.
+* Improved support for SQL Server 2025
+* Improved support for `binary_data` fields in the XML. This is for capturing query handles and hashes but will help with SIDs, etc.
+
 
 ### Release 1.8.1
 * [Prometheus](https://prometheus.io/) metrics are available at `/metrics`. This includes events read, events written and bytes of JSON written. These events are per domain, event, and server.    It also include GO runtimes metrics.

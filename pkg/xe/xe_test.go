@@ -19,6 +19,13 @@ func init() {
 		ProductLevel:   "Test",
 		ProductRelease: "Test",
 		Version:        "13.0",
+		Actions: map[string]string{
+			"plan_handle":            "binary_data",
+			"query_hash_signed":      "int64",
+			"query_plan_hash_signed": "int64",
+			"query_plan_hash":        "uint64",
+			"query_hash":             "uint64",
+		},
 	}
 }
 
@@ -591,6 +598,93 @@ func TestDeadlockChain(t *testing.T) {
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	t.Log("JSON String: ", jsonString)
+}
+
+func TestHandlesWithValues(t *testing.T) {
+	rawXML := `
+	<event name="sp_statement_completed" package="sqlserver" timestamp="2026-02-08T13:10:57.590Z">		
+		<action name="plan_handle" package="sqlserver">
+			<value>06000100878dd010b0f12822c501000001000000000000000000000000000000000000000000000000000000</value>
+		</action>
+		<action name="query_hash" package="sqlserver">
+			<value>3279475884177764727</value>
+		</action>
+		<action name="query_hash_signed" package="sqlserver">
+			<value>3279475884177764727</value>
+		</action>
+		<action name="query_plan_hash" package="sqlserver">
+			<value>6189487012607264618</value>
+		</action>
+		<action name="query_plan_hash_signed" package="sqlserver">
+			<value>6189487012607264618</value>
+		</action>
+	</event>
+	`
+
+	event, err := Parse(&i, rawXML, false)
+	if err != nil {
+		t.Error(err)
+	}
+	//t.Log("Raw Event: ", event)
+	// jsonBytes, err := json.Marshal(event)
+	// if err != nil {
+	// 	t.Error(err)
+	// }
+	assert.Equal(t, "0x06000100878dd010b0f12822c501000001000000000000000000000000000000000000000000000000000000", event.GetString("plan_handle"))
+	assert.Equal(t, event.GetString("xe_category"), "tsql")
+
+	vint64, ok := event.GetInt64("query_hash_signed")
+	assert.True(t, ok)
+	assert.Equal(t, int64(3279475884177764727), vint64)
+
+	vint64, ok = event.GetInt64("query_plan_hash_signed")
+	assert.True(t, ok)
+	assert.Equal(t, int64(6189487012607264618), vint64)
+
+	vunit64, ok := event.GetUInt64("query_hash")
+	assert.True(t, ok)
+	assert.Equal(t, uint64(3279475884177764727), vunit64)
+
+	vunit64, ok = event.GetUInt64("query_plan_hash")
+	assert.True(t, ok)
+	assert.Equal(t, uint64(6189487012607264618), vunit64)
+
+	// t.Log(jsonBytes)
+	// jsonString := string(jsonBytes)
+	// t.Log("JSON String: ", jsonString)
+}
+
+func TestHandlesWithZeroValues(t *testing.T) {
+	assert := assert.New(t)
+	rawXML := `
+	<event name="sp_statement_completed" package="sqlserver" timestamp="2026-02-08T13:10:57.590Z">		
+		<action name="plan_handle" package="sqlserver">
+			<value>0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</value>
+		</action>
+		<action name="query_hash" package="sqlserver">
+			<value>0</value>
+		</action>
+		<action name="query_hash_signed" package="sqlserver">
+			<value>0</value>
+		</action>
+		<action name="query_plan_hash" package="sqlserver">
+			<value>0</value>
+		</action>
+		<action name="query_plan_hash_signed" package="sqlserver">
+			<value>0</value>
+		</action>
+	</event>
+	`
+
+	event, err := Parse(&i, rawXML, false)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.NotContains(event, "plan_handle")
+	assert.NotContains(event, "query_hash")
+	assert.NotContains(event, "query_hash_signed")
+	assert.NotContains(event, "query_plan_hash")
+	assert.NotContains(event, "query_plan_hash_signed")
 }
 
 func TestBlockedProcess(t *testing.T) {

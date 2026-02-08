@@ -44,14 +44,10 @@ func (e Event) ErrorNumber() (int64, bool) {
 	if !ok {
 		return 0, false
 	}
-	println("got an error number")
-	fmt.Printf("error_number: %+v (%T)\n", raw, raw)
 	val, ok := raw.(int64)
-	println("is int:", ok)
 	if !ok {
 		return 0, false
 	}
-	println("error_number:", val)
 	return val, true
 }
 
@@ -68,6 +64,21 @@ func (e *Event) GetInt64(key string) (int64, bool) {
 	}
 
 	return i64, true
+}
+
+// GetUInt64 returns a uint64 value.  The raw map value must be a uint64.
+func (e *Event) GetUInt64(key string) (uint64, bool) {
+	raw, ok := (*e)[key]
+	if !ok {
+		return 0, false
+	}
+
+	u64, ok := raw.(uint64)
+	if !ok {
+		return 0, false
+	}
+
+	return u64, true
 }
 
 // GetIntFromString returns an int64 from a string'd interface
