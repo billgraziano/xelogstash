@@ -86,9 +86,9 @@ func (p *Program) processSession(
 	var query string
 
 	if (lastFileName == "" && lastFileOffset == 0) || xestatus == status.StateReset {
-		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL);", session.WildCard)
+		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, NULL, NULL) OPTION (RECOMPILE);", session.WildCard)
 	} else {
-		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, '%s', %d);", session.WildCard, lastFileName, lastFileOffset)
+		query = fmt.Sprintf("SELECT object_name, event_data, file_name, file_offset FROM sys.fn_xe_file_target_read_file('%s', NULL, '%s', %d) OPTION (RECOMPILE);", session.WildCard, lastFileName, lastFileOffset)
 	}
 	rows, err := info.DB.Query(query)
 	if err != nil {
