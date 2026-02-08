@@ -48,6 +48,7 @@ README.html
 /dist
 
 bld.cmd
+run.cmd
 run.sh
 LinuxBuild.ps1
 
