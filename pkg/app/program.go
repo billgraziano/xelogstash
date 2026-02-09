@@ -132,7 +132,8 @@ func (p *Program) startPolling() (err error) {
 		p.Verbose = settings.App.Verbose
 	}
 	if settings.App.BetaFeatures {
-		log.Info("beta_features: true")
+		// log.Info("beta_features: true")
+		log.Info("beta_features: true: (no beta features in this release)")
 		p.BetaFeatures = settings.App.BetaFeatures
 	}
 

@@ -89,7 +89,8 @@ These are features that aren't in a binary yet
 * Update dependencies and GO version
 * If an event has an error number, and that error number is `is_event_logged=1` then set `xe_is_event_logged=true`.  This is useful to know if we can create an alert for an event.
 * Improved support for SQL Server 2025
-* Improved support for `binary_data` fields in the XML. This is for capturing query handles and hashes but will help with SIDs, etc.
+* Improved support for `binary_data` fields in the XML. This is for capturing query handles and hashes but will help with SIDs, etc.  These are displayed as hex strings with a `0x` prefix.
+* The app sets `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`. These fields are only added if the quantity at or above the threshold. For example, `cpu_time_sec` is only added if the CPU time is at least 1 second (1 million microseconds).  This was formerly a beta feature controlled by a flag.
 
 
 ### Release 1.8.1
@@ -513,8 +514,7 @@ Enabling `beta_features` in the `app` section will enable certain beta features:
 [app]
 beta_features = true
 ```
-As of 1.7.8, this adds the following calculated fields: `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`.
-These fields are only added if the quantity at or above the threshold.  For example, `cpu_time_sec` is only added if the CPU time is at least 1 second (1 million microseconds).
+None in the current release.
 
 ## <a name="linux"></a>Linux Support
 

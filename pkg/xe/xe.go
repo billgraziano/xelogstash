@@ -244,12 +244,10 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 	if ed.Name == "error_reported" {
 		event.parseErrorReported(i, desc)
 	}
-
+	event.SetExtraUnits() // used to be a beta feature
 	if beta {
-		// writes_mb, cpu_time_sec, etc.
-		event.SetExtraUnits()
+		// no beta features in this release
 	}
-
 	return event, nil
 }
 
