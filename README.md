@@ -545,6 +545,7 @@ Experimental support is included for Linux.  Please be aware of the following is
 * The application is currently built with GO 1.16.5
 * The tests can be run with `go test ./...`
 * Security scanning can be done by `gosec -severity medium ./...`
+* Vulnerablility scanning is done by `govulncheck -show color ./...`
 
 * The builds write to a `deploy` directory
   * Build for Windows by running `PSMake.cmd 1.1.1` (or the target version)
