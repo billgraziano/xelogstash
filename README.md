@@ -91,6 +91,8 @@ These are features that aren't in a binary yet
 * Improved support for SQL Server 2025
 * Improved support for `binary_data` fields in the XML. This is for capturing query handles and hashes but will help with SIDs, etc.  These are displayed as hex strings with a `0x` prefix.
 * The app sets `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`. These fields are only added if the quantity at or above the threshold. For example, `cpu_time_sec` is only added if the CPU time is at least 1 second (1 million microseconds).  This was formerly a beta feature controlled by a flag.
+* For error 18456, we set `xe_state_description` based on the descriptions in the [SQL Server Documentation](https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-18456-database-engine-error?view=sql-server-ver17).  This helps highlight the actual cause of the error.
+* Update new builds to GO 1.25.7
 
 
 ### Release 1.8.1
@@ -444,7 +446,8 @@ depends on the type of event and what fields are available.  My goal is that see
 * `xe_file_name`: name of the XE file for this event
 * `xe_file_offset`: file offset where we found this event
 * `xe_category`: defaults to the event name but groups similar events together. For example, all SQL events are in `tsql`, all HADR events are in `hadr`, `deadlock`, etc.
-* `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, I populate it from `@@SERVERNAME` of the source server.
+* `server_instance_name`: This is normally provided by the extended event.  However system_health and AlwaysOn_health don't capture this.  If the field isn't provided, it is populated from the `@@SERVERNAME` of the source server.
+* `xe_state_description`: For error 18456, we set this based on the descriptions in the [SQL Server Documentation](https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-18456-database-engine-error?view=sql-server-ver17).  This helps highlight the actual cause of the error.
 * `login_failed`: This field is populated when a login fails.  The easiest way to monitor failed logins in Kibana is filter for the existence of the `login_failed` field. Login errors are reported two ways and this tries to captures both.  That means you will typically see two errors in Kibana for each failed attempt.
   * For `errorlog_written`, if the errorlog written process is `logon` it populates this field with the error message.  That has the IP address of the client.  It also means that if you're capturing successful logins in the error log, this will be wrong.  Successful logins should be captured by extended events.
   * For `error_reported`, if the error number is one whose text has "login failed", then we populate the field with the error message.

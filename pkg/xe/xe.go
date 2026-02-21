@@ -260,9 +260,16 @@ func (e *Event) parseErrorReported(i *SQLInfo, desc string) {
 			e.Set("login_failed", desc)
 		}
 	}
+	if errnum == 18456 {
+		e.setStateDescription18456()
+	}
 
 	// see if we have a [CLIENT: 10.10.128.85] phrase in the message
 	rawMsg := e.GetString("message")
+	if rawMsg == "" {
+		return
+	}
+
 	clientMatch := clientAddressRegex.FindStringSubmatch(rawMsg)
 	if clientMatch != nil {
 		// name is set in the regex
@@ -273,6 +280,59 @@ func (e *Event) parseErrorReported(i *SQLInfo, desc string) {
 				e.Set(name, val)
 			}
 		}
+	}
+}
+
+// setStateDescription18456 sets xe_state_description based on the text in
+// https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-18456-database-engine-error?view=sql-server-ver17
+func (e *Event) setStateDescription18456() {
+	if e.Exists("xe_state_description") {
+		return
+	}
+
+	// set the state description from the docs
+	state, ok := e.GetInt64("state")
+	if !ok {
+		return
+	}
+	var desc string
+	switch state {
+	case 2, 5:
+		desc = "User ID isn't valid"
+	case 6:
+		desc = "An attempt was made to use a Windows login name with SQL Server Authentication"
+	case 7:
+		desc = "Login is disabled, and the password is incorrect"
+	case 8:
+		desc = "The password is incorrect"
+	case 9:
+		desc = "Password isn't valid"
+	case 11:
+		desc = "Login is valid, but server access failed. One possible cause of this error is when the Windows user has access to SQL Server as a member of the local administrators' group, but Windows isn't providing administrator credentials. To connect, start the connecting program using the Run as administrator option, and then add the Windows user to SQL Server as a specific login."
+	case 12:
+		desc = "Login is valid login, but server access failed"
+	case 18:
+		desc = "Password must be changed"
+	case 38, 46:
+		desc = "Couldn't find database requested by user"
+	case 58:
+		desc = "When SQL Server is set to use Windows Authentication only, and a client attempts to log in using SQL authentication. Another cause is when SIDs don't match."
+	case 62:
+		desc = "Occurs when a Windows Authentication account tries to access a contained database, and the contained database exists, but the SIDs do not match"
+	case 102, 103, 104, 105, 106, 107, 108, 109, 110, 111:
+		desc = "Azure AD failure"
+	case 122, 123, 124:
+		desc = "Failure due to empty user name or password"
+	case 126:
+		desc = "Database requested by user doesn't exist"
+	case 132, 133:
+		desc = "Azure AD failure"
+	default:
+		desc = ""
+	}
+
+	if desc != "" {
+		e.Set("xe_state_description", desc)
 	}
 }
 
@@ -633,6 +693,12 @@ func (e *Event) GetString(key string) string {
 		return ""
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+// Exists tests if a key exists
+func (e *Event) Exists(key string) bool {
+	_, exists := (*e)[key]
+	return exists
 }
 
 // getDatabaseID returns an int64 value

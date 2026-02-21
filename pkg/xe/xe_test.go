@@ -26,6 +26,10 @@ func init() {
 			"query_plan_hash":        "uint64",
 			"query_hash":             "uint64",
 		},
+		Fields: map[FieldTypeKey]string{
+			{"error_reported", "error_number"}: "int32",
+			{"error_reported", "state"}:        "int32",
+		},
 	}
 }
 
@@ -365,6 +369,44 @@ func TestErrorReportedEvent(t *testing.T) {
 	// t.Log(jsonBytes)
 	jsonString := string(jsonBytes)
 	assert.Equal(t, event.GetString("xe_category"), "error_reported")
+	t.Log("JSON String: ", jsonString)
+}
+
+func TestErrorReported18456State(t *testing.T) {
+	rawXML := `
+	<event name="error_reported" package="sqlserver" timestamp="2026-01-01T17:55:37.740Z">
+		<data name="error_number"><value>18456</value></data>
+		<data name="severity"><value>14</value></data>
+		<data name="state"><value>5</value></data>
+		<data name="user_defined"><value>false</value></data>
+		<data name="category"><value>4</value><text><![CDATA[LOGON]]></text></data>
+		<data name="destination"><value>0x0000001c</value><text><![CDATA[BUFFER, ERRORLOG, EVENTLOG]]></text></data>
+		<data name="is_intercepted"><value>true</value></data>
+		<data name="message"><value><![CDATA[Login failed for user 'abcd'. Reason: Could not find a login matching the name provided. [CLIENT: <local machine>]]]></value></data>
+		
+		<action name="session_id" package="sqlserver"><value>54</value></action>
+		<action name="server_instance_name" package="sqlserver"><value><![CDATA[D40\SQL2016]]></value></action>
+		<action name="query_hash" package="sqlserver"><value>0</value></action>
+		<action name="database_name" package="sqlserver"><value><![CDATA[master]]></value></action>
+		<action name="client_pid" package="sqlserver"><value>21912</value></action>
+		<action name="client_hostname" package="sqlserver"><value><![CDATA[D40]]></value></action>
+		<action name="client_app_name" package="sqlserver"><value><![CDATA[Microsoft SQL Server Management Studio - Query]]></value></action>
+	</event>
+`
+
+	event, err := Parse(&i, rawXML, false)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Raw Event: ", event)
+	jsonBytes, err := json.Marshal(event)
+	if err != nil {
+		t.Error(err)
+	}
+	// t.Log(jsonBytes)
+	jsonString := string(jsonBytes)
+	assert.Equal(t, "error_reported", event.GetString("xe_category"))
+	assert.Equal(t, "User ID isn't valid", event.GetString("xe_state_description"))
 	t.Log("JSON String: ", jsonString)
 }
 
