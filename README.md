@@ -86,13 +86,12 @@ My experience here is very limited.  Feedback is appreciated.
 ### vNext 
 These are features that aren't in a binary yet
 * Support `database_file_size_change` events
-* Update dependencies and GO version
 * If an event has an error number, and that error number is `is_event_logged=1` then set `xe_is_event_logged=true`.  This is useful to know if we can create an alert for an event.
 * Improved support for SQL Server 2025
 * Improved support for `binary_data` fields in the XML. This is for capturing query handles and hashes but will help with SIDs, etc.  These are displayed as hex strings with a `0x` prefix.
 * The app sets `cpu_time_sec`, `logical_reads_mb`, `physical_reads_mb`, `writes_mb`, and `duration_sec`. These fields are only added if the quantity at or above the threshold. For example, `cpu_time_sec` is only added if the CPU time is at least 1 second (1 million microseconds).  This was formerly a beta feature controlled by a flag.
-* For error 18456, we set `xe_state_description` based on the descriptions in the [SQL Server Documentation](https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-18456-database-engine-error?view=sql-server-ver17).  This helps highlight the actual cause of the error.
-* Update new builds to GO 1.25.7
+* For error 18456, we set `xe_state_description` based on the descriptions in the [SQL Server Documentation](https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-18456-database-engine-error?view=sql-server-ver17).  This helps highlight the actual cause of the login failure.
+* Update new builds to GO 1.25.7 and update dependencies
 
 
 ### Release 1.8.1
