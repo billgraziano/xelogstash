@@ -84,7 +84,6 @@ My experience here is very limited.  Feedback is appreciated.
 ------------------------------------------
 
 ### Release 1.9 (9 March 2026)
-These are features that aren't in a binary yet
 * Support `database_file_size_change` events
 * If an event has an error number, and that error number is `is_event_logged=1` then set `xe_is_event_logged=true`.  This is useful to know if we can create an alert for an event.
 * Improved support for SQL Server 2025
