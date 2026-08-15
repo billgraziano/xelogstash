@@ -60,7 +60,7 @@ func TestParseErrorLog(t *testing.T) {
 			state: 5,
 		},
 		//Test is broken
-		//Need to figure out the language and work backwords to extract the text
+		//Need to figure out the language and work backwards to extract the text
 		{
 			raw:    "2020-08-06 07:28:24.76 Logon       Login succeeded for user 'D40\\graz'. Connection made using Windows authentication. [CLIENT: <local machine>]  ",
 			proc:   "logon",
@@ -85,26 +85,49 @@ func TestParseErrorLog(t *testing.T) {
 			client: "::1",
 			msg:    "Error: 18456, Severity: 14, State: 5.  Login failed for user 'hjkhkj'. Reason: Could not find a login matching the name provided. [CLIENT: ::1]",
 		},
+		{
+			raw:  "2026-08-14 22:03:19.55 spid174     I/O was resumed on database TXNDB. No user action is required.",
+			proc: "info",
+			msg:  "I/O was resumed on database TXNDB. No user action is required.",
+		},
+		{
+			raw:  "2026-08-14 22:03:19.45 spid179     I/O is frozen on database master. No user action is required. However, if I/O is not resumed promptly, you could cancel the backup.",
+			proc: "info",
+		},
+		{
+			raw:  "2026-08-15 09:11:29.94 spid52      DBCC CHECKDB (TXNDB) WITH physical_only executed by NT SERVICE\\SQLSERVERAGENT found 0 errors and repaired 0 errors. Elapsed time: 0 hours 0 minutes 0 seconds.  Internal database snapshot has split point LSN = 00000a29:000004e6:0001 and first LSN = 00000a29:000004e4:0001.",
+			proc: "dbcc",
+		},
+		{
+			raw:  "2026-08-15 03:31:31.41 spid25s     [INFO] Database Id: [9],pru->IsReadOnly:false",
+			proc: "info",
+		},
+		{
+			raw:  "2026-08-15 02:16:07.54 spid104s    Error: 41145, Severity: 16, State: 1. 2026-08-15 02:16:07.54 spid104s    Cannot join database 'TXNDB' to availability group 'TXNAG'.  The database has already joined the availability group.  This is an informational message.  No user action is required.",
+			proc: "info",
+		},
 	}
 
 	for _, tc := range tt {
 		e := Event{}
 		e.Set("message", tc.raw)
 		e.parseErrorLogMessage()
-		assert.Equal(tc.raw, e.GetString("errorlog_raw"))
-		assert.Equal(tc.proc, e.GetString("errorlog_process"))
-		assert.Equal(tc.msg, e.GetString("errorlog_message"))
-		assert.Equal(tc.client, e.GetString("xe_client_address"))
+		assert.Equal(tc.raw, e.GetString("errorlog_raw"), tc.raw)
+		assert.Equal(tc.proc, e.GetString("errorlog_process"), tc.raw)
+		if tc.msg != "" {
+			assert.Equal(tc.msg, e.GetString("errorlog_message"), tc.raw)
+		}
+		assert.Equal(tc.client, e.GetString("xe_client_address"), tc.raw)
 		if tc.err != 0 {
 			num, ok := e.GetInt64("error_number")
-			assert.True(ok)
-			assert.Equal(tc.err, num)
+			assert.True(ok, tc.raw)
+			assert.Equal(tc.err, num, tc.raw)
 			sev, ok := e.GetInt64("severity")
-			assert.True(ok)
-			assert.Equal(tc.sev, sev)
+			assert.True(ok, tc.raw)
+			assert.Equal(tc.sev, sev, tc.raw)
 			state, ok := e.GetInt64("state")
-			assert.True(ok)
-			assert.Equal(tc.state, state)
+			assert.True(ok, tc.raw)
+			assert.Equal(tc.state, state, tc.raw)
 		}
 	}
 }

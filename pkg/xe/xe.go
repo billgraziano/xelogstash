@@ -425,6 +425,18 @@ func (e *Event) parseErrorLogMessage() {
 	if foundError && process == processLogon {
 		e.Set("login_failed", left(msg, 8000, "..."))
 	}
+
+	// handle messages we think are informational
+	// we only do this for "spid" processes
+	// if any other process, we just leave it
+	if strings.HasPrefix(process, "spid") {
+		if strings.Contains(msg, "No user action is required") || strings.Contains(msg, "This is an informational message") || strings.HasPrefix(msg, "[INFO]") {
+			e.Set("errorlog_process", "info")
+		}
+		if strings.HasPrefix(msg, "DBCC CHECKDB") {
+			e.Set("errorlog_process", "dbcc")
+		}
+	}
 }
 
 // setDatabaseName sets the name if we have a database_id
