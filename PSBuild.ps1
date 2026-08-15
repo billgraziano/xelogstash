@@ -39,7 +39,7 @@ if ($LastExitCode -ne 0) {
 }
 
 Write-Output "Running go test..."
-go test .\cmd\xelogstash ./cmd/sqlxewriter .\pkg\...
+go test -count=1 .\cmd\xelogstash ./cmd/sqlxewriter .\pkg\...
 if ($LastExitCode -ne 0) {
     exit
 }
