@@ -248,7 +248,32 @@ func Parse(i *SQLInfo, eventData string, beta bool) (Event, error) {
 	if beta {
 		// no beta features in this release
 	}
+
+	if ed.Name == "login" {
+		event.parseLogin()
+	}
+
 	return event, nil
+}
+
+// parseLogin adds fields for the domain and user for trusted Authentication
+func (e *Event) parseLogin() {
+	spn := e.GetString("server_principal_name")
+	if spn == "" {
+		return
+	}
+
+	parts := strings.Split(spn, `\`)
+	if len(parts) != 2 {
+		return
+	}
+
+	if parts[0] != "" {
+		e.Set("xe_login_domain", parts[0])
+	}
+	if parts[1] != "" {
+		e.Set("xe_login_domain_user", parts[1])
+	}
 }
 
 func (e *Event) parseErrorReported(i *SQLInfo, desc string) {
