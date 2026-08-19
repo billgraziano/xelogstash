@@ -426,15 +426,16 @@ func (e *Event) parseErrorLogMessage() {
 		e.Set("login_failed", left(msg, 8000, "..."))
 	}
 
-	// handle messages we think are informational
+	// categorize the errorlog_process based on the message
 	// we only do this for "spid" processes
 	// if any other process, we just leave it
 	if strings.HasPrefix(process, "spid") {
-		if strings.Contains(msg, "No user action is required") || strings.Contains(msg, "This is an informational message") || strings.HasPrefix(msg, "[INFO]") {
-			e.Set("errorlog_process", "info")
-		}
-		if strings.HasPrefix(msg, "DBCC CHECKDB") {
+		if strings.HasPrefix(msg, "Always On") {
+			e.Set("errorlog_process", "alwayson")
+		} else if strings.HasPrefix(msg, "DBCC CHECKDB") {
 			e.Set("errorlog_process", "dbcc")
+		} else if strings.Contains(msg, "No user action is required") || strings.Contains(msg, "This is an informational message") || strings.HasPrefix(msg, "[INFO]") {
+			e.Set("errorlog_process", "info")
 		}
 	}
 }

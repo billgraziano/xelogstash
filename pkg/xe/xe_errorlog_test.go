@@ -105,6 +105,9 @@ func TestParseErrorLog(t *testing.T) {
 		{
 			raw:  "2026-08-15 02:16:07.54 spid104s    Error: 41145, Severity: 16, State: 1. 2026-08-15 02:16:07.54 spid104s    Cannot join database 'TXNDB' to availability group 'TXNAG'.  The database has already joined the availability group.  This is an informational message.  No user action is required.",
 			proc: "info",
+		}, {
+			raw:  "2026-08-15 02:16:07.54 spid104s    Always On is doing stuff.",
+			proc: "alwayson",
 		},
 	}
 

@@ -89,6 +89,7 @@ My experience here is very limited.  Feedback is appreciated.
   * The message contains "No user action is required"
   * The message contains "This is an informational message"
   * The message starts with "[INFO]"
+* The `errorlog_written` event will set the `errorlog_process` field to "alwayson" if the message starts with "Always On" 
 * The `errorlog_written` event will set the `errorlog_process` field to "dbcc" if the message starts with "DBCC CHECKDB"
 
 
