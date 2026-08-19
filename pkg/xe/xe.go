@@ -429,12 +429,13 @@ func (e *Event) parseErrorLogMessage() {
 	// categorize the errorlog_process based on the message
 	// we only do this for "spid" processes
 	// if any other process, we just leave it
-	if strings.HasPrefix(process, "spid") {
-		if strings.HasPrefix(msg, "Always On") {
+	msglower := strings.ToLower(msg)
+	if strings.HasPrefix(strings.ToLower(process), "spid") {
+		if strings.HasPrefix(msglower, "always on") {
 			e.Set("errorlog_process", "alwayson")
-		} else if strings.HasPrefix(msg, "DBCC CHECKDB") {
+		} else if strings.HasPrefix(msglower, "dbcc checkdb") {
 			e.Set("errorlog_process", "dbcc")
-		} else if strings.Contains(msg, "No user action is required") || strings.Contains(msg, "This is an informational message") || strings.HasPrefix(msg, "[INFO]") {
+		} else if strings.Contains(msglower, "no user action is required") || strings.Contains(msglower, "this is an informational message") || strings.HasPrefix(msglower, "[info]") {
 			e.Set("errorlog_process", "info")
 		}
 	}
