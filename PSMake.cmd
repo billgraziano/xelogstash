@@ -1,2 +1,2 @@
 @ECHO OFF
-PowerShell -File PSBuild.ps1 -Version "%1%"
+PowerShell -File PSBuild.ps1 -Version "%1%" -Sign

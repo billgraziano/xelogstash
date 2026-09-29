@@ -1,7 +1,19 @@
 Param (
-    [string]$version = "dev"
+    [string]$version = "dev",
+    [switch]$Sign = $false
 )
 $ErrorActionPreference = "Stop"
+
+function Test-AzureLogin {
+    try {
+        az account show --output none 2>$null
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
 
 Write-Output "Running PSBuild.ps1..."
 Write-Output "" 
@@ -18,6 +30,22 @@ Write-Output "Version: $($version)"
 # Clean deploy directory
 If (Test-Path $target) {
     Remove-Item $target -Recurse
+}
+
+if ($Sign -and -not (Test-AzureLogin)) {
+    try {
+        az login `
+            --use-device-code `
+            --scope "https://codesigning.azure.net/.default" | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Azure login failed."
+        }
+    }
+    catch {
+        Write-Error $_
+        exit 1
+    }
+    Write-Host "Azure login successful"
 }
 
 # $now = Get-Date -UFormat "%Y-%m-%d_%T_%Z"
@@ -49,6 +77,32 @@ go build -o "$($target)\sqlxewriter.exe" -a -ldflags "-X main.sha1ver=$sha1 -X m
 if ($LastExitCode -ne 0) {
     exit
 }
+
+
+if ($Sign) {
+    # Signing code
+    Write-Host "Signing sqlxewriter.exe..."
+    sign.exe code artifact-signing `
+        -b "C:\dev\github.com\xelogstash\deploy\windows\sqlxewriter" `
+        --artifact-signing-endpoint "https://cus.codesigning.azure.net/" `
+        --artifact-signing-certificate-profile "sign-cert" `
+        --artifact-signing-account "acct-codesign" `
+        sqlxewriter.exe `
+        -v Warning `
+        --azure-credential-type azure-cli
+
+    $signature = Get-AuthenticodeSignature "$($target)\sqlxewriter.exe"
+
+    if ($signature.Status -ne 'Valid') {
+        Write-Error "Signature validation failed: $($signature.Status)"
+        exit 1
+    }
+
+    Write-Host "Signed by: $($signature.SignerCertificate.Subject)"
+    Write-Host "Issuer:    $($signature.SignerCertificate.Issuer)"
+    Write-Host "Expires :  $($signature.SignerCertificate.NotAfter)"
+}
+
 
 .\Deploy\Windows\SQLXEWriter\SQLXEWriter.exe -version 
 

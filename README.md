@@ -83,14 +83,15 @@ My experience here is very limited.  Feedback is appreciated.
 <a name="whats-new"></a>What's New
 ------------------------------------------
 
-### Release 1.9.1 (17 August 2026)
+### Release 1.9.1 (2 September 2026)
+* The binaries are signed
 * For login events, if the `server_principal_name` is in domain\user form, the domain will be in `xe_login_domain` and the user in `xe_login_domain_user`.
-* The `errorlog_written` event will set the `errorlog_process` field to "info" in the following conditions.  This should make these events easier to filter out.
+* The `errorlog_written` event will set the `errorlog_process` field to `info` in the following conditions.  This should make these events easier to filter out.
   * The message contains "No user action is required"
   * The message contains "This is an informational message"
   * The message starts with "[INFO]"
-* The `errorlog_written` event will set the `errorlog_process` field to "alwayson" if the message starts with "Always On" 
-* The `errorlog_written` event will set the `errorlog_process` field to "dbcc" if the message starts with "DBCC CHECKDB"
+* The `errorlog_written` event will set the `errorlog_process` field to `alwayson` if the message starts with "Always On" 
+* The `errorlog_written` event will set the `errorlog_process` field to `dbcc` if the message starts with "DBCC CHECKDB"
 
 
 ### Release 1.9 (9 March 2026)
